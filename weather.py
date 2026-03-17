@@ -752,7 +752,7 @@ class Weather(commands.Cog):
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
     # TODO: if the current channel only has one subscription, remove it and don't take id.
-    @app_commands.command(name="weather_unsubscribe", description="Unsubscribe from weather announcements in the current channel.")
+    @app_commands.command(name="weather_unsubscribe", description="Unsubscribe from weather announcements by ID.")
     async def weather_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
