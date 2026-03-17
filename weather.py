@@ -757,7 +757,7 @@ class Weather(commands.Cog):
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
         await inter.response.defer(ephemeral=True)
         ok = self.store.remove_weather_sub(inter.channel_id, requester_id=inter.channel_id)
-        await inter.followup.send("Unsubscribed <#{inter.channel_id}> from weather announcements." if ok else "Could not unsubscribe <#{inter.channel_id} from weather announcements.", ephemeral=True)
+        await inter.followup.send("Unsubscribed <#{inter.channel_id}> from weather announcements." if ok else "Could not unsubscribe <#{inter.channel_id}> from weather announcements.", ephemeral=True)
 
     @app_commands.command(name="wx_alerts", description="Enable/disable severe weather alert announcements in the current channel.")
     @app_commands.describe(
