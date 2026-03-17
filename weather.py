@@ -5,6 +5,7 @@ import json
 import aiohttp
 import asyncio
 import traceback
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -13,6 +14,9 @@ from astral import moon
 import discord
 from discord.ext import tasks, commands
 from discord import app_commands
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+log = logging.getLogger("weather")
 
 # ---- Constants & styling helpers ----
 DEFAULT_TZ_NAME = "America/Chicago"
