@@ -183,7 +183,7 @@ class Events(commands.Cog):
     @app_commands.choices(cadence=CADENCE_CHOICES)
     async def events_list(self, inter: discord.Interaction, cadence: app_commands.Choice[str],):
         events = inter.channel.guild.scheduled_events
-        await self.processEventList(s, cadence, inter.channel.guild.scheduled_events, inter.channel)
+        await self.processEventList(cadence, inter.channel.guild.scheduled_events, inter.channel)
 
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
