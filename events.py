@@ -180,8 +180,10 @@ class Events(commands.Cog):
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
     @app_commands.command(name="events_list", description="Show the list of upcoming events.")
-    async def events_list(self, inter: discord.Interaction, sub_id: int):
-        processEventList(s, events)
+    @app_commands.choices(cadence=CADENCE_CHOICES)
+    async def events_list(self, inter: discord.Interaction, cadence: app_commands.Choice[str],):
+        events = inter.channel.guild.scheduled_events
+        await self.processEventList(s, cadence, inter.channel.guild.scheduled_events, inter.channel)
 
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
@@ -204,7 +206,7 @@ class Events(commands.Cog):
                         channel = await self.bot.fetch_channel(int(s["channel_id"]))
                         events = channel.guild.scheduled_events
 
-                        await processEventList(s["cadence"], events, channel)
+                        await self.processEventList(s["cadence"], events, channel)
 
                         next = datetime.now()
                         next = next.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
