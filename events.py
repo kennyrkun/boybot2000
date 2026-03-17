@@ -48,7 +48,7 @@ class Events(commands.Cog):
 
         if len(events) > 1:
             emb = discord.Embed(
-                title=f"\U0001F324\ufe0f {len(events) Events happening {noun}!",
+                title=f"\U0001F324\ufe0f {len(events)} Events happening {noun}!",
                 colour="1e90ff"
             )
 
