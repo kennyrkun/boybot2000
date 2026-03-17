@@ -746,18 +746,19 @@ class Weather(commands.Cog):
                 self.store.update_weather_sub(s["id"], channel_id=int(s["channel_id"]), next_run_utc=nxt.isoformat())
 
             out_lines.append(
-                f"<#{s['channel_id']}> — {cadence} at {hh:02d}:{mi:02d} ({tz_name}) - ZIP {s.get('zip','?????')} - units {units} - next: {_fmt_local(nxt, tz_name)}"
+                f"Subscription #{s['id']} in <#{s['channel_id']}> — {cadence} at {hh:02d}:{mi:02d} ({tz_name}) - ZIP {s.get('zip','?????')} - units {units} - next: {_fmt_local(nxt, tz_name)}"
             )
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
+    # TODO: if the current channel only has one subscription, remove it and don't take id.
     @app_commands.command(name="weather_unsubscribe", description="Unsubscribe from weather announcements in the current channel.")
-    async def weather_unsubscribe(self, inter: discord.Interaction):
+    async def weather_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
         await inter.response.defer(ephemeral=True)
-        ok = self.store.remove_weather_sub(inter.channel_id, requester_id=inter.channel_id)
-        await inter.followup.send("Unsubscribed <#{inter.channel_id}> from weather announcements." if ok else "Could not unsubscribe <#{inter.channel_id}> from weather announcements.", ephemeral=True)
+        ok = self.store.remove_weather_sub(subscription_id, requester_id=inter.channel_id)
+        await inter.followup.send("Deleted weather announcement subscription {subscription_id}." if ok else "Could not delete subscription {subscription_id}.", ephemeral=True)
 
     @app_commands.command(name="wx_alerts", description="Enable/disable severe weather alert announcements in the current channel.")
     @app_commands.describe(
