@@ -27,7 +27,7 @@ class Store:
             """
             CREATE TABLE IF NOT EXISTS weather_subs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                channel_id INTEGER NOT NULL,
+                channel_id INTEGER NOT NULL UNIQUE,
                 zip TEXT NOT NULL,
                 cadence TEXT NOT NULL,
                 hh INTEGER NOT NULL,
@@ -49,6 +49,20 @@ class Store:
                 key TEXT NOT NULL,
                 value TEXT NOT NULL,
                 PRIMARY KEY (channel_id, key)
+            )
+            """
+        )
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS event_subs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                channel_id INTEGER NOT NULL UNIQUE,
+                cadence TEXT NOT NULL,
+                hh INTEGER NOT NULL,
+                mi INTEGER NOT NULL,
+                weekly_days INTEGER,
+                next_run TEXT NOT NULL
             )
             """
         )
@@ -162,7 +176,7 @@ class Store:
         rows = self.db.execute(
             """
             SELECT id, channel_id, zip, cadence, hh, mi, weekly_days, tz_name, units, next_run_utc
-            FROM weather_subs
+            FROM event_subs
             WHERE channel_id = ?
             ORDER BY next_run_utc ASC
             """,
