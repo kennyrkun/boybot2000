@@ -110,13 +110,13 @@ class Events(commands.Cog):
                 "hh": int(hh),
                 "mi": int(mi),
                 "weekly_days": int(weekly_days or 7),
-                "next_run_utc": next_run_utc.isoformat(),
+                "next_run_utc": next_run.isoformat(),
             }
 
             self.store.add_events_sub(sub)
 
             await inter.followup.send(
-                f"\U0001F324\ufe0f Subscribed <@{sub['channel_id']}> to {cadence.value} event announcements at **{first_local.strftime('%I:%M %p')}**.\n"
+                f"\U0001F324\ufe0f Subscribed <@{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
                 + ("Weekly length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.")
                 ephemeral=True
             )
