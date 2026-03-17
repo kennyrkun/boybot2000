@@ -52,6 +52,7 @@ class Events(commands.Cog):
             noun = "this week"
 
         if len(events) > 1:
+            len(events)
 
             for event in events:
                 emb = discord.Embed(
@@ -60,20 +61,18 @@ class Events(commands.Cog):
                 )
 
                 # TODO: if event is more than interval away, ignore it
-                
+
                 emb.add_field(name="Name", value=event.name, inline=False)
                 emb.add_field(name="Interested", value=event.user_count, inline=True)
                 emb.add_field(name="When", value=event.start_time, inline=True)
                 emb.add_field(name="Where", value=event.location, inline=True)
                 emb.add_field(name="Description", value=event.description, inline=False)
-
                 author = await self.bot.fetch_user(event.creator_id)
-
                 emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
 
-                await channel.send(embed = emb)
+                await channel.send(content = f"There are {len(events)} happening {noun}!", embed = emb, delete_after = 86400)
 
-            #emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
+                break;
 
             #days = int(s.get("weekly_days", 7))
             #days = 10 if days > 10 else (3 if days < 3 else days)
