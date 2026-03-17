@@ -59,7 +59,8 @@ class Events(commands.Cog):
                     colour=discord.Colour.blue()
                 )
 
-                # if event is more than interval away, ignore it
+                # TODO: if event is more than interval away, ignore it
+                
                 emb.add_field(name="Name", value=event.name, inline=False)
                 emb.add_field(name="Interested", value=event.user_count, inline=True)
                 emb.add_field(name="When", value=event.start_time, inline=True)
@@ -68,7 +69,7 @@ class Events(commands.Cog):
 
                 author = await self.bot.fetch_user(event.creator_id)
 
-                emb.set_author(author.display_name, url = None, icon_url = author.avatar.url)
+                emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
 
                 await channel.send(embed = emb)
 
