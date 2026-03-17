@@ -655,7 +655,7 @@ class Weather(commands.Cog):
         self.store.set_user_zip(inter.channel_id, z)
         await inter.response.send_message(f"\u2705 Saved default ZIP: **{z}**", ephemeral=True)
 
-    @app_commands.command(name="weather_subscribe", description="Subscribe to a daily or weekly weather DM at a local-time hour.")
+    @app_commands.command(name="weather_subscribe", description="Subscribe to a daily or weekly weather announcement at a local-time hour.")
     @app_commands.describe(
         time="HH:MM (24h), HHMM, or h:mma/pm in YOUR saved timezone",
         cadence="daily or weekly",
@@ -751,7 +751,7 @@ class Weather(commands.Cog):
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
-    @app_commands.command(name="weather_unsubscribe", description="Unsubscribe from weather DMs by ID.")
+    @app_commands.command(name="weather_unsubscribe", description="Unsubscribe from weather announcements in the current channel.")
     async def weather_unsubscribe(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
@@ -759,7 +759,7 @@ class Weather(commands.Cog):
         ok = self.store.remove_weather_sub(inter.channel_id, requester_id=inter.channel_id)
         await inter.followup.send("Unsubscribed <#{inter.channel_id}> from weather announcements." if ok else "Could not unsubscribe <#{inter.channel_id} from weather announcements.", ephemeral=True)
 
-    @app_commands.command(name="wx_alerts", description="Enable/disable severe weather alerts via DM (NWS).")
+    @app_commands.command(name="wx_alerts", description="Enable/disable severe weather alert announcements in the current channel.")
     @app_commands.describe(
         mode="on or off",
         zip="Optional ZIP (defaults to your saved ZIP)",
@@ -776,7 +776,7 @@ class Weather(commands.Cog):
             return await inter.response.send_message("Use **on** or **off**.", ephemeral=True)
         if mode == "off":
             self.store.set_note(inter.channel_id, "wx_alerts_enabled", "0")
-            return await inter.response.send_message("\U0001F515 Alerts for channel <#{inter.channel_id}> disabled.", ephemeral=True)
+            return await inter.response.send_message("\U0001F515 Severe weather alerts will no longer be sent to <#{inter.channel_id}>.", ephemeral=True)
 
         z = re.sub(r"[^0-9]", "", zip) if zip else (self.store.get_user_zip(inter.channel_id) or "")
         if len(z) != 5:
@@ -789,7 +789,7 @@ class Weather(commands.Cog):
         self.store.set_note(inter.channel_id, "wx_alerts_enabled", "1")
         self.store.set_note(inter.channel_id, "wx_alerts_zip", z)
         self.store.set_note(inter.channel_id, "wx_alerts_min_sev", sev)
-        await inter.response.send_message(f"\U0001F514 Alerts for **{z}** (min severity: **{sev}**) will be sent to <#{inter.channel_id}>.", ephemeral=True)
+        await inter.response.send_message(f"\U0001F514 Severe weather alerts for **{z}** (min severity: **{sev}**) will be sent to <#{inter.channel_id}>.", ephemeral=True)
 
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
