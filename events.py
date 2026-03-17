@@ -56,28 +56,29 @@ class Events(commands.Cog):
 
             for event in events:
                 emb = discord.Embed(
-                    title=f"\U0001F324\ufe0f {len(events)} Events happening {noun}!",
-                    colour=discord.Colour.blue()
+                    title = event.name,
+                    colour = discord.Colour.blue()
                 )
 
                 # TODO: if event is more than interval away, ignore it
 
-                emb.add_field(name="Name", value=event.name, inline=False)
-                emb.add_field(name="Interested", value=event.user_count, inline=True)
+                if event.user_count > 0: emb.add_field(name="Interested", value=event.user_count, inline=True)
                 emb.add_field(name="When", value=event.start_time, inline=True)
                 emb.add_field(name="Where", value=event.location, inline=True)
-                emb.add_field(name="Description", value=event.description, inline=False)
+
+                emb.add_field(name = None, value=event.description, inline=False)
+
                 author = await self.bot.fetch_user(event.creator_id)
                 emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
 
-                await channel.send(content = f"There are {len(events)} happening {noun}!", embed = emb, delete_after = 86400)
+                await channel.send(content = f"There are {len(events)} events coming up {noun}!", embed = emb, delete_after = 86400)
 
                 break;
 
             #days = int(s.get("weekly_days", 7))
             #days = 10 if days > 10 else (3 if days < 3 else days)
         else:
-            await channel.send("There are no events {noun}... :boykisser_suicide:")
+            await channel.send("There are no events {noun}... :boykisser_execution:")
 
     # -------- Slash Commands --------
 
@@ -115,7 +116,7 @@ class Events(commands.Cog):
             self.store.add_events_sub(sub)
 
             await inter.followup.send(
-                f"\U0001F324\ufe0f Subscribed <@{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
+                f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
                 + ("Weekly length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow."),
                 ephemeral=True
             )
@@ -128,7 +129,7 @@ class Events(commands.Cog):
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
         await inter.response.defer(ephemeral=True)
         ok = self.store.remove_events_sub(sub_id, requester_id=inter.channel_id)
-        await inter.followup.send("<@{inter.channel_id}> will no longer receive event announcements." if ok else "Failed to unsubscribe <@{inter.channel_id}> from event announcements.", ephemeral=True)
+        await inter.followup.send("<#{inter.channel_id}> will no longer receive event announcements." if ok else "Failed to unsubscribe <#{inter.channel_id}> from event announcements.", ephemeral=True)
 
     @app_commands.command(name="events_subscriptions", description="List your event announcement subscriptions and next send time.")
     async def events_subscriptions(self, inter: discord.Interaction):
@@ -168,7 +169,7 @@ class Events(commands.Cog):
                 self.store.update_event_sub(s["id"], channel_id=int(s["channel_id"]), next_run=nxt.isoformat())
 
             out_lines.append(
-                f"<@{s['channel_id']}> — {cadence} at {hh:02d}:{mi:02d} - next: {_fmt_local(nxt)}"
+                f"<#{s['channel_id']}> — {cadence} at {hh:02d}:{mi:02d} - next: {_fmt_local(nxt)}"
             )
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
