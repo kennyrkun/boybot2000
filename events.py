@@ -23,6 +23,11 @@ HTTP_HEADERS = {
     "Accept": "application/json",
 }
 
+CADENCE_CHOICES = [
+    app_commands.Choice(name="daily", value="daily"),
+    app_commands.Choice(name="weekly (send on this weekday)", value="weekly"),
+]
+
 class Events(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
