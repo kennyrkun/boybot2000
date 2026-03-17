@@ -68,7 +68,7 @@ class Events(commands.Cog):
 
                 author = await self.bot.fetch_user(event.creator_id)
 
-                emb.set_author(author.display_name, icon_url = author.avatar.url)
+                emb.set_author(author.display_name, None, author.avatar.url)
 
                 await channel.send(embed = emb)
 
