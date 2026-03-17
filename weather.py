@@ -699,7 +699,7 @@ class Weather(commands.Cog):
             }
             sid = self.store.add_weather_sub(sub)
             await inter.followup.send(
-                f"\U0001F324\ufe0f Subscribed **#{sub['channel_id']}** — {cadence.value} at **{first_local.strftime('%I:%M %p')}** ({tz_name}) for ZIP **{z}**.\n"
+                f"\U0001F324\ufe0f Subscribed <@{sub['channel_id']}> — {cadence.value} at **{first_local.strftime('%I:%M %p')}** ({tz_name}) for ZIP **{z}**.\n"
                 + ("Weekly outlook length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.")
                 + f"\nUnits: **{units}**",
                 ephemeral=True
@@ -747,7 +747,7 @@ class Weather(commands.Cog):
                 self.store.update_weather_sub(s["id"], channel_id=int(s["channel_id"]), next_run_utc=nxt.isoformat())
 
             out_lines.append(
-                f"**#{s['channel_id']}** — {cadence} at {hh:02d}:{mi:02d} ({tz_name}) - ZIP {s.get('zip','?????')} - units {units} - next: {_fmt_local(nxt, tz_name)}"
+                f"<@{s['channel_id']}> — {cadence} at {hh:02d}:{mi:02d} ({tz_name}) - ZIP {s.get('zip','?????')} - units {units} - next: {_fmt_local(nxt, tz_name)}"
             )
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
@@ -777,7 +777,7 @@ class Weather(commands.Cog):
             return await inter.response.send_message("Use **on** or **off**.", ephemeral=True)
         if mode == "off":
             self.store.set_note(inter.channel_id, "wx_alerts_enabled", "0")
-            return await inter.response.send_message("\U0001F515 Severe weather alerts disabled.", ephemeral=True)
+            return await inter.response.send_message("\U0001F515 Alerts for channel <@{inter.channel_id}> disabled.", ephemeral=True)
 
         z = re.sub(r"[^0-9]", "", zip) if zip else (self.store.get_user_zip(inter.channel_id) or "")
         if len(z) != 5:
@@ -790,7 +790,7 @@ class Weather(commands.Cog):
         self.store.set_note(inter.channel_id, "wx_alerts_enabled", "1")
         self.store.set_note(inter.channel_id, "wx_alerts_zip", z)
         self.store.set_note(inter.channel_id, "wx_alerts_min_sev", sev)
-        await inter.response.send_message(f"\U0001F514 Alerts **ON** for **{z}** (min severity: **{sev}**).", ephemeral=True)
+        await inter.response.send_message(f"\U0001F514 Alerts for **{z}** (min severity: **{sev}**) will be sent to <@{inter.channel_id}>.", ephemeral=True)
 
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
@@ -871,7 +871,7 @@ class Weather(commands.Cog):
                             self.store.update_weather_sub(s["id"], next_run_utc=fallback.isoformat())
                             await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Weather error: {e} {traceback.format_exc()}")
         except Exception as e:
-            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Subscription error: {e} {traceback.format_exc()}")
+            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Weather subscriptions error: {e} {traceback.format_exc()}")
 
     @weather_scheduler.before_loop
     async def before_weather(self):
