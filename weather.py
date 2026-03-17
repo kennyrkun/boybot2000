@@ -305,19 +305,21 @@ CADENCE_CHOICES = [
 ]
 
 class Weather(commands.Cog):
-    """All weather features: current, subscriptions, and alerts."""
     def __init__(self, bot: commands.Bot, store=None):
         self.bot = bot
+
         # Try to discover the Store from bot or import-time fallback
         self.weatherStore = store or getattr(bot, "store", None)
+        
         if self.weatherStore is None:
+            log.warning("Storage backend not available, trying to use fallback.")
             try:
                 import bot as _bot_main
                 self.weatherStore = getattr(_bot_main, "store", None)
             except Exception:
                 self.weatherStore = None
+                log.exception("Storage backend not available.")
 
-        # Background loops
         self.weather_scheduler.start()
         self.wx_alerts_scheduler.start()
 
