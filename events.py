@@ -38,7 +38,7 @@ class Events(commands.Cog):
     def cog_unload(self):
         self.events_scheduler.cancel()
 
-    def processEventList(self, cadence, events, channel):
+    async def processEventList(self, cadence, events, channel):
         if cadence == "daily":
             interval = 1
             noun = "today"
@@ -123,6 +123,14 @@ class Events(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
 
+    @app_commands.command(name="events_unsubscribe", description="Unsubscribe from event announcements for the current channel.")
+    async def events_unsubscribe(self, inter: discord.Interaction, sub_id: int):
+        if self.store is None:
+            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+        await inter.response.defer(ephemeral=True)
+        ok = self.store.remove_events_sub(sub_id, requester_id=inter.channel_id)
+        await inter.followup.send("<@{inter.channel_id}> will no longer receive event announcements." if ok else "Failed to unsubscribe <@{inter.channel_id}> from event announcements.", ephemeral=True)
+
     @app_commands.command(name="events_subscriptions", description="List your event announcement subscriptions and next send time.")
     async def events_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
@@ -167,7 +175,7 @@ class Events(commands.Cog):
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
     @app_commands.command(name="events_list", description="Show the list of upcoming events.")
-    async def events_unsubscribe(self, inter: discord.Interaction, sub_id: int):
+    async def events_list(self, inter: discord.Interaction, sub_id: int):
         processEventList(s, events)
 
     # -------- Schedulers --------
@@ -191,7 +199,7 @@ class Events(commands.Cog):
                         channel = await self.bot.fetch_channel(int(s["channel_id"]))
                         events = channel.guild.scheduled_events
 
-                        processEventList(s["cadence"], events, channel)
+                        await processEventList(s["cadence"], events, channel)
 
                         next = datetime.now()
                         next = next.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
