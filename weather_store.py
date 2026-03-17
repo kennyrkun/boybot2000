@@ -1,0 +1,164 @@
+import os
+import sqlite3
+from typing import Optional, Dict, Any, List
+
+class WxStore:
+    """Tiny SQLite-backed store for weather preferences and schedules."""
+
+    def __init__(self, db_path):
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        self.db = sqlite3.connect(db_path, check_same_thread=False)
+        self.db.row_factory = sqlite3.Row
+        self._init_schema()
+
+    def _init_schema(self):
+        cur = self.db.cursor()
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS weather_zips (
+                channel_id INTEGER PRIMARY KEY,
+                zip TEXT NOT NULL
+            )
+            """
+        )
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS weather_subs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                channel_id INTEGER NOT NULL,
+                zip TEXT NOT NULL,
+                cadence TEXT NOT NULL,
+                hh INTEGER NOT NULL,
+                mi INTEGER NOT NULL,
+                weekly_days INTEGER,
+                tz_name TEXT,
+                units TEXT,
+                next_run_utc TEXT NOT NULL
+            )
+            """
+        )
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_weather_subs_next ON weather_subs(next_run_utc)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_weather_subs_user ON weather_subs(channel_id)")
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS notes (
+                channel_id INTEGER NOT NULL,
+                key TEXT NOT NULL,
+                value TEXT NOT NULL,
+                PRIMARY KEY (channel_id, key)
+            )
+            """
+        )
+
+        self.db.commit()
+
+        # ---- Lightweight migrations (older DBs) ----
+        try:
+            cols = {r[1] for r in self.db.execute("PRAGMA table_info(weather_subs)").fetchall()}
+            if "tz_name" not in cols:
+                self.db.execute("ALTER TABLE weather_subs ADD COLUMN tz_name TEXT")
+            if "units" not in cols:
+                self.db.execute("ALTER TABLE weather_subs ADD COLUMN units TEXT")
+            self.db.commit()
+        except Exception:
+            # Best-effort: if migration fails, bot still runs with defaults
+            pass
+
+    def get_user_zip(self, channel_id: int) -> Optional[str]:
+        row = self.db.execute("SELECT zip FROM weather_zips WHERE channel_id = ?", (int(channel_id),)).fetchone()
+        return row["zip"] if row else None
+
+    def set_user_zip(self, channel_id: int, zip_code: str) -> None:
+        self.db.execute(
+            """
+            INSERT INTO weather_zips(channel_id, zip) VALUES (?, ?)
+            ON CONFLICT(channel_id) DO UPDATE SET zip = excluded.zip
+            """,
+            (int(channel_id), str(zip_code)),
+        )
+        self.db.commit()
+
+    def add_weather_sub(self, sub: Dict[str, Any]) -> int:
+        cur = self.db.cursor()
+        cur.execute(
+            """
+            INSERT INTO weather_subs(channel_id, zip, cadence, hh, mi, weekly_days, tz_name, units, next_run_utc)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                int(sub["channel_id"]),
+                str(sub["zip"]),
+                str(sub["cadence"]),
+                int(sub["hh"]),
+                int(sub["mi"]),
+                int(sub.get("weekly_days") or 0),
+                str(sub.get("tz_name") or ""),
+                str(sub.get("units") or ""),
+                str(sub["next_run_utc"]),
+            ),
+        )
+        self.db.commit()
+        return int(cur.lastrowid)
+
+    def list_weather_subs(self, channel_id: Optional[int] = None) -> List[Dict[str, Any]]:
+        """List subscriptions. If channel_id is None, returns all subs."""
+        if channel_id is None:
+            rows = self.db.execute(
+                """
+                SELECT id, channel_id, zip, cadence, hh, mi, weekly_days, tz_name, units, next_run_utc
+                FROM weather_subs
+                ORDER BY next_run_utc ASC
+                """
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+        rows = self.db.execute(
+            """
+            SELECT id, channel_id, zip, cadence, hh, mi, weekly_days, tz_name, units, next_run_utc
+            FROM weather_subs
+            WHERE channel_id = ?
+            ORDER BY next_run_utc ASC
+            """,
+            (int(channel_id),),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def remove_weather_sub(self, sub_id: int, requester_id: int) -> bool:
+        """Remove a subscription by ID, only if it belongs to requester_id."""
+        cur = self.db.cursor()
+        cur.execute(
+            "DELETE FROM weather_subs WHERE id = ? AND channel_id = ?",
+            (int(sub_id), int(requester_id)),
+        )
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def update_weather_sub(self, sub_id: int, next_run_utc: str, **_ignored) -> None:
+        self.db.execute("UPDATE weather_subs SET next_run_utc = ? WHERE id = ?", (str(next_run_utc), int(sub_id)))
+        self.db.commit()
+
+    def get_note(self, channel_id: int, key: str) -> Optional[str]:
+        row = self.db.execute(
+            "SELECT value FROM notes WHERE channel_id = ? AND key = ?",
+            (int(channel_id), str(key)),
+        ).fetchone()
+        return row["value"] if row else None
+
+    def set_note(self, channel_id: int, key: str, value: str) -> None:
+        self.db.execute(
+            """
+            INSERT INTO notes(channel_id, key, value) VALUES (?, ?, ?)
+            ON CONFLICT(channel_id, key) DO UPDATE SET value = excluded.value
+            """,
+            (int(channel_id), str(key), str(value)),
+        )
+        self.db.commit()
+
+    def close(self):
+        try:
+            self.db.close()
+        except Exception:
+            pass
