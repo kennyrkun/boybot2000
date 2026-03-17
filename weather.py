@@ -807,7 +807,7 @@ class Weather(commands.Cog):
                     due = datetime.fromisoformat(s["next_run_utc"]).replace(tzinfo=timezone.utc)
                     if due <= now_utc:
                         try:
-                            user = await self.bot.fetch_channel(int(s["channel_id"]))
+                            channel = await self.bot.fetch_channel(int(s["channel_id"]))
                             city, state, lat, lon = await _zip_to_place_and_coords(session, s["zip"])
                             tz_name = (s.get("tz_name") or "").strip() or _get_user_tz_name(self.store, int(s["channel_id"]))
                             units = (s.get("units") or "").strip().lower() or _get_user_units(self.store, int(s["channel_id"]))
@@ -832,7 +832,7 @@ class Weather(commands.Cog):
                                     value = "\n".join([line, " - ".join(extras)]) if extras else line
                                     emb.add_field(name=d, value=value, inline=False)
                                 emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
-                                await user.send(embed=emb)
+                                await channel.send(embed=emb)
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
                                 next_local = next_local.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
@@ -857,7 +857,7 @@ class Weather(commands.Cog):
                                 for (d, line, _sunrise, _sunset, _uv, _hi) in outlook:
                                     emb.add_field(name=d, value=line, inline=False)
                                 emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
-                                await user.send(embed=emb)
+                                await channel.send(embed=emb)
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
                                 next_local = next_local.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
@@ -970,8 +970,8 @@ class Weather(commands.Cog):
                             if a.get("link"): tail += f"\nMore: {a['link']}"
                             emb.add_field(name=name, value=f"{body}{tail}", inline=False)
 
-                        user = await self.bot.fetch_channel(uid)
-                        await user.send(embed=emb)
+                        channel = await self.bot.fetch_channel(uid)
+                        await channel.send(embed=emb)
                         # mark seen
                         for a in fresh:
                             aid = a.get("id")
