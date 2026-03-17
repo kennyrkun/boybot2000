@@ -752,12 +752,12 @@ class Weather(commands.Cog):
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
     @app_commands.command(name="weather_unsubscribe", description="Unsubscribe from weather DMs by ID.")
-    async def weather_unsubscribe(self, inter: discord.Interaction, sub_id: int):
+    async def weather_unsubscribe(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
         await inter.response.defer(ephemeral=True)
-        ok = self.store.remove_weather_sub(sub_id, requester_id=inter.channel_id)
-        await inter.followup.send("Removed." if ok else "Couldn't remove that ID.", ephemeral=True)
+        ok = self.store.remove_weather_sub(inter.channel_id, requester_id=inter.channel_id)
+        await inter.followup.send("Unsubscribed <#{inter.channel_id}> from weather announcements." if ok else "Could not unsubscribe <#{inter.channel_id} from weather announcements.", ephemeral=True)
 
     @app_commands.command(name="wx_alerts", description="Enable/disable severe weather alerts via DM (NWS).")
     @app_commands.describe(
