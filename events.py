@@ -52,31 +52,32 @@ class Events(commands.Cog):
             noun = "this week"
 
         if len(events) > 1:
-            emb = discord.Embed(
-                title=f"\U0001F324\ufe0f {len(events)} Events happening {noun}!",
-                colour=discord.Colour.blue()
-            )
 
             for event in events:
+                emb = discord.Embed(
+                    title=f"\U0001F324\ufe0f {len(events)} Events happening {noun}!",
+                    colour=discord.Colour.blue()
+                )
+
                 # if event is more than interval away, ignore it
                 emb.add_field(name="Name", value=event.name, inline=False)
                 emb.add_field(name="Interested", value=event.user_count, inline=True)
                 emb.add_field(name="When", value=event.start_time, inline=True)
                 emb.add_field(name="Where", value=event.location, inline=True)
-
                 emb.add_field(name="Description", value=event.description, inline=False)
+
+                author = self.bot.fetch_channel(event.channel_id)
+
+                emb.set_author(author.display_name, icon_url = author.avatar.url)
+
+                await channel.send(embed = emb)
 
             #emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
 
             #days = int(s.get("weekly_days", 7))
             #days = 10 if days > 10 else (3 if days < 3 else days)
         else:
-            emb = discord.Embed(
-                title=f"There are no events happening {noun}... :sadblob:",
-                colour="1e90ff"
-            )
-
-        await channel.send(embed = emb)
+            await channel.send("There are no events {noun}... :boykisser_suicide:")
 
     # -------- Slash Commands --------
 
