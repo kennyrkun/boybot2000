@@ -699,9 +699,8 @@ class Weather(commands.Cog):
             }
             sid = self.store.add_weather_sub(sub)
             await inter.followup.send(
-                f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} weather announcements at **{first_local.strftime('%I:%M %p')}** ({tz_name}) for ZIP **{z}**.\n"
-                + ("Weekly outlook length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.")
-                + f"\nUnits: **{units}**",
+                f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} weather announcements at **{first_local.strftime('%I:%M %p')}** ({tz_name}) - ZIP {z} - units {units} .\n"
+                + ("Weekly outlook length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow."),
                 ephemeral=True
             )
         except Exception as e:
