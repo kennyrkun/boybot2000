@@ -116,9 +116,8 @@ class Events(commands.Cog):
             self.store.add_events_sub(sub)
 
             await inter.followup.send(
-                "ok"
-#                f"\U0001F324\ufe0f Subscribed <@{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
-#                + ("Weekly length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.")
+                f"\U0001F324\ufe0f Subscribed <@{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
+                + ("Weekly length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow."),
                 ephemeral=True
             )
         except Exception as e:
