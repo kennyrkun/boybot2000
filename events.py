@@ -38,9 +38,51 @@ class Events(commands.Cog):
     def cog_unload(self):
         self.events_scheduler.cancel()
 
+    def processEventList(self, cadence, events, channel):
+        if cadence == "daily":
+            interval = 1
+            noun = "today"
+        else:
+            interval = 7
+            noun = "this week"
+
+        if (len(events) > 1)
+            emb = discord.Embed(
+                title=f"\U0001F324\ufe0f {len(events) Events happening {noun}!",
+                colour="1e90ff"
+            )
+
+            for (event in events)
+                # if event is more than interval away, ignore it
+                emb.add_field(name="Name", value=event.name, inline=False)
+
+                if (description in event)
+                    emb.add_field(name="Description", value=event.description, inline=False)
+
+                if (start_time in event)
+                    emb.add_field(name="When", value=event.start_time, inline=False)
+
+                if (location in event)
+                    emb.add_field(name="Where", value=event.location, inline=False)
+
+                if (user_count in event)
+                    emb.add_field(name="Interested", value=event.user_count, inline=False)
+
+            #emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
+
+            #days = int(s.get("weekly_days", 7))
+            #days = 10 if days > 10 else (3 if days < 3 else days)
+        else:
+            emb = discord.Embed(
+                title=f"There are no events happening {noun}... :sadblob:",
+                colour="1e90ff"
+            )
+
+        await channel.send(embed = emb)
+
     # -------- Slash Commands --------
 
-    @app_commands.command(name="events_subscribe", description="Subscribe this channel to a daily or weekly events announcement at a UTC time.")
+    @app_commands.command(name="events_subscribe", description="Subscribe this channel to a daily or weekly event announcement at a UTC time.")
     @app_commands.describe(
         time="HH:MM (24h), HHMM, or h:mma/pm in YOUR saved timezone",
         cadence="daily or weekly",
@@ -81,8 +123,8 @@ class Events(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
 
-    @app_commands.command(name="events_subscriptions", description="List your events subscriptions and next send time.")
-    async def weather_subscriptions(self, inter: discord.Interaction):
+    @app_commands.command(name="events_subscriptions", description="List your event announcement subscriptions and next send time.")
+    async def events_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
 
@@ -124,98 +166,50 @@ class Events(commands.Cog):
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
-    @app_commands.command(name="events_unsubscribe", description="Unsubscribe from events announcements by channel ID.")
-    async def weather_unsubscribe(self, inter: discord.Interaction, sub_id: int):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-
-        await inter.response.defer(ephemeral=True)
-        ok = self.store.remove_weather_sub(sub_id, requester_id=inter.channel_id)
-        await inter.followup.send("Removed." if ok else "Could not remove <@{inter.channel_id}>'s subscription.", ephemeral=True)
+    @app_commands.command(name="events_list", description="Show the list of upcoming events.")
+    async def events_unsubscribe(self, inter: discord.Interaction, sub_id: int):
+        processEventList(s, events)
 
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
     async def events_scheduler(self):
         if self.store is None:
             return
+		
         try:
-            now_utc = datetime.now(timezone.utc)
-            subs = self.store.list_weather_subs(None)
+            now = datetime.now()
+            subs = self.store.list_event_subs(None)
+
             if not subs:
                 return
-            async with aiohttp.ClientSession(headers=HTTP_HEADERS) as session:
-                for s in subs:
-                    due = datetime.fromisoformat(s["next_run_utc"]).replace(tzinfo=timezone.utc)
-                    if due <= now_utc:
-                        try:
-                            user = await self.bot.fetch_channel(int(s["channel_id"]))
-                            city, state, lat, lon = await _zip_to_place_and_coords(session, s["zip"])
-                            tz_name = (s.get("tz_name") or "").strip() or _get_user_tz_name(self.store, int(s["channel_id"]))
-                            units = (s.get("units") or "").strip().lower() or _get_user_units(self.store, int(s["channel_id"]))
-                            if s["cadence"] == "daily":
-                                outlook = await _fetch_outlook(session, lat, lon, days=2, tz_name=tz_name, units=units)
-                                first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
-                                first_hi_f = None
-                                if first_hi is not None:
-                                    try:
-                                        first_hi_f = float(first_hi) if units == "standard" else (float(first_hi) * 9.0 / 5.0 + 32.0)
-                                    except Exception:
-                                        first_hi_f = None
-                                emb = discord.Embed(
-                                    title=f"\U0001F324\ufe0f Daily Outlook — {city}, {state} {s['zip']}",
-                                    colour=wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
-                                )
-                                for (d, line, sunrise, sunset, uv, _hi) in outlook:
-                                    extras = []
-                                    if sunrise: extras.append(f"\U0001F305 {fmt_sun(sunrise)}")
-                                    if sunset: extras.append(f"\U0001F307 {fmt_sun(sunset)}")
-                                    if uv is not None: extras.append(f"\U0001F506 UV {round(uv,1)}")
-                                    value = "\n".join([line, " - ".join(extras)]) if extras else line
-                                    emb.add_field(name=d, value=value, inline=False)
-                                emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
-                                await user.send(embed=emb)
-                                tz = _tzinfo_from_name(tz_name)
-                                next_local = datetime.now(tz)
-                                next_local = next_local.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
-                                if next_local <= datetime.now(tz):
-                                    next_local += timedelta(days=1)
-                                self.store.update_weather_sub(s["id"], channel_id=int(s["channel_id"]), next_run_utc=next_local.astimezone(timezone.utc).isoformat())
-                            else:
-                                days = int(s.get("weekly_days", 7))
-                                days = 10 if days > 10 else (3 if days < 3 else days)
-                                outlook = await _fetch_outlook(session, lat, lon, days=days, tz_name=tz_name, units=units)
-                                first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
-                                first_hi_f = None
-                                if first_hi is not None:
-                                    try:
-                                        first_hi_f = float(first_hi) if units == "standard" else (float(first_hi) * 9.0 / 5.0 + 32.0)
-                                    except Exception:
-                                        first_hi_f = None
-                                emb = discord.Embed(
-                                    title=f"\U0001F5D3\ufe0f Weekly Outlook ({days} days) — {city}, {state} {s['zip']}",
-                                    colour=wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
-                                )
-                                for (d, line, _sunrise, _sunset, _uv, _hi) in outlook:
-                                    emb.add_field(name=d, value=line, inline=False)
-                                emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
-                                await user.send(embed=emb)
-                                tz = _tzinfo_from_name(tz_name)
-                                next_local = datetime.now(tz)
-                                next_local = next_local.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
-                                if next_local <= datetime.now(tz):
-                                    next_local += timedelta(days=7)
-                                else:
-                                    next_local += timedelta(days=7)
-                                self.store.update_weather_sub(s["id"], channel_id=int(s["channel_id"]), next_run_utc=next_local.astimezone(timezone.utc).isoformat())
-                        except Exception as e:
-                            fallback = now_utc + timedelta(minutes=5)
-                            self.store.update_weather_sub(s["id"], next_run_utc=fallback.isoformat())
-                            await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Weather error: {e} {traceback.format_exc()}")
+
+            for s in subs:
+                due = datetime.fromisoformat(s["next_run"])
+
+                if due <= now:
+                    try:
+                        channel = await self.bot.fetch_channel(int(s["channel_id"]))
+                        events = channel.guild.scheduled_events
+
+                        processEventList(s["cadence"], events, channel)
+
+                        next = datetime.now()
+                        next = next.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
+
+                        if next <= datetime.now():
+                            next += timedelta(days=interval)
+
+                        self.store.update_event_sub(s["id"], channel_id=int(s["channel_id"]), next_run=next.isoformat())
+                    except Exception as e:
+                        fallback = now_utc + timedelta(minutes=5)
+                        self.store.update_event_sub(s["id"], next_run=fallback.isoformat())
+                        await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Events error: {e} {traceback.format_exc()}")
+
         except Exception as e:
-            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Subscription error: {e} {traceback.format_exc()}")
+            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Events subscription error: {e} {traceback.format_exc()}")
 
     @events_scheduler.before_loop
-    async def before_weather(self):
+    async def before_events(self):
         await self.bot.wait_until_ready()
 
 async def setup(bot: commands.Bot):
