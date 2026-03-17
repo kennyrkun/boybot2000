@@ -60,18 +60,10 @@ class Events(commands.Cog):
             for event in events:
                 # if event is more than interval away, ignore it
                 emb.add_field(name="Name", value=event.name, inline=False)
-
-                if description in event:
-                    emb.add_field(name="Description", value=event.description, inline=False)
-
-                if start_time in event:
-                    emb.add_field(name="When", value=event.start_time, inline=False)
-
-                if location in event:
-                    emb.add_field(name="Where", value=event.location, inline=False)
-
-                if user_count in event:
-                    emb.add_field(name="Interested", value=event.user_count, inline=False)
+                emb.add_field(name="Description", value=event.description, inline=False)
+                emb.add_field(name="When", value=event.start_time, inline=False)
+                emb.add_field(name="Where", value=event.location, inline=False)
+                emb.add_field(name="Interested", value=event.user_count, inline=False)
 
             #emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
 
