@@ -66,7 +66,7 @@ class Events(commands.Cog):
                 emb.add_field(name="Where", value=event.location, inline=True)
                 emb.add_field(name="Description", value=event.description, inline=False)
 
-                author = self.bot.fetch_channel(event.channel_id)
+                author = await self.bot.fetch_user(event.creator_id)
 
                 emb.set_author(author.display_name, icon_url = author.avatar.url)
 
