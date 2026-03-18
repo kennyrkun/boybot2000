@@ -175,10 +175,10 @@ class Store:
 
         rows = self.db.execute(
             """
-            SELECT id, channel_id, zip, cadence, hh, mi, weekly_days, tz_name, units, next_run_utc
+            SELECT id, channel_id, cadence, hh, mi, weekly_days, next_run
             FROM event_subs
             WHERE channel_id = ?
-            ORDER BY next_run_utc ASC
+            ORDER BY next_run ASC
             """,
             (int(channel_id),),
         ).fetchall()
