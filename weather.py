@@ -699,7 +699,7 @@ class Weather(commands.Cog):
             }
             sid = self.store.add_weather_sub(sub)
             await inter.followup.send(
-                f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} weather announcements at **{first_local.strftime('%I:%M %p')}** ({tz_name}) - ZIP {z} - units {units} .\n"
+                f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} weather announcements at **{first_local.strftime('%I:%M %p')}** ({tz_name}) - ZIP {z} - units {units}.\n"
                 + ("Weekly outlook length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow."),
                 ephemeral=True
             )
@@ -746,7 +746,7 @@ class Weather(commands.Cog):
                 self.store.update_weather_sub(s["id"], channel_id=int(s["channel_id"]), next_run_utc=nxt.isoformat())
 
             out_lines.append(
-                f"Subscription #{s['id']} in <#{s['channel_id']}> — {cadence} at {hh:02d}:{mi:02d} ({tz_name}) - ZIP {s.get('zip','?????')} - units {units} - next: {_fmt_local(nxt, tz_name)}"
+                f"#{s['id']} in <#{s['channel_id']}> {cadence} at {hh:02d}:{mi:02d} ({tz_name}) - ZIP {s.get('zip','?????')} - units {units} - next: {_fmt_local(nxt, tz_name)}"
             )
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)

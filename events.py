@@ -34,6 +34,19 @@ def _next_run(now: datetime, hh: int, mi: int, cadence: str) -> datetime:
         target += timedelta(days=1 if cadence == "daily" else 7)
     return target
 
+def _parse_time(time_str: str):
+    t = time_str.strip().lower().replace(" ", "")
+    m = re.match(r"^(\d{1,2}):(\d{2})(am|pm)?$", t) or re.match(r"^(\d{2})(\d{2})(am|pm)?$", t)
+    if not m:
+        raise ValueError("Time must be HH:MM (24h), HHMM, or h:mma/pm.")
+    hh, mi, ampm = m.groups()
+    hh, mi = int(hh), int(mi)
+    if ampm:
+        hh = (hh % 12) + (12 if ampm == "pm" else 0)
+    if not (0 <= hh <= 23 and 0 <= mi <= 59):
+        raise ValueError("Invalid time.")
+    return hh, mi
+
 class Events(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -90,7 +103,7 @@ class Events(commands.Cog):
 
     @app_commands.command(name="events_subscribe", description="Subscribe this channel to a daily or weekly event announcement at a UTC time.")
     @app_commands.describe(
-        time="HH:MM (24h), HHMM, or h:mma/pm in YOUR saved timezone",
+        time="HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
         cadence="daily or weekly",
         weekly_days="For weekly: number of days to include (3, 7, or 10)"
     )
@@ -184,9 +197,9 @@ class Events(commands.Cog):
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
-    @app_commands.command(name="events_list", description="Show the list of upcoming events.")
+    @app_commands.command(name="events_list", description="List of upcoming server events.")
     @app_commands.choices(cadence=CADENCE_CHOICES)
-    async def events_list(self, inter: discord.Interaction, cadence: app_commands.Choice[str],):
+    async def events_list(self, inter: discord.Interaction, cadence: app_commands.Choice[str]):
         events = inter.channel.guild.scheduled_events
         await self.processEventList(cadence, inter.channel.guild.scheduled_events, inter.channel)
 
