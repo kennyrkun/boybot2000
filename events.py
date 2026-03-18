@@ -97,7 +97,7 @@ class Events(commands.Cog):
                 "next_run": first.isoformat(),
             }
 
-            self.store.add_event_sub(sub)
+            sid = self.store.add_event_sub(sub)
 
             await inter.followup.send(
                 f":white_check_mark: Subscribed <#{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
