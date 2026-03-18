@@ -700,7 +700,8 @@ class Weather(commands.Cog):
             sid = self.store.add_weather_sub(sub)
             await inter.followup.send(
                 f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} weather announcements at **{first_local.strftime('%I:%M %p')}** ({tz_name}) - ZIP {z} - units {units}.\n"
-                + ("Weekly outlook length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow."),
+                + ("Weekly outlook length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.") + "\n"
+                + "Subscription #{sid}.",
                 ephemeral=True
             )
         except Exception as e:
@@ -758,7 +759,7 @@ class Weather(commands.Cog):
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
         await inter.response.defer(ephemeral=True)
         ok = self.store.remove_weather_sub(subscription_id, requester_id=inter.channel_id)
-        await inter.followup.send(f"Weather announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else "Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
+        await inter.followup.send(f":white_check_mark: Weather announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else "Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
     @app_commands.command(name="wx_alerts", description="Enable/disable severe weather alert announcements in the current channel.")
     @app_commands.describe(
@@ -777,7 +778,7 @@ class Weather(commands.Cog):
             return await inter.response.send_message("Use **on** or **off**.", ephemeral=True)
         if mode == "off":
             self.store.set_note(inter.channel_id, "wx_alerts_enabled", "0")
-            return await inter.response.send_message("\U0001F515 Severe weather alerts will no longer be sent to <#{inter.channel_id}>.", ephemeral=True)
+            return await inter.response.send_message(":white_check_mark: Severe weather alerts will no longer be sent to <#{inter.channel_id}>.", ephemeral=True)
 
         z = re.sub(r"[^0-9]", "", zip) if zip else (self.store.get_user_zip(inter.channel_id) or "")
         if len(z) != 5:
@@ -790,7 +791,7 @@ class Weather(commands.Cog):
         self.store.set_note(inter.channel_id, "wx_alerts_enabled", "1")
         self.store.set_note(inter.channel_id, "wx_alerts_zip", z)
         self.store.set_note(inter.channel_id, "wx_alerts_min_sev", sev)
-        await inter.response.send_message(f"\U0001F514 Severe weather alerts for **{z}** (min severity: **{sev}**) will be sent to <#{inter.channel_id}>.", ephemeral=True)
+        await inter.response.send_message(f":white_check_mark: Severe weather alerts for **{z}** (min severity: **{sev}**) will be sent to <#{inter.channel_id}>.", ephemeral=True)
 
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
