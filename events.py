@@ -134,7 +134,7 @@ class Events(commands.Cog):
                 "next_run": first.isoformat(),
             }
 
-            self.store.add_events_sub(sub)
+            self.store.add_event_sub(sub)
 
             await inter.followup.send(
                 f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
@@ -149,7 +149,7 @@ class Events(commands.Cog):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
         await inter.response.defer(ephemeral=True)
-        ok = self.store.remove_events_sub(subscription_id, requester_id=inter.channel_id)
+        ok = self.store.remove_event_sub(subscription_id, requester_id=inter.channel_id)
         await inter.followup.send("Event announcement subscription #<{subscription_id} in <#{inter.channel_id}> cancelled." if ok else "Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
     @app_commands.command(name="events_subscriptions", description="List your event announcement subscriptions and next send time.")
