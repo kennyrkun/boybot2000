@@ -175,7 +175,7 @@ class Events(commands.Cog):
                 return
 
             for s in subs:
-                if cadence == "daily":
+                if s["cadence"] == "daily":
                     interval = 1
                     noun = "today"
                 else:
