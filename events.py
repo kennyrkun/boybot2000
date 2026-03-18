@@ -132,12 +132,12 @@ class Events(commands.Cog):
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
 
     @app_commands.command(name="events_unsubscribe", description="Unsubscribe from event announcements for the current channel.")
-    async def events_unsubscribe(self, inter: discord.Interaction, sub_id: int):
+    async def events_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
         await inter.response.defer(ephemeral=True)
-        ok = self.store.remove_events_sub(sub_id, requester_id=inter.channel_id)
-        await inter.followup.send("Event announcement subscription #<{sub_id} for <#{inter.channel_id}> removed." if ok else "Failed to remove subscription #{sub_id} from <#{inter.channel_id}>.", ephemeral=True)
+        ok = self.store.remove_events_sub(subscription_id, requester_id=inter.channel_id)
+        await inter.followup.send("Event announcement subscription #<{subscription_id} in <#{inter.channel_id}> cancelled." if ok else "Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
     @app_commands.command(name="events_subscriptions", description="List your event announcement subscriptions and next send time.")
     async def events_subscriptions(self, inter: discord.Interaction):
