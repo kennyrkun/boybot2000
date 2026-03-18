@@ -62,43 +62,6 @@ class Events(commands.Cog):
     def cog_unload(self):
         self.events_scheduler.cancel()
 
-    async def processEventList(self, cadence, events, channel):
-        if cadence == "daily":
-            interval = 1
-            noun = "today"
-        else:
-            interval = 7
-            noun = "this week"
-
-        if len(events) > 1:
-            len(events)
-
-            for event in events:
-                emb = discord.Embed(
-                    title = event.name,
-                    colour = discord.Colour.blue()
-                )
-
-                # TODO: if event is more than interval away, ignore it
-
-                if event.user_count > 0: emb.add_field(name="Interested", value=event.user_count, inline=True)
-                emb.add_field(name="When", value=event.start_time, inline=True)
-                emb.add_field(name="Where", value=event.location, inline=True)
-
-                emb.add_field(name = None, value=event.description, inline=False)
-
-                author = await self.bot.fetch_user(event.creator_id)
-                emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
-
-                await channel.send(content = f"There are {len(events)} events coming up {noun}!", embed = emb, delete_after = 86400)
-
-                break;
-
-            #days = int(s.get("weekly_days", 7))
-            #days = 10 if days > 10 else (3 if days < 3 else days)
-        else:
-            await channel.send("There are no events {noun}... :boykisser_execution:")
-
     # -------- Slash Commands --------
 
     @app_commands.command(name="events_subscribe", description="Subscribe this channel to a daily or weekly event announcement at a UTC time.")
@@ -198,12 +161,6 @@ class Events(commands.Cog):
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
-    @app_commands.command(name="events_list", description="List of upcoming server events.")
-    @app_commands.choices(cadence=CADENCE_CHOICES)
-    async def events_list(self, inter: discord.Interaction, cadence: app_commands.Choice[str]):
-        events = inter.channel.guild.scheduled_events
-        await self.processEventList(cadence, inter.channel.guild.scheduled_events, inter.channel)
-
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
     async def events_scheduler(self):
@@ -218,6 +175,13 @@ class Events(commands.Cog):
                 return
 
             for s in subs:
+                if cadence == "daily":
+                    interval = 1
+                    noun = "today"
+                else:
+                    interval = 7
+                    noun = "this week"
+
                 due = datetime.fromisoformat(s["next_run"])
 
                 if due <= now:
@@ -225,7 +189,34 @@ class Events(commands.Cog):
                         channel = await self.bot.fetch_channel(int(s["channel_id"]))
                         events = channel.guild.scheduled_events
 
-                        await self.processEventList(s["cadence"], events, channel)
+                        if len(events) > 1:
+                            len(events)
+
+                            for event in events:
+                                emb = discord.Embed(
+                                    title = event.name,
+                                    colour = discord.Colour.blue()
+                                )
+
+                                # TODO: if event is more than interval away, ignore it
+
+                                if event.user_count > 0: emb.add_field(name="Interested", value=event.user_count, inline=True)
+                                emb.add_field(name="When", value=event.start_time, inline=True)
+                                emb.add_field(name="Where", value=event.location, inline=True)
+
+                                emb.add_field(name = None, value=event.description, inline=False)
+
+                                author = await self.bot.fetch_user(event.creator_id)
+                                emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
+
+                                await channel.send(content = f"There are {len(events)} events coming up {noun}!", embed = emb, delete_after = 86400)
+
+                                break;
+
+                            #days = int(s.get("weekly_days", 7))
+                            #days = 10 if days > 10 else (3 if days < 3 else days)
+                        else:
+                            await channel.send("There are no events {noun}... :boykisser_execution:")
 
                         next = datetime.now()
                         next = next.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
