@@ -179,7 +179,8 @@ class Events(commands.Cog):
                     interval = 1
                     noun = "today"
                 else:
-                    interval = 7
+                    interval = int(s.get("weekly_days", 7))
+                    interval = 10 if days > 10 else (3 if days < 3 else days)
                     noun = "this week"
 
                 due = datetime.fromisoformat(s["next_run"])
