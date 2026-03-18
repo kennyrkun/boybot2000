@@ -131,7 +131,7 @@ class Events(commands.Cog):
                 "hh": int(hh),
                 "mi": int(mi),
                 "weekly_days": int(weekly_days or 7),
-                "next_run": next_run.isoformat(),
+                "next_run": first.isoformat(),
             }
 
             self.store.add_events_sub(sub)
