@@ -28,6 +28,12 @@ CADENCE_CHOICES = [
     app_commands.Choice(name="weekly (send on this weekday)", value="weekly"),
 ]
 
+def _next_run(now: datetime, hh: int, mi: int, cadence: str) -> datetime:
+    target = now.replace(hour=hh, minute=mi, second=0, microsecond=0)
+    if target <= now:
+        target += timedelta(days=1 if cadence == "daily" else 7)
+    return target
+
 class Events(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -98,11 +104,13 @@ class Events(commands.Cog):
     ):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+        
         await inter.response.defer(ephemeral=True)
+
         try:
             hh, mi = _parse_time(time)
             now = datetime.now()
-            first = _next_local_run(now, hh, mi, cadence.value)
+            first = _next_run(now, hh, mi, cadence.value)
 
             sub = {
                 "channel_id": inter.channel_id,
@@ -110,7 +118,7 @@ class Events(commands.Cog):
                 "hh": int(hh),
                 "mi": int(mi),
                 "weekly_days": int(weekly_days or 7),
-                "next_run_utc": next_run.isoformat(),
+                "next_run": next_run.isoformat(),
             }
 
             self.store.add_events_sub(sub)
@@ -129,7 +137,7 @@ class Events(commands.Cog):
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
         await inter.response.defer(ephemeral=True)
         ok = self.store.remove_events_sub(sub_id, requester_id=inter.channel_id)
-        await inter.followup.send("<#{inter.channel_id}> will no longer receive event announcements." if ok else "Failed to unsubscribe <#{inter.channel_id}> from event announcements.", ephemeral=True)
+        await inter.followup.send("Event announcement subscription #<{sub_id} for <#{inter.channel_id}> removed." if ok else "Failed to remove subscription #{sub_id} from <#{inter.channel_id}>.", ephemeral=True)
 
     @app_commands.command(name="events_subscriptions", description="List your event announcement subscriptions and next send time.")
     async def events_subscriptions(self, inter: discord.Interaction):
@@ -137,9 +145,11 @@ class Events(commands.Cog):
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
 
         await inter.response.defer(ephemeral=True)
+
         items = self.store.list_weather_subs(inter.channel_id)
+
         if not items:
-            return await inter.followup.send("You have no events subscriptions.", ephemeral=True)
+            return await inter.followup.send("There are no events subscriptions.", ephemeral=True)
 
         out_lines = []
 
@@ -156,20 +166,20 @@ class Events(commands.Cog):
                 needs = True
             else:
                 try:
-                    nxt = datetime.fromisoformat(str(raw)).replace(tzinfo=timezone.utc)
+                    nxt = datetime.fromisoformat(str(raw))
                 except Exception:
                     needs = True
 
-            if not needs and nxt is not None and nxt <= datetime.now(timezone.utc):
+            if not needs and nxt is not None and nxt <= datetime.now():
                 needs = True
 
             if needs:
-                first = _next_local_run(now, hh, mi, cadence)
+                first = _next_run(now, hh, mi, cadence)
                 nxt = first
                 self.store.update_event_sub(s["id"], channel_id=int(s["channel_id"]), next_run=nxt.isoformat())
 
             out_lines.append(
-                f"<#{s['channel_id']}> — {cadence} at {hh:02d}:{mi:02d} - next: {_fmt_local(nxt)}"
+                f"#{s['id']} in <#{s['channel_id']}> {cadence} at {hh:02d}:{mi:02d} - next: {_fmt_local(nxt)}"
             )
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
