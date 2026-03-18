@@ -102,7 +102,7 @@ class Events(commands.Cog):
             await inter.followup.send(
                 f":white_check_mark: Subscribed <#{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
                 + ("Weekly length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.") + "\n"
-                + "Subscription #{sid}.",
+                + f"Subscription #{sid}.",
                 ephemeral=True
             )
         except Exception as e:

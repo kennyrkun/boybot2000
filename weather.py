@@ -701,7 +701,7 @@ class Weather(commands.Cog):
             await inter.followup.send(
                 f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} weather announcements at **{first_local.strftime('%I:%M %p')}** ({tz_name}) - ZIP {z} - units {units}.\n"
                 + ("Weekly outlook length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.") + "\n"
-                + "Subscription #{sid}.",
+                + f"Subscription #{sid}.",
                 ephemeral=True
             )
         except Exception as e:
