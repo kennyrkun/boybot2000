@@ -138,8 +138,8 @@ class Store:
         self.db.commit()
         return cur.rowcount > 0
 
-    def update_weather_sub(self, sub_id: int, next_run: str, **_ignored) -> None:
-        self.db.execute("UPDATE event_subs SET next_run = ? WHERE id = ?", (str(next_run), int(sub_id)))
+    def update_weather_sub(self, sub_id: int, next_run_utc: str, **_ignored) -> None:
+        self.db.execute("UPDATE weather_subs SET next_run_utc = ? WHERE id = ?", (str(next_run_utc), int(sub_id)))
         self.db.commit()
 
     def add_event_sub(self, sub: Dict[str, Any]) -> int:
