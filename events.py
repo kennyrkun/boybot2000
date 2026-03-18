@@ -179,7 +179,7 @@ class Events(commands.Cog):
                 self.store.update_event_sub(s["id"], channel_id=int(s["channel_id"]), next_run=nxt.isoformat())
 
             out_lines.append(
-                f"#{s['id']} in <#{s['channel_id']}> {cadence} at {hh:02d}:{mi:02d} - next: {nxt.strftime("%m-%d-%Y %H:%M %Z")}"
+                f"#{s['id']} in <#{s['channel_id']}> {cadence} at {hh:02d}:{mi:02d} - next: {nxt.strftime('%m-%d-%Y %H:%M %Z')}"
             )
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
