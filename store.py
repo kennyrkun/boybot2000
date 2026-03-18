@@ -147,7 +147,7 @@ class Store:
         cur.execute(
             """
             INSERT INTO event_subs(channel_id, cadence, hh, mi, weekly_days, next_run)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
                 int(sub["channel_id"]),
