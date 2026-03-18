@@ -123,7 +123,7 @@ class Events(commands.Cog):
 
         await inter.response.defer(ephemeral=True)
 
-        items = self.store.list_events_subs(inter.channel_id)
+        items = self.store.list_event_subs(inter.channel_id)
 
         if not items:
             return await inter.followup.send("There are no events subscriptions.", ephemeral=True)
