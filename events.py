@@ -209,6 +209,8 @@ class Events(commands.Cog):
                                 author = await self.bot.fetch_user(event.creator_id)
                                 emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
 
+                                emb.set_footer("This message will self-destruct in 24 hours. Nya!")
+
                                 await channel.send(content = f"There are {len(events)} events coming up {noun}!", embed = emb, delete_after = 86400)
 
                                 break;
