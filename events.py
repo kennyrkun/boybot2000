@@ -234,7 +234,7 @@ class Events(commands.Cog):
 
                         self.store.update_event_sub(s["id"], channel_id=int(s["channel_id"]), next_run=next.isoformat())
                     except Exception as e:
-                        fallback = now_utc + timedelta(minutes=5)
+                        fallback = now + timedelta(minutes=5)
                         self.store.update_event_sub(s["id"], next_run=fallback.isoformat())
                         await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Events error: {e} {traceback.format_exc()}")
 
