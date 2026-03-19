@@ -85,7 +85,7 @@ class Events(commands.Cog):
 
         try:
             hh, mi = _parse_time(time)
-            now = datetime.now()
+            now = datetime.utcnow()
             first = _next_run(now, hh, mi, cadence.value)
 
             sub = {
@@ -131,7 +131,7 @@ class Events(commands.Cog):
         out_lines = []
 
         for s in items:
-            now = datetime.now()
+            now = datetime.utcnow()
             hh = int(s.get("hh", 8))
             mi = int(s.get("mi", 0))
             cadence = s.get("cadence", "daily") if s.get("cadence") in {"daily", "weekly"} else "daily"
@@ -147,7 +147,7 @@ class Events(commands.Cog):
                 except Exception:
                     needs = True
 
-            if not needs and nxt is not None and nxt <= datetime.now():
+            if not needs and nxt is not None and nxt <= datetime.utcnow():
                 needs = True
 
             if needs:
@@ -168,7 +168,7 @@ class Events(commands.Cog):
             return
 		
         try:
-            now = datetime.now()
+            now = datetime.utcnow()
             subs = self.store.list_event_subs(None)
 
             if not subs:
@@ -179,7 +179,7 @@ class Events(commands.Cog):
                     interval = 1
                     noun = "today"
                 else:
-                    interval = int(s.get("weekly_days", 7))
+                    days = int(s.get("weekly_days", 7))
                     interval = 10 if days > 10 else (3 if days < 3 else days)
                     noun = "this week"
 
@@ -190,39 +190,47 @@ class Events(commands.Cog):
                         channel = await self.bot.fetch_channel(int(s["channel_id"]))
                         events = channel.guild.scheduled_events
 
+                        eventsInInterval = []
+                        eventsInFuture   = []
+                        earliestEvent    = None
+
                         if len(events) > 1:
-                            len(events)
+                            ignorePastDate = now + timedelta(days = interval)
 
                             for event in events:
-                                emb = discord.Embed(
-                                    title = event.name,
-                                    colour = discord.Colour.blue()
-                                )
+                                if (event.start_time < earliestEvent.start_time or earliestEvent is None)
+                                    earliestEvent = event
 
-                                # TODO: if event is more than interval away, ignore it
+                                if event.start_time > ignorePastDate:
+                                    eventsInFuture.append(event)
+                                    continue
 
-                                if event.user_count > 0: emb.add_field(name="Interested", value=event.user_count, inline=True)
-                                emb.add_field(name="When", value=event.start_time, inline=True)
-                                emb.add_field(name="Where", value=event.location, inline=True)
+                                eventsInInterval.append(event)
 
-                                emb.add_field(name = None, value=event.description, inline=False)
+                            emb = discord.Embed(
+                                title = earliestEvent.name,
+                                colour = discord.Colour.blue()
+                            )
 
-                                author = await self.bot.fetch_user(event.creator_id)
-                                emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
+                            if earliestEvent.user_count > 0: 
+                                emb.add_field(name = "Interested", value = earliestEvent.user_count, inline=True)
 
-                                await channel.send(content = f"There are {len(events)} events coming up {noun}!", embed = emb, delete_after = 86400)
+                            emb.add_field(name = "When", value = earliestEvent.start_time, inline=True)
+                            emb.add_field(name = "Where", value = earliestEvent.location, inline=True)
 
-                                break;
+                            emb.add_field(name = None, value = earliestEvent.description, inline=False)
 
-                            #days = int(s.get("weekly_days", 7))
-                            #days = 10 if days > 10 else (3 if days < 3 else days)
+                            author = await self.bot.fetch_user(earliestEvent.creator_id)
+                            emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
+
+                            await channel.send(content = f"There are {len(eventsInInterval)} events coming up {noun} and {len(eventsInFuture)} in the future!", embed = emb, delete_after = 86400)
                         else:
-                            await channel.send("There are no events {noun}... :boykisser_execution:")
+                            await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
 
-                        next = datetime.now()
+                        next = datetime.utcnow()
                         next = next.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
 
-                        if next <= datetime.now():
+                        if next <= datetime.utcnow():
                             next += timedelta(days=interval)
 
                         self.store.update_event_sub(s["id"], channel_id=int(s["channel_id"]), next_run=next.isoformat())
