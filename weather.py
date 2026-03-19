@@ -834,7 +834,6 @@ class Weather(commands.Cog):
                                     if uv is not None: extras.append(f"\U0001F506 UV {round(uv,1)}")
                                     value = "\n".join([line, " - ".join(extras)]) if extras else line
                                     emb.add_field(name=d, value=value, inline=False)
-                                emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
                                 await channel.send(embed=emb)
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
@@ -859,7 +858,6 @@ class Weather(commands.Cog):
                                 )
                                 for (d, line, _sunrise, _sunset, _uv, _hi) in outlook:
                                     emb.add_field(name=d, value=line, inline=False)
-                                emb.set_footer(text=f"Scheduled in {tz_name} • Units: {units}")
                                 await channel.send(embed=emb)
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
