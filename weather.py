@@ -800,46 +800,60 @@ class Weather(commands.Cog):
     async def weather_scheduler(self):
         if self.store is None:
             return
+            
         try:
             now_utc = datetime.now(timezone.utc)
             subs = self.store.list_weather_subs(None)
+
             if not subs:
                 return
+
             async with aiohttp.ClientSession(headers=HTTP_HEADERS) as session:
+
                 for s in subs:
                     due = datetime.fromisoformat(s["next_run_utc"]).replace(tzinfo=timezone.utc)
+
                     if due <= now_utc:
                         try:
                             channel = await self.bot.fetch_channel(int(s["channel_id"]))
                             city, state, lat, lon = await _zip_to_place_and_coords(session, s["zip"])
                             tz_name = (s.get("tz_name") or "").strip() or _get_user_tz_name(self.store, int(s["channel_id"]))
                             units = (s.get("units") or "").strip().lower() or _get_user_units(self.store, int(s["channel_id"]))
+
                             if s["cadence"] == "daily":
                                 outlook = await _fetch_outlook(session, lat, lon, days=2, tz_name=tz_name, units=units)
                                 first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
                                 first_hi_f = None
+
                                 if first_hi is not None:
                                     try:
                                         first_hi_f = float(first_hi) if units == "standard" else (float(first_hi) * 9.0 / 5.0 + 32.0)
                                     except Exception:
                                         first_hi_f = None
+
                                 emb = discord.Embed(
                                     title=f"\U0001F324\ufe0f Daily Outlook — {city}, {state} {s['zip']}",
                                     colour=wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
                                 )
+
                                 for (d, line, sunrise, sunset, uv, _hi) in outlook:
                                     extras = []
                                     if sunrise: extras.append(f"\U0001F305 {fmt_sun(sunrise)}")
                                     if sunset: extras.append(f"\U0001F307 {fmt_sun(sunset)}")
                                     if uv is not None: extras.append(f"\U0001F506 UV {round(uv,1)}")
                                     value = "\n".join([line, " - ".join(extras)]) if extras else line
+                                    log.debug(outlook)
                                     emb.add_field(name=d, value=value, inline=False)
+
                                 await channel.send(embed=emb)
+
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
                                 next_local = next_local.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
+
                                 if next_local <= datetime.now(tz):
                                     next_local += timedelta(days=1)
+                                    
                                 self.store.update_weather_sub(s["id"], channel_id=int(s["channel_id"]), next_run_utc=next_local.astimezone(timezone.utc).isoformat())
                             else:
                                 days = int(s.get("weekly_days", 7))
@@ -847,30 +861,38 @@ class Weather(commands.Cog):
                                 outlook = await _fetch_outlook(session, lat, lon, days=days, tz_name=tz_name, units=units)
                                 first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
                                 first_hi_f = None
+
                                 if first_hi is not None:
                                     try:
                                         first_hi_f = float(first_hi) if units == "standard" else (float(first_hi) * 9.0 / 5.0 + 32.0)
                                     except Exception:
                                         first_hi_f = None
+
                                 emb = discord.Embed(
                                     title=f"\U0001F5D3\ufe0f Weekly Outlook ({days} days) — {city}, {state} {s['zip']}",
                                     colour=wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
                                 )
+
                                 for (d, line, _sunrise, _sunset, _uv, _hi) in outlook:
                                     emb.add_field(name=d, value=line, inline=False)
+
                                 await channel.send(embed=emb)
+
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
                                 next_local = next_local.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
+
                                 if next_local <= datetime.now(tz):
                                     next_local += timedelta(days=7)
                                 else:
                                     next_local += timedelta(days=7)
+
                                 self.store.update_weather_sub(s["id"], channel_id=int(s["channel_id"]), next_run_utc=next_local.astimezone(timezone.utc).isoformat())
                         except Exception as e:
                             fallback = now_utc + timedelta(minutes=5)
                             self.store.update_weather_sub(s["id"], next_run_utc=fallback.isoformat())
                             await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Weather error: {e} {traceback.format_exc()}")
+
         except Exception as e:
             await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Weather subscriptions error: {e} {traceback.format_exc()}")
 
