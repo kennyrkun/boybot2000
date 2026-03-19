@@ -198,7 +198,7 @@ class Events(commands.Cog):
                             ignorePastDate = now + timedelta(days = interval)
 
                             for event in events:
-                                if (event.start_time < earliestEvent.start_time or earliestEvent is None)
+                                if event.start_time < earliestEvent.start_time or earliestEvent is None:
                                     earliestEvent = event
 
                                 if event.start_time > ignorePastDate:
