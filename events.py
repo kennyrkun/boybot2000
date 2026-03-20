@@ -228,8 +228,8 @@ class Events(commands.Cog):
 
                                 eventsInInterval.append(event)
 
-                            eventsInInterval.sort(key = lambda x: x.start_time, reverse=True)
-                            eventsInFuture.sort(key = lambda x: x.start_time, reverse=True)
+                            eventsInInterval.sort(key = lambda x: x.start_time, reverse=False)
+                            eventsInFuture.sort(key = lambda x: x.start_time, reverse=False)
 
                             # add in-interval events first so that they are shown first in embeds
                             allEvents = eventsInInterval + eventsInFuture
