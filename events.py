@@ -62,7 +62,7 @@ class Events(commands.Cog):
     def cog_unload(self):
         self.events_scheduler.cancel()
 
-    async def _create_event_embed(event: discord.ScheduledEvent):
+    async def _create_event_embed(self, event: discord.ScheduledEvent):
         author = await self.bot.fetch_user(event.creator_id)
 
         emb = discord.Embed(
