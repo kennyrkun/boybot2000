@@ -234,8 +234,8 @@ class Events(commands.Cog):
                             embeds = []
 
                             # create an embed for the first 10 events ordered by sooner start_time, max of 10 (discord limitation but also that's enough)
-                            for event in range(1, max(len(allEvents), 10)):
-                                embed = await self._create_event_embed(event)
+                            for x in range(1, max(len(allEvents), 10)):
+                                embed = await self._create_event_embed(allEvents[x])
                                 embeds.append(embed)
 
                             currentEventsCount = len(eventsInInterval)
