@@ -63,11 +63,9 @@ class Events(commands.Cog):
         self.events_scheduler.cancel()
 
     async def _create_event_embed(self, event: discord.ScheduledEvent):
-        author = await self.bot.fetch_user(event.creator_id)
-
         emb = discord.Embed(
             title = event.name,
-            colour = author.accent_colour
+            colour = event.creator.accent_colour
         )
 
         if event.user_count > 0: 
@@ -78,7 +76,7 @@ class Events(commands.Cog):
 
         emb.add_field(name = None, value = event.description, inline=False)
 
-        emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
+        emb.set_author(name = event.creator.display_name, url = None, icon_url = event.creator.avatar.url)
 
         return emb
 
