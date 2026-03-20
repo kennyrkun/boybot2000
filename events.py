@@ -63,6 +63,9 @@ class Events(commands.Cog):
         self.events_scheduler.cancel()
 
     async def _create_event_embed(self, event: discord.ScheduledEvent):
+        if event.creator is None:
+            event.creator = await self.bot.fetch_user(event.creator_id)
+
         emb = discord.Embed(
             title = event.name,
             colour = event.creator.accent_colour
