@@ -223,7 +223,20 @@ class Events(commands.Cog):
                             author = await self.bot.fetch_user(earliestEvent.creator_id)
                             emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
 
-                            await channel.send(content = f"There are {len(eventsInInterval)} events coming up {noun} and {len(eventsInFuture)} in the future!", embed = emb, delete_after = 86400)
+                            currentEventsCount = len(eventsInInterval)
+                            futureEventCount = len(eventsInFuture)
+
+                            strings = []
+
+                            if len(eventsInInterval) > 0:
+                                strings.append(f"there {"are" if currentEventsCount > 1 else "is"} {currentEventsCount} event{"s" if currentEventsCount > 1 else ""} {noun}")
+
+                            if len(eventsInFuture) > 0:
+                                strings.append(f"there {"are" if futureEventCount > 1 else "is"} {futureEventCount} event{"s" if futureEventCount > 1 else ""} in the future")
+
+                            string = " and ".join(strings).capitalize() + "!"
+
+                            await channel.send(content = string, embed = emb, delete_after = 86400)
                         else:
                             await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
 
