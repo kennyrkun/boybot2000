@@ -62,6 +62,28 @@ class Events(commands.Cog):
     def cog_unload(self):
         self.events_scheduler.cancel()
 
+    async def _create_event_embed(event: discord.ScheduledEvent)
+    {
+        author = await self.bot.fetch_user(event.creator_id)
+
+        emb = discord.Embed(
+            title = event.name,
+            colour = author.accent_colour
+        )
+
+        if event.user_count > 0: 
+            emb.add_field(name = "Interested", value = event.user_count, inline=True)
+
+        emb.add_field(name = "When", value = event.start_time, inline=True)
+        emb.add_field(name = "Where", value = event.location, inline=True)
+
+        emb.add_field(name = None, value = event.description, inline=False)
+
+        emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
+
+        return emb
+    }
+
     # -------- Slash Commands --------
 
     @app_commands.command(name="events_subscribe", description="Subscribe this channel to a daily or weekly event announcement at a UTC time.")
@@ -207,21 +229,17 @@ class Events(commands.Cog):
 
                                 eventsInInterval.append(event)
 
-                            emb = discord.Embed(
-                                title = earliestEvent.name,
-                                colour = discord.Colour.blue()
-                            )
+                            eventsInInterval.sort(key = lambda x: x.start_time, reverse=True)
+                            eventsInFuture.sort(key = lambda x: x.start_time, reverse=True)
 
-                            if earliestEvent.user_count > 0: 
-                                emb.add_field(name = "Interested", value = earliestEvent.user_count, inline=True)
+                            # add in-interval events first so that they are shown first in embeds
+                            allEvents = eventsInInterval + eventsInFuture
+                            
+                            embeds = []
 
-                            emb.add_field(name = "When", value = earliestEvent.start_time, inline=True)
-                            emb.add_field(name = "Where", value = earliestEvent.location, inline=True)
-
-                            emb.add_field(name = None, value = earliestEvent.description, inline=False)
-
-                            author = await self.bot.fetch_user(earliestEvent.creator_id)
-                            emb.set_author(name = author.display_name, url = None, icon_url = author.avatar.url)
+                            # create an embed for the first 10 events ordered by sooner start_time, max of 10 (discord limitation but also that's enough)
+                            for event in range(1, max(len(allEvents), 10)):
+                                await embeds.append(_create_event_embed(event, author))
 
                             currentEventsCount = len(eventsInInterval)
                             futureEventCount = len(eventsInFuture)
@@ -236,7 +254,7 @@ class Events(commands.Cog):
 
                             string = " and ".join(strings).capitalize() + "!"
 
-                            await channel.send(content = string, embed = emb, delete_after = 86400)
+                            await channel.send(content = string, embeds = embeds, delete_after = 86400)
                         else:
                             await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
 
