@@ -2,7 +2,7 @@ import os
 import sqlite3
 from typing import Optional, Dict, Any, List
 
-class WxStore:
+class Store:
     """Tiny SQLite-backed store for weather preferences and schedules."""
 
     def __init__(self, db_path):
@@ -27,7 +27,7 @@ class WxStore:
             """
             CREATE TABLE IF NOT EXISTS weather_subs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                channel_id INTEGER NOT NULL,
+                channel_id INTEGER NOT NULL UNIQUE,
                 zip TEXT NOT NULL,
                 cadence TEXT NOT NULL,
                 hh INTEGER NOT NULL,
@@ -53,19 +53,21 @@ class WxStore:
             """
         )
 
-        self.db.commit()
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS event_subs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                channel_id INTEGER NOT NULL UNIQUE,
+                cadence TEXT NOT NULL,
+                hh INTEGER NOT NULL,
+                mi INTEGER NOT NULL,
+                weekly_days INTEGER,
+                next_run TEXT NOT NULL
+            )
+            """
+        )
 
-        # ---- Lightweight migrations (older DBs) ----
-        try:
-            cols = {r[1] for r in self.db.execute("PRAGMA table_info(weather_subs)").fetchall()}
-            if "tz_name" not in cols:
-                self.db.execute("ALTER TABLE weather_subs ADD COLUMN tz_name TEXT")
-            if "units" not in cols:
-                self.db.execute("ALTER TABLE weather_subs ADD COLUMN units TEXT")
-            self.db.commit()
-        except Exception:
-            # Best-effort: if migration fails, bot still runs with defaults
-            pass
+        self.db.commit()
 
     def get_user_zip(self, channel_id: int) -> Optional[str]:
         row = self.db.execute("SELECT zip FROM weather_zips WHERE channel_id = ?", (int(channel_id),)).fetchone()
@@ -138,6 +140,62 @@ class WxStore:
 
     def update_weather_sub(self, sub_id: int, next_run_utc: str, **_ignored) -> None:
         self.db.execute("UPDATE weather_subs SET next_run_utc = ? WHERE id = ?", (str(next_run_utc), int(sub_id)))
+        self.db.commit()
+
+    def add_event_sub(self, sub: Dict[str, Any]) -> int:
+        cur = self.db.cursor()
+        cur.execute(
+            """
+            INSERT INTO event_subs(channel_id, cadence, hh, mi, weekly_days, next_run)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                int(sub["channel_id"]),
+                str(sub["cadence"]),
+                int(sub["hh"]),
+                int(sub["mi"]),
+                int(sub.get("weekly_days") or 0),
+                str(sub["next_run"]),
+            ),
+        )
+        self.db.commit()
+        return int(cur.lastrowid)
+
+    def list_event_subs(self, channel_id: Optional[int] = None) -> List[Dict[str, Any]]:
+        """List event subscriptions. If channel_id is None, returns all subs."""
+        if channel_id is None:
+            rows = self.db.execute(
+                """
+                SELECT id, channel_id, cadence, hh, mi, weekly_days, next_run
+                FROM event_subs
+                ORDER BY next_run ASC
+                """
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+        rows = self.db.execute(
+            """
+            SELECT id, channel_id, cadence, hh, mi, weekly_days, next_run
+            FROM event_subs
+            WHERE channel_id = ?
+            ORDER BY next_run ASC
+            """,
+            (int(channel_id),),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def remove_event_sub(self, sub_id: int, requester_id: int) -> bool:
+        """Remove a subscription by channel ID, only if it belongs to requester_id."""
+        cur = self.db.cursor()
+        cur.execute(
+            "DELETE FROM event_subs WHERE id = ? AND channel_id = ?",
+            (int(sub_id), int(requester_id)),
+        )
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def update_event_sub(self, sub_id: int, next_run: str, **_ignored) -> None:
+        self.db.execute("UPDATE event_subs SET next_run = ? WHERE id = ?", (str(next_run), int(sub_id)))
         self.db.commit()
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:

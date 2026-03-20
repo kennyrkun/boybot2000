@@ -5,7 +5,7 @@ import logging
 import discord
 from discord.ext import commands
 
-from weather_store import WxStore
+from store import Store
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 APP_ID = os.getenv("DISCORD_APP_ID") # optional
@@ -16,9 +16,10 @@ log = logging.getLogger("boybot2000")
 
 intents = discord.Intents.default() # change this if more intents are needed
 
-class WxBot(commands.Bot):
+class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:
         await self.load_extension("weather")
+        await self.load_extension("events")
 
         try:
             synced = await self.tree.sync()
@@ -38,10 +39,10 @@ async def main():
         except ValueError:
             log.warning("DISCORD_APP_ID is set but not an int; ignoring.")
 
-    bot = WxBot(command_prefix="!", **bot_kwargs)
+    bot = boybot2000(command_prefix="!", **bot_kwargs)
 
     # Attach store to bot so cogs can use it
-    bot.weatherStore = WxStore(WEATHER_DB_PATH)
+    bot.store = Store(WEATHER_DB_PATH)
 
     @bot.event
     async def on_ready():
