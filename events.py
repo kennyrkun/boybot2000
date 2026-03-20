@@ -201,7 +201,7 @@ class Events(commands.Cog):
                                 if earliestEvent is None or event.start_time < earliestEvent.start_time:
                                     earliestEvent = event
 
-                                if event.start_time > ignorePastDate:
+                                if event.start_time.timestamp() > ignorePastDate.timestamp():
                                     eventsInFuture.append(event)
                                     continue
 
