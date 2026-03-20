@@ -244,10 +244,10 @@ class Events(commands.Cog):
 
                             strings = []
 
-                            if len(eventsInInterval) > 0:
+                            if currentEventsCount > 0:
                                 strings.append(f"there {"are" if currentEventsCount > 1 else "is"} {currentEventsCount} event{"s" if currentEventsCount > 1 else ""} {noun}")
 
-                            if len(eventsInFuture) > 0:
+                            if futureEventCount > 0:
                                 strings.append(f"there {"are" if futureEventCount > 1 else "is"} {futureEventCount} event{"s" if futureEventCount > 1 else ""} in the future")
 
                             string = " and ".join(strings).capitalize() + "!"
