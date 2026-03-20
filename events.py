@@ -74,7 +74,7 @@ class Events(commands.Cog):
         if event.user_count > 0: 
             emb.add_field(name = "Interested", value = event.user_count, inline=True)
 
-        emb.add_field(name = "When", value = event.start_time, inline=True)
+        emb.add_field(name = "When", value = f"<t:{event.start_time.timestamp()}:F>", inline=True)
         emb.add_field(name = "Where", value = event.location, inline=True)
 
         emb.add_field(name = "Description", value = event.description, inline=False)
