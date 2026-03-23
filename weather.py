@@ -328,14 +328,14 @@ class Weather(commands.Cog):
     # -------- Slash Commands --------
 
     async def _get_moon_embed(self, includePast: bool = False, includeFuture: bool = False):
+        now = datetime.utcnow()
+        name, emoji, age = moon_phase_info_for_date(now)
+
         emb = discord.Embed(
             title=f"Today's moon is a {emoji} {name}!",
             colour = discord.Colour.greyple()
         )
 
-        now = datetime.utcnow()
-
-        name, emoji, age = moon_phase_info_for_date(now)
         emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
 
         name, emoji, age = moon_phase_info_for_date(now - timedelta(days=1))
