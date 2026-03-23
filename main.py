@@ -32,13 +32,7 @@ class boybot2000(commands.Bot):
         if message.author.id == self.user.id:
             return
 
-        if message.reference is not None:
-            try:
-                referencedMessage = self.fetch_message(message.reference.message_id)
-            except discord.NotFound as e:
-                log.error(f"Failed to retrieve referenced message: {e} {traceback.format_exc()}")
-                return
-
+        if message.reference is not None and isinstance(messge.reference.resolved, discord.Message):
             if referencedMessage.author.id == self.user.id:
                 await referencedMessage.reply('<a:boykisser_meow:1485641863024087101>', mention_author = True)
 
