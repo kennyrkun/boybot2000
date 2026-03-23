@@ -238,7 +238,7 @@ class Events(commands.Cog):
 
     @app_commands.command(name="events_list", description="Show a list of events in the current channel.")
     async def events_list(self, inter: discord.Interaction):
-        await self._send_event_list(inter.channel, 1, "today", datetime.utcnow())
+        await self._send_event_list(inter.channel_id, 1, "today", datetime.utcnow())
 
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
