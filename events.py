@@ -68,16 +68,15 @@ class Events(commands.Cog):
 
         emb = discord.Embed(
             title = event.name,
+            description = event.description,
             colour = event.creator.accent_colour
         )
 
         if event.user_count > 0: 
-            emb.add_field(name = "Interested", value = event.user_count, inline=True)
+            emb.add_field(name = "Interested", value = event.user_count, inline = True)
 
-        emb.add_field(name = "When", value = f"<t:{int(event.start_time.timestamp())}:F>", inline=True)
-        emb.add_field(name = "Where", value = event.location, inline=True)
-
-        emb.add_field(name = "Description", value = event.description, inline=False)
+        emb.add_field(name = "When", value = f"<t:{int(event.start_time.timestamp())}:F>", inline = True)
+        emb.add_field(name = "Where", value = event.location, inline = True)
 
         emb.set_author(name = event.creator.display_name, url = None, icon_url = event.creator.avatar.url)
 

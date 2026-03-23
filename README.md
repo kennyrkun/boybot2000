@@ -6,14 +6,24 @@ Incorporates event tracking functionality from https://lud.ink/ and https://gith
 
 # Commands
 ## events_subscriptions
-## events_subscribe
-## events_unsubscribe
+Sends a list of subscriptions a user has for events in the current channel to the user that requested it.
+
+## events_subscribe (utc time, cadence)
+Subscribes the current channel to event announcements at a specified interval.
+
+## events_unsubscribe (subscriptionId)
+Cancels a subscription to event announcements.
+
+## events_list
+Posts a list of current events in the current channel for everyone to see.
 
 ## weather_subscriptions
 ## weather_subscribe
 ## weather_unsubscribe
 
 ## moon
+Replies with the current moon state.
+
 ## weather
 ## hourly
 ## units

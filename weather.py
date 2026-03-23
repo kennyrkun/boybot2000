@@ -354,7 +354,7 @@ class Weather(commands.Cog):
                             zp = await r.json()
                             place = zp["places"][0]
                             city = place["place name"]; state = place["state abbreviation"]
-                            title_loc = f" — {city}, {state} {z}"
+                            location = f"{city}, {state} {z}"
             except Exception:
                 # If ZIP lookup fails, still show phase
                 pass
@@ -365,12 +365,13 @@ class Weather(commands.Cog):
         name, emoji, age = moon_phase_info_for_date(now_local)
 
         emb = discord.Embed(
-            title=f"{emoji} Moon Phase{title_loc}",
-            description=f"**{name}**",
+            title=f"Today's moon phase is a {emoji} {name}!",
             colour=discord.Colour.blurple()
         )
-        emb.add_field(name="Moon age", value=f"{age} days", inline=True)
-        emb.set_footer(text=f"Date: {now_local.strftime('%Y-%m-%d')} ({tz_name})")
+
+        emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
+        emb.set_footer(text=location)
+
         await inter.response.send_message(embed=emb)
 
     @app_commands.command(name="weather", description="Current weather by ZIP. Uses this channel's saved ZIP if omitted.")
