@@ -200,40 +200,40 @@ class Moon(commands.Cog):
             if not subs:
                 return
 
-			for s in subs:
-				due = datetime.fromisoformat(s["next_run"]).replace(tzinfo=timezone.utc)
+            for s in subs:
+                due = datetime.fromisoformat(s["next_run"]).replace(tzinfo=timezone.utc)
 
-				if due <= now:
-					embs = []
+                if due <= now:
+                    embs = []
 
-					try:
-						if s["cadence"] == "daily":
-						interval = 1
-						noun = "today"
+                    try:
+                        if s["cadence"] == "daily":
+                        interval = 1
+                        noun = "today"
 
-						embs.append(_get_moon_embed(now))
-					else:
-						days = int(s.get("weekly_days", 7))
-						interval = 10 if days > 10 else (3 if days < 3 else days)
-						noun = "this week"
+                        embs.append(_get_moon_embed(now))
+                    else:
+                        days = int(s.get("weekly_days", 7))
+                        interval = 10 if days > 10 else (3 if days < 3 else days)
+                        noun = "this week"
 
-						for x in range (0, interval)
-							embs.append(_get_moon_embed(now + timedelta(days=x)))
+                        for x in range (0, interval)
+                            embs.append(_get_moon_embed(now + timedelta(days = x)))
 
-                        	channel = await self.bot.fetch_channel(s["channel_id"])
-                        	await channel.send(embeds = embs)
+                            channel = await self.bot.fetch_channel(s["channel_id"])
+                            await channel.send(embeds = embs)
 
-							next = datetime.utcnow()
-							next = next.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
+                            next = datetime.utcnow()
+                            next = next.replace(hour = s["hh"], minute = s["mi"], second = 0, microsecond = 0)
 
-							if next <= datetime.utcnow():
-								next += timedelta(days=interval)
+                            if next <= datetime.utcnow():
+                                next += timedelta(days = interval)
 
-							self.store.update_moon_sub(s["id"], channel_id=int(s["channel_id"]), next_run=next.isoformat())
-						except Exception as e:
-							fallback = now + timedelta(minutes=5)
-							self.store.update_moon_sub(s["id"], next_run=fallback.isoformat())
-							await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Moon error: {e} {traceback.format_exc()}")
+                            self.store.update_moon_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
+                        except Exception as e:
+                            fallback = now + timedelta(minutes = 5)
+                            self.store.update_moon_sub(s["id"], next_run = fallback.isoformat())
+                            await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Moon error: {e} {traceback.format_exc()}")
 
         except Exception as e:
             await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Moon subscriptions error: {e} {traceback.format_exc()}")
