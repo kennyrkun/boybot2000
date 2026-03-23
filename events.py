@@ -83,6 +83,60 @@ class Events(commands.Cog):
 
         return emb
 
+    async def _send_event_list(channelId: int, interval: int, noun: string, now: datetime):
+        channel = await self.bot.fetch_channel(channelId)
+        events = channel.guild.scheduled_events
+
+        eventsInInterval = []
+        eventsInFuture   = []
+        earliestEvent    = None
+
+        if len(events) > 1:
+            ignorePastDate = now + timedelta(days = interval)
+
+            for event in events:
+                if event.status is not discord.EventStatus.scheduled and event.status is not discord.EventStatus.active:
+                    continue
+
+                if earliestEvent is None or event.start_time < earliestEvent.start_time:
+                    earliestEvent = event
+
+                if event.start_time.timestamp() > ignorePastDate.timestamp():
+                    eventsInFuture.append(event)
+                    continue
+
+                eventsInInterval.append(event)
+
+            eventsInInterval.sort(key = lambda x: x.start_time, reverse = False)
+            eventsInFuture.sort(key = lambda x: x.start_time, reverse = False)
+
+            # add in-interval events first so that they are shown first in embeds
+            allEvents = eventsInInterval + eventsInFuture
+
+            currentEventsCount = len(eventsInInterval)
+            futureEventCount = len(eventsInFuture)
+            
+            embeds = []
+
+            # create an embed for the first 10 events ordered by sooner start_time, max of 10 (discord limitation but also that's enough)
+            for x in range(0, min(len(allEvents), 9)):
+                embed = await self._create_event_embed(allEvents[x])
+                embeds.append(embed)
+
+            strings = []
+
+            if currentEventsCount > 0:
+                strings.append(f"there {'are' if (currentEventsCount > 1) else 'is'} {currentEventsCount} event{'s' if currentEventsCount > 1 else ''} {noun}")
+
+            if futureEventCount > 0:
+                strings.append(f"there {'are' if futureEventCount > 1 else 'is'} {futureEventCount} event{'s' if futureEventCount > 1 else ''} in the future")
+
+            string = " and ".join(strings).capitalize() + "!"
+
+            await channel.send(content = string, embeds = embeds, delete_after = 86400)
+        else:
+            await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
+
     # -------- Slash Commands --------
 
     @app_commands.command(name="events_subscribe", description="Subscribe this channel to a daily or weekly event announcement at a UTC time.")
@@ -182,6 +236,10 @@ class Events(commands.Cog):
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
+    @app_commands.command(name="events_list", description="Show a list of events in the current channel.")
+    async def events_list(self, inter: discord.Interaction):
+        await self._send_event_list(inter.channel, 1, "today", datetime.utcnow())
+
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
     async def events_scheduler(self):
@@ -208,55 +266,7 @@ class Events(commands.Cog):
 
                 if due <= now:
                     try:
-                        channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                        events = channel.guild.scheduled_events
-
-                        eventsInInterval = []
-                        eventsInFuture   = []
-                        earliestEvent    = None
-
-                        if len(events) > 1:
-                            ignorePastDate = now + timedelta(days = interval)
-
-                            for event in events:
-                                if earliestEvent is None or event.start_time < earliestEvent.start_time:
-                                    earliestEvent = event
-
-                                if event.start_time.timestamp() > ignorePastDate.timestamp():
-                                    eventsInFuture.append(event)
-                                    continue
-
-                                eventsInInterval.append(event)
-
-                            eventsInInterval.sort(key = lambda x: x.start_time, reverse=False)
-                            eventsInFuture.sort(key = lambda x: x.start_time, reverse=False)
-
-                            # add in-interval events first so that they are shown first in embeds
-                            allEvents = eventsInInterval + eventsInFuture
-                            
-                            embeds = []
-
-                            # create an embed for the first 10 events ordered by sooner start_time, max of 10 (discord limitation but also that's enough)
-                            for x in range(1, min(len(allEvents), 10)):
-                                embed = await self._create_event_embed(allEvents[x - 1])
-                                embeds.append(embed)
-
-                            currentEventsCount = len(eventsInInterval)
-                            futureEventCount = len(eventsInFuture)
-
-                            strings = []
-
-                            if currentEventsCount > 0:
-                                strings.append(f"there {'are' if (currentEventsCount > 1) else 'is'} {currentEventsCount} event{'s' if currentEventsCount > 1 else ''} {noun}")
-
-                            if futureEventCount > 0:
-                                strings.append(f"there {'are' if futureEventCount > 1 else 'is'} {futureEventCount} event{'s' if futureEventCount > 1 else ''} in the future")
-
-                            string = " and ".join(strings).capitalize() + "!"
-
-                            await channel.send(content = string, embeds = embeds, delete_after = 86400)
-                        else:
-                            await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
+                        await self._send_event_list(int(s["channel_id"]), interval, noun, now)
 
                         next = datetime.utcnow()
                         next = next.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
