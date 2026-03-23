@@ -351,7 +351,7 @@ class Weather(commands.Cog):
 
     @app_commands.command(name = "weather_current", description = "Current weather by ZIP.")
     @app_commands.choices(units = UNITS_CHOICES)
-    async def weather_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = "standard"):
+    async def weather_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = UNITS_CHOICES[0]):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
@@ -458,7 +458,7 @@ class Weather(commands.Cog):
     @app_commands.command(name = "weather_hourly", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
     @app_commands.describe(hours = "How many hours to show (6-24, optional, defaults to 12)")
     @app_commands.choices(units = UNITS_CHOICES)
-    async def hourly_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12, units: Optional[app_commands.Choice[str]] = "standard"):
+    async def hourly_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12, units: Optional[app_commands.Choice[str]] = UNITS_CHOICES[0]):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
@@ -558,7 +558,7 @@ class Weather(commands.Cog):
         time: str,
         cadence: app_commands.Choice[str],
         zip: app_commands.Range[str, 5, 5],
-        units: Optional[app_commands.Choice[str]] = "standard",
+        units: Optional[app_commands.Choice[str]] = UNITS_CHOICES[0],
         weekly_days: Optional[app_commands.Range[int, 3, 10]] = 7
     ):
         if self.store is None:
