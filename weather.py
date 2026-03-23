@@ -319,11 +319,11 @@ class Weather(commands.Cog):
             log.error("Storage backend not available.")
 
         self.weather_scheduler.start()
-        self.wx_alerts_scheduler.start()
+        self.weather_alerts_scheduler.start()
 
     def cog_unload(self):
         self.weather_scheduler.cancel()
-        self.wx_alerts_scheduler.cancel()
+        self.weather_alerts_scheduler.cancel()
 
     # -------- Slash Commands --------
 
@@ -354,27 +354,14 @@ class Weather(commands.Cog):
 
         await inter.followup.send(embed = emb)
 
-    @app_commands.command(name="weather", description="Current weather by ZIP. Uses this channel's saved ZIP if omitted.")
-    @app_commands.describe(zip="Optional ZIP; uses this channel's saved default if omitted")
-    async def weather_cmd(self, inter: discord.Interaction, zip: Optional[str] = None):
+    @app_commands.command(name="weather", description="Current weather by ZIP.")
+    async def weather_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5],):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+
         await inter.response.defer()
 
-        # Resolve ZIP
-        if not zip or not str(zip).strip():
-            saved = self.store.get_user_zip(inter.channel_id)
-            if not saved or len(str(saved)) != 5:
-                return await inter.followup.send(
-                    "You didn’t provide a ZIP and no default is saved. Set one with `/weather_set_zip 60601` or pass a ZIP.",
-                    ephemeral=True,
-                )
-            z = str(saved)
-        else:
-            z = re.sub(r"[^0-9]", "", str(zip))
-            if len(z) != 5:
-                return await inter.followup.send("Please give a valid 5‑digit US ZIP.", ephemeral=True)
-
+        z = re.sub(r"[^0-9]", "", str(zip))
         units = _get_user_units(self.store, inter.channel_id)
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
         temp_unit = "fahrenheit" if units == "standard" else "celsius"
@@ -472,82 +459,16 @@ class Weather(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f Weather error: {e} {traceback.format_exc()}", ephemeral=True)
 
-    # ---- User settings ----
-    UNITS_CHOICES = [
-        app_commands.Choice(name="standard (°F, mph, in)", value="standard"),
-        app_commands.Choice(name="metric (°C, km/h, mm)", value="metric"),
-    ]
-
-    @app_commands.command(name="units", description="Set this channel's weather units preference (standard or metric).")
-    @app_commands.choices(mode=UNITS_CHOICES)
-    async def units_cmd(self, inter: discord.Interaction, mode: app_commands.Choice[str]):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-        val = (mode.value or "standard").lower()
-        if val not in {"standard", "metric"}:
-            val = "standard"
-        self.store.set_note(inter.channel_id, "wx_units", val)
-        await inter.response.send_message(f"✅ Units saved: **{val}**", ephemeral=True)
-
-    @app_commands.command(name="timezone", description="Set this channel's timezone for hourly forecasts and scheduling.")
-    @app_commands.describe(tz_name="IANA timezone name (e.g., America/Chicago, America/New_York, Europe/London)")
-    async def timezone_cmd(self, inter: discord.Interaction, tz_name: str):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-        tz_name = (tz_name or "").strip()
-        if not tz_name:
-            return await inter.response.send_message("Please provide a timezone name like **America/Chicago**.", ephemeral=True)
-
-        # Validate
-        if ZoneInfo is not None:
-            try:
-                ZoneInfo(tz_name)
-            except Exception:
-                return await inter.response.send_message(
-                    "That timezone name isn't recognized. Example: **America/Chicago** or **America/New_York**.",
-                    ephemeral=True,
-                )
-
-        self.store.set_note(inter.channel_id, "wx_tz", tz_name)
-        await inter.response.send_message(f"✅ Timezone saved: **{tz_name}**", ephemeral=True)
-
-    @app_commands.command(name="settings", description="Show this channel's saved weather settings.")
-    async def settings_cmd(self, inter: discord.Interaction):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-        z = self.store.get_user_zip(inter.channel_id)
-        units = _get_user_units(self.store, inter.channel_id)
-        tz_name = _get_user_tz_name(self.store, inter.channel_id)
-        await inter.response.send_message(
-            f"**Weather settings**\n"
-            f"• Default ZIP: **{z or 'not set'}**\n"
-            f"• Units: **{units}**\n"
-            f"• Timezone: **{tz_name}**",
-            ephemeral=True,
-        )
-
     # ---- Hourly forecast ----
-    @app_commands.command(name="hourly", description="Hourly forecast for the next hours (uses this channel's saved ZIP if omitted).")
-    @app_commands.describe(zip="Optional ZIP; uses this channel's saved default if omitted", hours="How many hours to show (6-24)")
-    async def hourly_cmd(self, inter: discord.Interaction, zip: Optional[str] = None, hours: Optional[app_commands.Range[int, 6, 24]] = 12):
+    @app_commands.command(name="hourly", description="Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
+    @app_commands.describe(hours="How many hours to show (6-24, optional, defaults to 12)")
+    async def hourly_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+
         await inter.response.defer()
 
-        # Resolve ZIP
-        if not zip or not str(zip).strip():
-            saved = self.store.get_user_zip(inter.channel_id)
-            if not saved or len(str(saved)) != 5:
-                return await inter.followup.send(
-                    "You didn’t provide a ZIP and no default is saved. Set one with `/weather_set_zip 60601` or pass a ZIP.",
-                    ephemeral=True,
-                )
-            z = str(saved)
-        else:
-            z = re.sub(r"[^0-9]", "", str(zip))
-            if len(z) != 5:
-                return await inter.followup.send("Please give a valid 5‑digit US ZIP.", ephemeral=True)
-
+        z = re.sub(r"[^0-9]", "", str(zip))
         units = _get_user_units(self.store, inter.channel_id)
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
 
@@ -626,16 +547,6 @@ class Weather(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f Hourly error: {e} {traceback.format_exc()}", ephemeral=True)
 
-    @app_commands.command(name="weather_set_zip", description="Set this channel's default ZIP code for weather features.")
-    async def weather_set_zip(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 10]):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-        z = re.sub(r"[^0-9]", "", zip)
-        if len(z) != 5:
-            return await inter.response.send_message("Please provide a valid 5‑digit US ZIP.", ephemeral=True)
-        self.store.set_user_zip(inter.channel_id, z)
-        await inter.response.send_message(f"\u2705 Saved default ZIP: **{z}**", ephemeral=True)
-
     @app_commands.command(name="weather_subscribe", description="Subscribe the current channel to a daily or weekly weather announcement at a local-time hour.")
     @app_commands.describe(
         time="HH:MM (24h), HHMM, or h:mma/pm in this channel's saved timezone",
@@ -643,14 +554,13 @@ class Weather(commands.Cog):
         zip="Optional ZIP; uses this channel's saved ZIP if omitted",
         weekly_days="For weekly: number of days to include (3, 7, or 10)"
     )
-
     @app_commands.choices(cadence=CADENCE_CHOICES)
     async def weather_subscribe(
         self,
         inter: discord.Interaction,
         time: str,
         cadence: app_commands.Choice[str],
-        zip: Optional[app_commands.Range[str, 5, 10]] = None,
+        zip: app_commands.Range[str, 5, 5],
         weekly_days: Optional[app_commands.Range[int, 3, 10]] = 7
     ):
         if self.store is None:
@@ -658,9 +568,7 @@ class Weather(commands.Cog):
         await inter.response.defer(ephemeral=True)
         try:
             hh, mi = _parse_time(time)
-            z = re.sub(r"[^0-9]", "", zip) if zip else (self.store.get_user_zip(inter.channel_id) or "")
-            if len(z) != 5:
-                return await inter.followup.send("Set a ZIP with `/weather_set_zip` or provide it here.", ephemeral=True)
+            z = re.sub(r"[^0-9]", "", zip)
             tz_name = _get_user_tz_name(self.store, inter.channel_id)
             tz = _tzinfo_from_name(tz_name)
             units = _get_user_units(self.store, inter.channel_id)
@@ -744,28 +652,22 @@ class Weather(commands.Cog):
         ok = self.store.remove_weather_sub(subscription_id, requester_id=inter.channel_id)
         await inter.followup.send(f":white_check_mark: Weather announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
-    @app_commands.command(name="wx_alerts", description="Enable/disable severe weather alert announcements in the current channel.")
-    @app_commands.describe(
-        mode="on or off",
-        zip="Optional ZIP (defaults to this channel's saved ZIP)",
-        min_severity="advisory | watch | warning (default: watch)"
-    )
-    async def wx_alerts(self, inter: discord.Interaction,
-                        mode: str,
-                        zip: Optional[str] = None,
-                        min_severity: Optional[str] = "watch"):
+    @app_commands.command(name = "weather_alerts", description = "Enable/disable severe weather alert announcements in the current channel.")
+    @app_commands.describe(mode = "on/off", min_severity = "advisory | watch | warning (optional, defaults to watch)")
+    async def weather_alerts(self, inter: discord.Interaction, mode: str, zip: app_commands.Range[str, 5, 5], min_severity: Optional[str] = "watch"):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+
         mode = (mode or "").strip().lower()
+
         if mode not in ("on", "off"):
-            return await inter.response.send_message("Use **on** or **off**.", ephemeral=True)
+            return await inter.response.send_message("Use **on** or **off**.", ephemeral = True)
+
         if mode == "off":
             self.store.set_note(inter.channel_id, "wx_alerts_enabled", "0")
-            return await inter.response.send_message(":white_check_mark: Severe weather alerts will no longer be sent to <#{inter.channel_id}>.", ephemeral=True)
+            return await inter.response.send_message(":white_check_mark: Severe weather alerts will no longer be sent to <#{inter.channel_id}>.", ephemeral = True)
 
-        z = re.sub(r"[^0-9]", "", zip) if zip else (self.store.get_user_zip(inter.channel_id) or "")
-        if len(z) != 5:
-            return await inter.response.send_message("Set a ZIP with `/weather_set_zip` or provide it here.", ephemeral=True)
+        z = re.sub(r"[^0-9]", "", zip)
 
         sev = (min_severity or "watch").strip().lower()
         if sev not in ("advisory", "watch", "warning"):
@@ -913,9 +815,10 @@ class Weather(commands.Cog):
         return out
 
     @tasks.loop(seconds=300)
-    async def wx_alerts_scheduler(self):
+    async def weather_alerts_scheduler(self):
         if self.store is None:
             return
+
         try:
             channel_ids = set()
             try:
@@ -987,7 +890,7 @@ class Weather(commands.Cog):
         except Exception:
             pass
 
-    @wx_alerts_scheduler.before_loop
+    @weather_alerts_scheduler.before_loop
     async def before_alerts(self):
         await self.bot.wait_until_ready()
 

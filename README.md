@@ -20,6 +20,7 @@ Posts a list of current events in the current channel for everyone to see.
 ## weather_subscriptions
 ## weather_subscribe
 ## weather_unsubscribe
+## weather_alerts
 
 ## moon
 Replies with the current moon state.
@@ -28,6 +29,4 @@ Replies with the current moon state.
 ## hourly
 ## units
 ## timezone
-## weather_set_zip
-## wx_alerts
 ## settings
