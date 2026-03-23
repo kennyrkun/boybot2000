@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
-from astral import moon
+from moon import moon_phase_info_for_date
 
 import discord
 from discord.ext import tasks, commands
@@ -55,49 +55,6 @@ WX_CODE_MAP = {
     96: ("\u26C8\ufe0f", "Thunderstorm with hail"),
     99: ("\u26C8\ufe0f", "Severe thunderstorm with hail"),
 }
-
-# ---- Moon phase helpers (Astral) ----
-# Astral's moon.phase() returns a number on ~0..28 scale for the given date.
-# We'll map that to 8 familiar phases for display.
-_MOON_PHASES_8 = [
-    ("New Moon", "🌑"),
-    ("Waxing Crescent", "🌒"),
-    ("First Quarter", "🌓"),
-    ("Waxing Gibbous", "🌔"),
-    ("Full Moon", "🌕"),
-    ("Waning Gibbous", "🌖"),
-    ("Last Quarter", "🌗"),
-    ("Waning Crescent", "🌘"),
-]
-
-def moon_phase_info_for_date(d: datetime) -> Tuple[str, str, float]:
-    """Return (name, emoji, age_days) for the date."""
-    # Use local date component
-    date = d.date()
-    p = float(moon.phase(date))  # 0..~28
-    idx = int((p / 28.0) * 8 + 0.5) % 8
-    name, emoji = _MOON_PHASES_8[idx]
-    age_days = round(p, 1)
-    return name, emoji, age_days
-
-def _get_moon_embed(self, includePast: bool = False, includeFuture: bool = False):
-    now = datetime.utcnow()
-    name, emoji, age = moon_phase_info_for_date(now)
-
-    emb = discord.Embed(
-        title=f"Today's moon is a {emoji} {name}!",
-        colour = discord.Colour.greyple()
-    )
-
-    emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
-
-    name, emoji, age = moon_phase_info_for_date(now - timedelta(days=1))
-    emb.add_field(name="Yesterday's moon was a", value=f"{emoji} {name}.", inline=True)
-
-    name, emoji, age = moon_phase_info_for_date(now + timedelta(days=1))
-    emb.add_field(name="And tomorrow's moon will be a", value=f"{emoji} {name}.", inline=True)
-
-    return emb
 
 def wx_icon_desc(code: int):
     icon, desc = WX_CODE_MAP.get(int(code), ("\U0001F321\ufe0f", "Weather"))
@@ -342,12 +299,6 @@ class Weather(commands.Cog):
         self.weather_alerts_scheduler.cancel()
 
     # -------- Slash Commands --------
-
-    @app_commands.command(name="moon", description="Show today's moon phase.")
-    async def moon_cmd(self, inter: discord.Interaction):
-        await inter.response.defer()
-
-        await inter.followup.send(embed = _get_moon_embed(True, True))
 
     @app_commands.command(name = "weather_current", description = "Current weather by ZIP.")
     @app_commands.choices(units = UNITS_CHOICES)

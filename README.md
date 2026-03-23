@@ -26,3 +26,6 @@ Posts a list of current events in the current channel for everyone to see.
 
 ## moon
 Replies with the current moon state.
+## moon_subscribe
+## moon_unsubscribe
+## moon_subscriptions
