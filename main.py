@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("boybot2000")
 
 intents = discord.Intents.default() # change this if more intents are needed
+intents.message_content = True
 
 class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:
@@ -26,6 +27,20 @@ class boybot2000(commands.Bot):
             log.info("Synced %d app commands globally.", len(synced))
         except Exception:
             log.exception("Failed to sync app commands.")
+
+    async def on_message(self, message):
+        if message.author.id == self.user.id:
+            return
+
+        if message.reference is not None:
+            try:
+                referencedMessage = self.bot.fetch_message(message.reference.message_id)
+            except discord.NotFound as e:
+                log.error(f"Failed to retrieve referenced message: {e} {traceback.format_exc()}")
+                return
+
+            if referencedMessage.author.id == self.user.id:
+                await referencedMessage.reply('<a:boykisser_meow:1485641863024087101>', mention_author = True)
 
 async def main():
     if not TOKEN:
