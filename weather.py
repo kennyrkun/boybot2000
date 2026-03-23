@@ -358,6 +358,7 @@ class Weather(commands.Cog):
         await inter.response.defer()
 
         z = re.sub(r"[^0-9]", "", str(zip))
+        units = units.value
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
         temp_unit = "fahrenheit" if units == "standard" else "celsius"
         wind_unit = "mph" if units == "standard" else "kmh"
@@ -463,6 +464,7 @@ class Weather(commands.Cog):
 
         await inter.response.defer()
 
+        units = units.value
         z = re.sub(r"[^0-9]", "", str(zip))
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
 
@@ -565,6 +567,7 @@ class Weather(commands.Cog):
         await inter.response.defer(ephemeral = True)
 
         try:
+            units = units.value
             hh, mi = _parse_time(time)
             z = re.sub(r"[^0-9]", "", zip)
             tz_name = _get_user_tz_name(self.store, inter.channel_id)
@@ -590,7 +593,7 @@ class Weather(commands.Cog):
                 f"\U0001F324\ufe0f Subscribed <#{sub['channel_id']}> to {cadence.value} weather announcements at **{first_local.strftime('%I:%M %p')}** ({tz_name}) - ZIP {z} - units {units}.\n"
                 + ("Weekly outlook length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.") + "\n"
                 + f"Subscription #{sid}.",
-                ephemeral=True
+                ephemeral = True
             )
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
@@ -598,11 +601,14 @@ class Weather(commands.Cog):
     @app_commands.command(name="weather_subscriptions", description="List this channel's weather subscriptions and next send time.")
     async def weather_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-        await inter.response.defer(ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+
+        await inter.response.defer(ephemeral = True)
+
         items = self.store.list_weather_subs(inter.channel_id)
+
         if not items:
-            return await inter.followup.send("There are no weather subscriptions.", ephemeral=True)
+            return await inter.followup.send("There are no weather subscriptions.", ephemeral = True)
 
         out_lines = []
 
