@@ -21,6 +21,7 @@ class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:
         await self.load_extension("weather")
         await self.load_extension("events")
+        await self.load_extension("moon")
 
         try:
             synced = await self.tree.sync()
