@@ -32,7 +32,7 @@ class boybot2000(commands.Bot):
         if message.author.id == self.user.id:
             return
 
-        if message.reference is not None and isinstance(messge.reference.resolved, discord.Message):
+        if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             if referencedMessage.author.id == self.user.id:
                 await referencedMessage.reply('<a:boykisser_meow:1485641863024087101>', mention_author = True)
 
