@@ -350,7 +350,9 @@ class Weather(commands.Cog):
     async def moon_cmd(self, inter: discord.Interaction):
         await inter.response.defer()
 
-        await inter.followup.send(embed = self._get_moon_embed(True, True))
+        emb = await self._get_moon_embed(True, True)
+
+        await inter.followup.send(embed = emb)
 
     @app_commands.command(name="weather", description="Current weather by ZIP. Uses this channel's saved ZIP if omitted.")
     @app_commands.describe(zip="Optional ZIP; uses this channel's saved default if omitted")
