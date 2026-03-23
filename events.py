@@ -83,7 +83,7 @@ class Events(commands.Cog):
 
         return emb
 
-    async def _send_event_list(channelId: int, interval: int, noun: string, now: datetime):
+    async def _send_event_list(channelId: int, interval: int, noun: str, now: datetime):
         channel = await self.bot.fetch_channel(channelId)
         events = channel.guild.scheduled_events
 
