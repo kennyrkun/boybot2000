@@ -72,7 +72,7 @@ _MOON_PHASES_8 = [
 ]
 
 def moon_phase_info_for_date(d: datetime) -> Tuple[str, str, float]:
-    """Return (name, emoji, age_days) for the date in d (local date is used)."""
+    """Return (name, emoji, age_days) for the date."""
     # Use local date component
     date = d.date()
     p = float(moon.phase(date))  # 0..~28
@@ -327,52 +327,30 @@ class Weather(commands.Cog):
 
     # -------- Slash Commands --------
 
-    @app_commands.command(name="moon", description="Show today's moon phase (uses this channel's saved ZIP if you omit it).")
-    @app_commands.describe(zip="Optional ZIP; uses this channel's saved default if omitted")
-    async def moon_cmd(self, inter: discord.Interaction, zip: Optional[str] = None):
-        """Moon phase by date (and optionally by ZIP to show the location)."""
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-
-        # Resolve ZIP (optional, just to show city/state like /weather does)
-        z = None
-        if zip and str(zip).strip():
-            z = re.sub(r"[^0-9]", "", str(zip))
-            if len(z) != 5:
-                return await inter.response.send_message("Please give a valid 5‑digit US ZIP.", ephemeral=True)
-        else:
-            saved = self.store.get_user_zip(inter.channel_id)
-            if saved and len(str(saved)) == 5:
-                z = str(saved)
-
-        title_loc = ""
-        if z:
-            try:
-                async with aiohttp.ClientSession(headers=HTTP_HEADERS) as session:
-                    async with session.get(f"https://api.zippopotam.us/us/{z}", timeout=aiohttp.ClientTimeout(total=12)) as r:
-                        if r.status == 200:
-                            zp = await r.json()
-                            place = zp["places"][0]
-                            city = place["place name"]; state = place["state abbreviation"]
-                            location = f"{city}, {state} {z}"
-            except Exception:
-                # If ZIP lookup fails, still show phase
-                pass
-
-        tz_name = _get_user_tz_name(self.store, inter.channel_id)
-        tz = _tzinfo_from_name(tz_name)
-        now_local = datetime.now(tz)
-        name, emoji, age = moon_phase_info_for_date(now_local)
-
+    async def _get_moon_embed(self, includePast: bool = False, includeFuture: bool = False):
         emb = discord.Embed(
-            title=f"Today's moon phase is a {emoji} {name}!",
-            colour=discord.Colour.blurple()
+            title=f"Today's moon is a {emoji} {name}!",
+            colour = discord.Colour.greyple()
         )
 
-        emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
-        emb.set_footer(text=location)
+        now = datetime.utcnow()
 
-        await inter.response.send_message(embed=emb)
+        name, emoji, age = moon_phase_info_for_date(now)
+        emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
+
+        name, emoji, age = moon_phase_info_for_date(now - timedelta(days=1))
+        emb.add_field(name="Yesterday's moon was a", value=f"{emoji} {name}.", inline=True)
+
+        name, emoji, age = moon_phase_info_for_date(now + timedelta(days=1))
+        emb.add_field(name="And tomorrow's moon will be a", value=f"{emoji} {name}.", inline=True)
+
+        return emb
+
+    @app_commands.command(name="moon", description="Show today's moon phase.")
+    async def moon_cmd(self, inter: discord.Interaction):
+        await inter.response.defer()
+
+        await inter.followup.send(embed = self._get_moon_embed(true, true))
 
     @app_commands.command(name="weather", description="Current weather by ZIP. Uses this channel's saved ZIP if omitted.")
     @app_commands.describe(zip="Optional ZIP; uses this channel's saved default if omitted")
