@@ -445,9 +445,7 @@ class Weather(commands.Cog):
                 emb.add_field(name="Sunset", value=fmt_sun(sunset), inline=True)
 
             # Moon phase (in user's timezone)
-            tz = _tzinfo_from_name(tz_name)
-            now_local = datetime.now(tz)
-            m_name, m_emoji, m_age = moon_phase_info_for_date(now_local)
+            m_name, m_emoji, m_age = moon_phase_info_for_date(datetime.utcnow())
             emb.add_field(name="Moon", value=f"{m_emoji} {m_name} ({m_age}d)", inline=True)
 
             emb.set_footer(text=f"Units: {units} • Timezone: {tz_name}")
