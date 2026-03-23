@@ -457,7 +457,7 @@ class Weather(commands.Cog):
     @app_commands.command(name = "weather_hourly", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
     @app_commands.describe(hours = "How many hours to show (6-24, optional, defaults to 12)")
     @app_commands.choices(units = UNITS_CHOICES)
-    async def hourly_cmd(self, inter: discord.Interaction, hours: Optional[app_commands.Range[int, 6, 24]] = 12, zip: app_commands.Range[str, 5, 5], units: Optional[app.commands.Choice[str]] = "standard"):
+    async def hourly_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12, units: Optional[app.commands.Choice[str]] = "standard"):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
