@@ -34,7 +34,7 @@ class boybot2000(commands.Bot):
 
         if message.reference is not None:
             try:
-                referencedMessage = self.bot.fetch_message(message.reference.message_id)
+                referencedMessage = self.fetch_message(message.reference.message_id)
             except discord.NotFound as e:
                 log.error(f"Failed to retrieve referenced message: {e} {traceback.format_exc()}")
                 return
