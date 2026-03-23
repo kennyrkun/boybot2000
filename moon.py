@@ -217,7 +217,7 @@ class Moon(commands.Cog):
                             interval = 10 if days > 10 else (3 if days < 3 else days)
                             noun = "this week"
 
-                            for x in range (0, interval)
+                            for x in range(0, interval):
                                 embs.append(_get_moon_embed(now + timedelta(days = x)))
 
                         channel = await self.bot.fetch_channel(s["channel_id"])
