@@ -351,14 +351,14 @@ class Weather(commands.Cog):
 
     @app_commands.command(name = "weather_current", description = "Current weather by ZIP.")
     @app_commands.choices(units = UNITS_CHOICES)
-    async def weather_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = UNITS_CHOICES[0]):
+    async def weather_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
         await inter.response.defer()
 
         z = re.sub(r"[^0-9]", "", str(zip))
-        units = units.value
+        units = "standard" if units.value is None else units.value
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
         temp_unit = "fahrenheit" if units == "standard" else "celsius"
         wind_unit = "mph" if units == "standard" else "kmh"
@@ -458,13 +458,13 @@ class Weather(commands.Cog):
     @app_commands.command(name = "weather_hourly", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
     @app_commands.describe(hours = "How many hours to show (6-24, optional, defaults to 12)")
     @app_commands.choices(units = UNITS_CHOICES)
-    async def hourly_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12, units: Optional[app_commands.Choice[str]] = UNITS_CHOICES[0]):
+    async def hourly_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12, units: Optional[app_commands.Choice[str]] = None):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
         await inter.response.defer()
 
-        units = units.value
+        units = "standard" if units.value is None else units.value
         z = re.sub(r"[^0-9]", "", str(zip))
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
 
@@ -558,7 +558,7 @@ class Weather(commands.Cog):
         time: str,
         cadence: app_commands.Choice[str],
         zip: app_commands.Range[str, 5, 5],
-        units: Optional[app_commands.Choice[str]] = UNITS_CHOICES[0],
+        units: Optional[app_commands.Choice[str]] = None,
         weekly_days: Optional[app_commands.Range[int, 3, 10]] = 7
     ):
         if self.store is None:
@@ -567,7 +567,7 @@ class Weather(commands.Cog):
         await inter.response.defer(ephemeral = True)
 
         try:
-            units = units.value
+            units = "standard" if units.value is None else units.value
             hh, mi = _parse_time(time)
             z = re.sub(r"[^0-9]", "", zip)
             tz_name = _get_user_tz_name(self.store, inter.channel_id)
