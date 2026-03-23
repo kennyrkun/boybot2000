@@ -358,7 +358,7 @@ class Weather(commands.Cog):
         await inter.response.defer()
 
         z = re.sub(r"[^0-9]", "", str(zip))
-        units = "standard" if units.value is None else units.value
+        units = "standard" if units is None else units.value
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
         temp_unit = "fahrenheit" if units == "standard" else "celsius"
         wind_unit = "mph" if units == "standard" else "kmh"
@@ -464,7 +464,7 @@ class Weather(commands.Cog):
 
         await inter.response.defer()
 
-        units = "standard" if units.value is None else units.value
+        units = "standard" if units is None else units.value
         z = re.sub(r"[^0-9]", "", str(zip))
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
 
@@ -567,7 +567,7 @@ class Weather(commands.Cog):
         await inter.response.defer(ephemeral = True)
 
         try:
-            units = "standard" if units.value is None else units.value
+            units = "standard" if units is None else units.value
             hh, mi = _parse_time(time)
             z = re.sub(r"[^0-9]", "", zip)
             tz_name = _get_user_tz_name(self.store, inter.channel_id)
