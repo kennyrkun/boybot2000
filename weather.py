@@ -56,7 +56,6 @@ WX_CODE_MAP = {
     99: ("\u26C8\ufe0f", "Severe thunderstorm with hail"),
 }
 
-
 # ---- Moon phase helpers (Astral) ----
 # Astral's moon.phase() returns a number on ~0..28 scale for the given date.
 # We'll map that to 8 familiar phases for display.
@@ -80,6 +79,25 @@ def moon_phase_info_for_date(d: datetime) -> Tuple[str, str, float]:
     name, emoji = _MOON_PHASES_8[idx]
     age_days = round(p, 1)
     return name, emoji, age_days
+
+def _get_moon_embed(self, includePast: bool = False, includeFuture: bool = False):
+    now = datetime.utcnow()
+    name, emoji, age = moon_phase_info_for_date(now)
+
+    emb = discord.Embed(
+        title=f"Today's moon is a {emoji} {name}!",
+        colour = discord.Colour.greyple()
+    )
+
+    emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
+
+    name, emoji, age = moon_phase_info_for_date(now - timedelta(days=1))
+    emb.add_field(name="Yesterday's moon was a", value=f"{emoji} {name}.", inline=True)
+
+    name, emoji, age = moon_phase_info_for_date(now + timedelta(days=1))
+    emb.add_field(name="And tomorrow's moon will be a", value=f"{emoji} {name}.", inline=True)
+
+    return emb
 
 def wx_icon_desc(code: int):
     icon, desc = WX_CODE_MAP.get(int(code), ("\U0001F321\ufe0f", "Weather"))
@@ -139,13 +157,6 @@ def _get_user_tz_name(store, channel_id: int) -> str:
         return DEFAULT_TZ_NAME
     tz = store.get_note(int(channel_id), "wx_tz")
     return (tz or DEFAULT_TZ_NAME).strip() or DEFAULT_TZ_NAME
-
-def _get_user_units(store, channel_id: int) -> str:
-    """Return 'standard' or 'metric'."""
-    if store is None:
-        return "standard"
-    u = (store.get_note(int(channel_id), "wx_units") or "standard").strip().lower()
-    return u if u in {"standard", "metric"} else "standard"
 
 def _parse_time(time_str: str):
     t = time_str.strip().lower().replace(" ", "")
@@ -308,6 +319,11 @@ CADENCE_CHOICES = [
     app_commands.Choice(name="weekly (send on this weekday)", value="weekly"),
 ]
 
+UNITS_CHOICES = [
+    app_commands.Choice(name="standard (°F, mph, in)", value="standard"),
+    app_commands.Choice(name="metric (°C, km/h, mm)", value="metric"),
+]
+
 class Weather(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -327,42 +343,21 @@ class Weather(commands.Cog):
 
     # -------- Slash Commands --------
 
-    async def _get_moon_embed(self, includePast: bool = False, includeFuture: bool = False):
-        now = datetime.utcnow()
-        name, emoji, age = moon_phase_info_for_date(now)
-
-        emb = discord.Embed(
-            title=f"Today's moon is a {emoji} {name}!",
-            colour = discord.Colour.greyple()
-        )
-
-        emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
-
-        name, emoji, age = moon_phase_info_for_date(now - timedelta(days=1))
-        emb.add_field(name="Yesterday's moon was a", value=f"{emoji} {name}.", inline=True)
-
-        name, emoji, age = moon_phase_info_for_date(now + timedelta(days=1))
-        emb.add_field(name="And tomorrow's moon will be a", value=f"{emoji} {name}.", inline=True)
-
-        return emb
-
     @app_commands.command(name="moon", description="Show today's moon phase.")
     async def moon_cmd(self, inter: discord.Interaction):
         await inter.response.defer()
 
-        emb = await self._get_moon_embed(True, True)
+        await inter.followup.send(embed = _get_moon_embed(True, True))
 
-        await inter.followup.send(embed = emb)
-
-    @app_commands.command(name="weather", description="Current weather by ZIP.")
-    async def weather_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5],):
+    @app_commands.command(name = "weather_current", description = "Current weather by ZIP.")
+    @app_commands.choices(units = UNITS_CHOICES)
+    async def weather_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app.commands.Choice[str]] = "standard"):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
         await inter.response.defer()
 
         z = re.sub(r"[^0-9]", "", str(zip))
-        units = _get_user_units(self.store, inter.channel_id)
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
         temp_unit = "fahrenheit" if units == "standard" else "celsius"
         wind_unit = "mph" if units == "standard" else "kmh"
@@ -459,17 +454,16 @@ class Weather(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f Weather error: {e} {traceback.format_exc()}", ephemeral=True)
 
-    # ---- Hourly forecast ----
-    @app_commands.command(name="hourly", description="Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
-    @app_commands.describe(hours="How many hours to show (6-24, optional, defaults to 12)")
-    async def hourly_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12):
+    @app_commands.command(name = "weather_hourly", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
+    @app_commands.describe(hours = "How many hours to show (6-24, optional, defaults to 12)")
+    @app_commands.choices(units = UNITS_CHOICES)
+    async def hourly_cmd(self, inter: discord.Interaction, hours: Optional[app_commands.Range[int, 6, 24]] = 12, zip: app_commands.Range[str, 5, 5], units: Optional[app.commands.Choice[str]] = "standard"):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
         await inter.response.defer()
 
         z = re.sub(r"[^0-9]", "", str(zip))
-        units = _get_user_units(self.store, inter.channel_id)
         tz_name = _get_user_tz_name(self.store, inter.channel_id)
 
         try:
@@ -554,24 +548,27 @@ class Weather(commands.Cog):
         zip="Optional ZIP; uses this channel's saved ZIP if omitted",
         weekly_days="For weekly: number of days to include (3, 7, or 10)"
     )
-    @app_commands.choices(cadence=CADENCE_CHOICES)
+    @app_commands.choices(cadence = CADENCE_CHOICES)
+    @app_commands.choices(units = UNITS_CHOICES)
     async def weather_subscribe(
         self,
         inter: discord.Interaction,
         time: str,
         cadence: app_commands.Choice[str],
         zip: app_commands.Range[str, 5, 5],
+        units: Optional[app.commands.Choice[str]] = "standard",
         weekly_days: Optional[app_commands.Range[int, 3, 10]] = 7
     ):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-        await inter.response.defer(ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+
+        await inter.response.defer(ephemeral = True)
+
         try:
             hh, mi = _parse_time(time)
             z = re.sub(r"[^0-9]", "", zip)
             tz_name = _get_user_tz_name(self.store, inter.channel_id)
             tz = _tzinfo_from_name(tz_name)
-            units = _get_user_units(self.store, inter.channel_id)
             now_local = datetime.now(tz)
             first_local = _next_local_run(now_local, hh, mi, cadence.value)
             next_run_utc = first_local.astimezone(timezone.utc)
@@ -613,7 +610,7 @@ class Weather(commands.Cog):
             tz_name = (s.get("tz_name") or "").strip() or _get_user_tz_name(self.store, inter.channel_id)
             tz = _tzinfo_from_name(tz_name)
             now_local = datetime.now(tz)
-            units = (s.get("units") or "").strip() or _get_user_units(self.store, inter.channel_id)
+            units = (s.get("units") or "").strip()
             hh = int(s.get("hh", 8))
             mi = int(s.get("mi", 0))
             cadence = s.get("cadence", "daily") if s.get("cadence") in {"daily", "weekly"} else "daily"
@@ -701,7 +698,7 @@ class Weather(commands.Cog):
                             channel = await self.bot.fetch_channel(int(s["channel_id"]))
                             city, state, lat, lon = await _zip_to_place_and_coords(session, s["zip"])
                             tz_name = (s.get("tz_name") or "").strip() or _get_user_tz_name(self.store, int(s["channel_id"]))
-                            units = (s.get("units") or "").strip().lower() or _get_user_units(self.store, int(s["channel_id"]))
+                            units = (s.get("units") or "").strip().lower()
 
                             if s["cadence"] == "daily":
                                 outlook = await _fetch_outlook(session, lat, lon, days=2, tz_name=tz_name, units=units)
@@ -863,9 +860,10 @@ class Weather(commands.Cog):
                             continue
 
                         emb = discord.Embed(
-                            title=f"\u26A0\ufe0f Weather Alerts — {city}, {state} {z}",
-                            colour=discord.Colour.orange()
+                            title = f"\u26A0\ufe0f Weather Alerts — {city}, {state} {z}",
+                            colour = discord.Colour.orange()
                         )
+
                         for a in fresh[:10]:
                             name = f"{a.get('event') or 'Alert'} ({(a.get('severity') or '').title()})"
                             when = ""
@@ -879,6 +877,7 @@ class Weather(commands.Cog):
 
                         channel = await self.bot.fetch_channel(uid)
                         await channel.send(embed=emb)
+                        
                         # mark seen
                         for a in fresh:
                             aid = a.get("id")
