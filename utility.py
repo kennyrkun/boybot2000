@@ -1,3 +1,5 @@
+import re
+
 def _parse_time(time_str: str):
     t = time_str.strip().lower().replace(" ", "")
     m = re.match(r"^(\d{1,2}):(\d{2})(am|pm)?$", t) or re.match(r"^(\d{2})(\d{2})(am|pm)?$", t)
