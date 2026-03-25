@@ -92,6 +92,7 @@ class Events(commands.Cog):
 
         if len(events) > 1:
             ignorePastDate = now + timedelta(days = interval)
+            ignorePastDate2 = now + timedelta(days = 14)
 
             for event in events:
                 if event.status is not discord.EventStatus.scheduled and event.status is not discord.EventStatus.active:
@@ -101,6 +102,10 @@ class Events(commands.Cog):
                     earliestEvent = event
 
                 if event.start_time.timestamp() > ignorePastDate.timestamp():
+                    # don't show events waaaaaay in the future at all
+                    if event.start_time.timestamp() > ignorePastDate2.timestamp():
+                        continue
+
                     eventsInFuture.append(event)
                     continue
 
