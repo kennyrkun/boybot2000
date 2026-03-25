@@ -57,11 +57,11 @@ def _get_moon_embed(date, includePast: bool = False, includeFuture: bool = False
 
     emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
 
-    name, emoji, age = moon_phase_info_for_date(now - timedelta(days=1))
-    emb.add_field(name="Yesterday's moon was a", value=f"{emoji} {name}.", inline=True)
+    name, emoji, age = moon_phase_info_for_date(date - timedelta(days=1))
+    emb.add_field(name="The previous moon was a", value=f"{emoji} {name}.", inline=True)
 
-    name, emoji, age = moon_phase_info_for_date(now + timedelta(days=1))
-    emb.add_field(name="And tomorrow's moon will be a", value=f"{emoji} {name}.", inline=True)
+    name, emoji, age = moon_phase_info_for_date(date + timedelta(days=1))
+    emb.add_field(name="And the following moon will be a", value=f"{emoji} {name}.", inline=True)
 
     return emb
 
@@ -87,7 +87,7 @@ class Moon(commands.Cog):
 
     # -------- Slash Commands --------
 
-    @app_commands.command(name="moon", description="Show the current moon phase.")
+    @app_commands.command(name = "moon", description = "Show the current moon phase.")
     async def moon_cmd(self, inter: discord.Interaction):
         await inter.response.defer()
         await inter.followup.send(embed = _get_moon_embed(datetime.utcnow(), True, True))
