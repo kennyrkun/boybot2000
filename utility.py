@@ -12,3 +12,9 @@ def _parse_time(time_str: str):
     if not (0 <= hh <= 23 and 0 <= mi <= 59):
         raise ValueError("Invalid time.")
     return hh, mi
+
+def _next_run(now: datetime, hh: int, mi: int, cadence: str) -> datetime:
+    target = now.replace(hour=hh, minute=mi, second=0, microsecond=0)
+    if target <= now:
+        target += timedelta(days=1 if cadence == "daily" else 7)
+    return target

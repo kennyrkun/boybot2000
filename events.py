@@ -9,7 +9,7 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
-from utility import _parse_time
+from utility import _parse_time, _next_run
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("events")
@@ -25,12 +25,6 @@ CADENCE_CHOICES = [
     app_commands.Choice(name="daily", value="daily"),
     app_commands.Choice(name="weekly (send on this weekday)", value="weekly"),
 ]
-
-def _next_run(now: datetime, hh: int, mi: int, cadence: str) -> datetime:
-    target = now.replace(hour=hh, minute=mi, second=0, microsecond=0)
-    if target <= now:
-        target += timedelta(days=1 if cadence == "daily" else 7)
-    return target
 
 class Events(commands.Cog):
     def __init__(self, bot: commands.Bot):

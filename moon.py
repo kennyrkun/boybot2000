@@ -11,7 +11,7 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
-from utility import _parse_time
+from utility import _parse_time, _next_run
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("moon")
