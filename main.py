@@ -39,7 +39,7 @@ class boybot2000(commands.Bot):
                 return
 
         if "boybot" in message.content or "boybot2000" in message.content:
-            message.add_reaction("<:boykisser_meow:1485641863024087101>")
+            await message.add_reaction("<:boykisser_meow:1485641863024087101>")
             return
         
         if "boys" in message.content:
