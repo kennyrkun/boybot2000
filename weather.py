@@ -15,6 +15,8 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
+from utility import _parse_time
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("weather")
 
@@ -114,19 +116,6 @@ def _get_user_tz_name(store, channel_id: int) -> str:
         return DEFAULT_TZ_NAME
     tz = store.get_note(int(channel_id), "wx_tz")
     return (tz or DEFAULT_TZ_NAME).strip() or DEFAULT_TZ_NAME
-
-def _parse_time(time_str: str):
-    t = time_str.strip().lower().replace(" ", "")
-    m = re.match(r"^(\d{1,2}):(\d{2})(am|pm)?$", t) or re.match(r"^(\d{2})(\d{2})(am|pm)?$", t)
-    if not m:
-        raise ValueError("Time must be HH:MM (24h), HHMM, or h:mma/pm.")
-    hh, mi, ampm = m.groups()
-    hh, mi = int(hh), int(mi)
-    if ampm:
-        hh = (hh % 12) + (12 if ampm == "pm" else 0)
-    if not (0 <= hh <= 23 and 0 <= mi <= 59):
-        raise ValueError("Invalid time.")
-    return hh, mi
 
 def _next_local_run(now_local: datetime, hh: int, mi: int, cadence: str) -> datetime:
     target = now_local.replace(hour=hh, minute=mi, second=0, microsecond=0)
