@@ -47,9 +47,8 @@ def moon_phase_info_for_date(d: datetime) -> Tuple[str, str, float]:
     age_days = round(p, 1)
     return name, emoji, age_days
 
-def _get_moon_embed(self, includePast: bool = False, includeFuture: bool = False):
-    now = datetime.utcnow()
-    name, emoji, age = moon_phase_info_for_date(now)
+def _get_moon_embed(date, includePast: bool = False, includeFuture: bool = False):
+    name, emoji, age = moon_phase_info_for_date(date)
 
     emb = discord.Embed(
         title=f"Today's moon is a {emoji} {name}!",
@@ -88,13 +87,18 @@ class Moon(commands.Cog):
 
     # -------- Slash Commands --------
 
-    @app_commands.command(name="moon_subscribe", description="Subscribe this channel to a daily or weekly moon phase announcement at a UTC time.")
+    @app_commands.command(name="moon", description="Show the current moon phase.")
+    async def moon_cmd(self, inter: discord.Interaction):
+        await inter.response.defer()
+        await inter.followup.send(embed = _get_moon_embed(datetime.utcnow(), True, True))
+
+    @app_commands.command(name = "moon_subscribe", description = "Subscribe this channel to a daily or weekly moon phase announcement at a UTC time.")
     @app_commands.describe(
-        time="HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
-        cadence="daily or weekly",
-        weekly_days="For weekly: number of days to include (3, 7, or 10)"
+        time = "HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
+        cadence = "daily or weekly",
+        weekly_days = "For weekly: number of days to include (3, 7, or 10)"
     )
-    @app_commands.choices(cadence=CADENCE_CHOICES)
+    @app_commands.choices(cadence = CADENCE_CHOICES)
     async def moon_subscribe(
         self,
         inter: discord.Interaction,
@@ -103,9 +107,9 @@ class Moon(commands.Cog):
         weekly_days: Optional[app_commands.Range[int, 3, 10]] = 7
     ):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
         
-        await inter.response.defer(ephemeral=True)
+        await inter.response.defer(ephemeral = True)
 
         try:
             hh, mi = _parse_time(time)
@@ -127,30 +131,33 @@ class Moon(commands.Cog):
                 f":white_check_mark: Subscribed <#{sub['channel_id']}> to {cadence.value} moon phase announcements at **{first.strftime('%I:%M %p')}**.\n"
                 + ("Weekly length: **{} days**.".format(sub['weekly_days']) if cadence.value == "weekly" else "Daily: Today & Tomorrow.") + "\n"
                 + f"Subscription #{sid}.",
-                ephemeral=True
+                ephemeral = True
             )
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
+            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral = True)
 
     @app_commands.command(name="moon_unsubscribe", description="Unsubscribe from moon phase announcements for the current channel.")
     async def moon_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-        await inter.response.defer(ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+
+        await inter.response.defer(ephemeral = True)
+
         ok = self.store.remove_moon_sub(subscription_id, requester_id=inter.channel_id)
-        await inter.followup.send(f":white_check_mark: Moon phase announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
+
+        await inter.followup.send(f":white_check_mark: Moon phase announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral = True)
 
     @app_commands.command(name="moon_subscriptions", description="List your moon phase announcement subscriptions and next send time.")
     async def moon_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
-        await inter.response.defer(ephemeral=True)
+        await inter.response.defer(ephemeral = True)
 
         items = self.store.list_moon_subs(inter.channel_id)
 
         if not items:
-            return await inter.followup.send("There are no moon subscriptions.", ephemeral=True)
+            return await inter.followup.send("There are no moon subscriptions.", ephemeral = True)
 
         out_lines = []
 
