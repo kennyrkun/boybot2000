@@ -36,6 +36,15 @@ class boybot2000(commands.Bot):
         if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             if message.reference.resolved.author.id == self.user.id:
                 await message.reply("<:boykisser_meow:1485641863024087101>", mention_author = True)
+                return
+
+        if "boybot" in message.content or "boybot2000" in message.content:
+            message.add_reaction("<:boykisser_meow:1485641863024087101>")
+            return
+        
+        if "boys" in message.content:
+            await message.reply("i luv boys <:boykisser_meow:1485641863024087101>", mention_author = True)
+            return
 
 async def main():
     if not TOKEN:
