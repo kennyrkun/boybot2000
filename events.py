@@ -136,7 +136,8 @@ class Events(commands.Cog):
             return
 
         for s in subs:
-            await self.bot.fetch_channel(int(s["channel_id"])).send(content = "A new event has been created!", embed = self._create_event_embed(event))
+            channel = await self.bot.fetch_channel(int(s["channel_id"]))
+            await channel.send(content = "A new event has been created!", embed = self._create_event_embed(event))
 
     @commands.Cog.listener()
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
@@ -150,7 +151,8 @@ class Events(commands.Cog):
             return
 
         for s in subs:
-            await self.bot.fetch_channel(int(s["channel_id"])).send(content = "An event was deleted!", embed = self._create_event_embed(event))
+            channel = await self.bot.fetch_channel(int(s["channel_id"]))
+            await channel.send(content = "An event was deleted!", embed = self._create_event_embed(event))
 
     @commands.Cog.listener()
     async def on_scheduled_event_update(self, before: discord.ScheduledEvent, after: discord.ScheduledEvent):
@@ -164,11 +166,12 @@ class Events(commands.Cog):
             return
 
         for s in subs:
-            await self.bot.fetch_channel(int(s["channel_id"])).send(content = "An event has been updated!", embed = self._create_event_embed(after))
+            channel = await self.bot.fetch_channel(int(s["channel_id"]))
+            await channel.send(content = "An event has been updated!", embed = self._create_event_embed(after))
 
     # -------- Slash Commands --------
 
-    @app_commands.command(name="events_subscribe", description="Subscribe this channel to a daily or weekly event announcement at a UTC time.")
+    @app_commands.command(name = "events_subscribe", description = "Subscribe this channel to a daily or weekly event announcement at a UTC time.")
     @app_commands.describe(
         time="HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
         cadence="daily or weekly",
@@ -183,7 +186,7 @@ class Events(commands.Cog):
         weekly_days: Optional[app_commands.Range[int, 3, 10]] = 7
     ):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
         
         await inter.response.defer(ephemeral=True)
 
@@ -210,27 +213,30 @@ class Events(commands.Cog):
                 ephemeral=True
             )
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
+            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral = True)
 
     @app_commands.command(name="events_unsubscribe", description="Unsubscribe from event announcements for the current channel.")
     async def events_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
-        await inter.response.defer(ephemeral=True)
-        ok = self.store.remove_event_sub(subscription_id, requester_id=inter.channel_id)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+            
+        await inter.response.defer(ephemeral = True)
+
+        ok = self.store.remove_event_sub(subscription_id, requester_id = inter.channel_id)
+
         await inter.followup.send(f":white_check_mark: Event announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
-    @app_commands.command(name="events_subscriptions", description="List your event announcement subscriptions and next send time.")
+    @app_commands.command(name = "events_subscriptions", description = "List your event announcement subscriptions and next send time.")
     async def events_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral=True)
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
-        await inter.response.defer(ephemeral=True)
+        await inter.response.defer(ephemeral = True)
 
         items = self.store.list_event_subs(inter.channel_id)
 
         if not items:
-            return await inter.followup.send("There are no events subscriptions.", ephemeral=True)
+            return await inter.followup.send("There are no events subscriptions.", ephemeral = True)
 
         out_lines = []
 
@@ -257,7 +263,7 @@ class Events(commands.Cog):
             if needs:
                 first = _next_run(now, hh, mi, cadence)
                 nxt = first
-                self.store.update_event_sub(s["id"], channel_id=int(s["channel_id"]), next_run=nxt.isoformat())
+                self.store.update_event_sub(s["id"], channel_id = int(s["channel_id"]), next_run = nxt.isoformat())
 
             out_lines.append(
                 f"#{s['id']} in <#{s['channel_id']}> {cadence} at {hh:02d}:{mi:02d} - next: {nxt.strftime('%m-%d-%Y %H:%M %Z')}"
@@ -265,7 +271,7 @@ class Events(commands.Cog):
 
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
-    @app_commands.command(name="events_list", description="Show a list of events in the current channel.")
+    @app_commands.command(name = "events_list", description = "Show a list of events in the current channel.")
     async def events_list(self, inter: discord.Interaction):
         await self._send_event_list(inter.channel_id, 1, "today", datetime.utcnow())
 
@@ -298,15 +304,15 @@ class Events(commands.Cog):
                         await self._send_event_list(int(s["channel_id"]), interval, noun, now)
 
                         next = datetime.utcnow()
-                        next = next.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
+                        next = next.replace(hour=s["hh"], minute = s["mi"], second = 0, microsecond = 0)
 
                         if next <= datetime.utcnow():
                             next += timedelta(days=interval)
 
-                        self.store.update_event_sub(s["id"], channel_id=int(s["channel_id"]), next_run=next.isoformat())
+                        self.store.update_event_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
                     except Exception as e:
-                        fallback = now + timedelta(minutes=5)
-                        self.store.update_event_sub(s["id"], next_run=fallback.isoformat())
+                        fallback = now + timedelta(minutes = 5)
+                        self.store.update_event_sub(s["id"], next_run = fallback.isoformat())
                         await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Events error: {e} {traceback.format_exc()}")
 
         except Exception as e:
