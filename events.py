@@ -125,7 +125,7 @@ class Events(commands.Cog):
     # -------- Discord ScheduledEvent events -------
 
     async def on_scheduled_event_create(self, event: ScheduledEvent):
-         if self.store is None:
+        if self.store is None:
             return
         
         now = datetime.utcnow()
