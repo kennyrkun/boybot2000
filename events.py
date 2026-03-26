@@ -41,6 +41,8 @@ class Events(commands.Cog):
     def cog_unload(self):
         self.events_scheduler.cancel()
 
+    # -------- Helper functions ---------
+
     async def _create_event_embed(self, event: discord.ScheduledEvent):
         if event.creator is None:
             event.creator = await self.bot.fetch_user(event.creator_id)
@@ -119,6 +121,47 @@ class Events(commands.Cog):
             await channel.send(content = string, embeds = embeds, delete_after = 86400)
         else:
             await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
+
+    # -------- Discord ScheduledEvent events -------
+
+    async def on_scheduled_event_create(self, event: ScheduledEvent):
+         if self.store is None:
+            return
+		
+        now = datetime.utcnow()
+        subs = self.store.list_event_subs(None)
+
+        if not subs:
+            return
+
+        for s in subs:
+            self.bot.fetch_channel(int(s["channel_id"])).send(content="A new event has been created!", embed = _create_event_embed(event))
+
+    async def on_scheduled_event_delete(self, event: ScheduledEvent):
+        if self.store is None:
+            return
+		
+        now = datetime.utcnow()
+        subs = self.store.list_event_subs(None)
+
+        if not subs:
+            return
+
+        for s in subs:
+            self.bot.fetch_channel(int(s["channel_id"])).send(content="An event was deleted!", embed = _create_event_embed(event))
+
+    async def on_scheduled_event_update(self, before: ScheduledEvent, after: ScheduledEvent):
+        if self.store is None:
+            return
+		
+        now = datetime.utcnow()
+        subs = self.store.list_event_subs(None)
+
+        if not subs:
+            return
+
+        for s in subs:
+            self.bot.fetch_channel(int(s["channel_id"])).send(content="An event has been updated!", embed = _create_event_embed(event))
 
     # -------- Slash Commands --------
 
