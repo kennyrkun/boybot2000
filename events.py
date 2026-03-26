@@ -164,7 +164,7 @@ class Events(commands.Cog):
             return
 
         for s in subs:
-            await self.bot.fetch_channel(int(s["channel_id"])).send(content = "An event has been updated!", embed = self._create_event_embed(event))
+            await self.bot.fetch_channel(int(s["channel_id"])).send(content = "An event has been updated!", embed = self._create_event_embed(after))
 
     # -------- Slash Commands --------
 
