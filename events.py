@@ -137,7 +137,8 @@ class Events(commands.Cog):
 
         for s in subs:
             channel = await self.bot.fetch_channel(int(s["channel_id"]))
-            await channel.send(content = "A new event has been created!", embed = self._create_event_embed(event))
+            e = await self._create_event_embed(event)
+            await channel.send(content = "A new event has been created!", embed = e)
 
     @commands.Cog.listener()
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
@@ -152,7 +153,8 @@ class Events(commands.Cog):
 
         for s in subs:
             channel = await self.bot.fetch_channel(int(s["channel_id"]))
-            await channel.send(content = "An event was deleted!", embed = self._create_event_embed(event))
+            e = self._create_event_embed(event)
+            await channel.send(content = "An event was deleted!", embed = e)
 
     @commands.Cog.listener()
     async def on_scheduled_event_update(self, before: discord.ScheduledEvent, after: discord.ScheduledEvent):
@@ -167,7 +169,8 @@ class Events(commands.Cog):
 
         for s in subs:
             channel = await self.bot.fetch_channel(int(s["channel_id"]))
-            await channel.send(content = "An event has been updated!", embed = self._create_event_embed(after))
+            e = await self._create_event_embed(after)
+            await channel.send(content = "An event has been updated!", embed = e)
 
     # -------- Slash Commands --------
 
