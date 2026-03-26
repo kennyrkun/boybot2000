@@ -124,6 +124,7 @@ class Events(commands.Cog):
 
     # -------- Discord ScheduledEvent events -------
 
+    @commands.cog.listener()
     async def on_scheduled_event_create(self, event: discord.ScheduledEvent):
         if self.store is None:
             return
@@ -137,6 +138,7 @@ class Events(commands.Cog):
         for s in subs:
             self.bot.fetch_channel(int(s["channel_id"])).send(content="A new event has been created!", embed = _create_event_embed(event))
 
+    @commands.cog.listener()
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
         if self.store is None:
             return
@@ -150,6 +152,7 @@ class Events(commands.Cog):
         for s in subs:
             self.bot.fetch_channel(int(s["channel_id"])).send(content="An event was deleted!", embed = _create_event_embed(event))
 
+    @commands.cog.listener()
     async def on_scheduled_event_update(self, before: discord.ScheduledEvent, after: discord.ScheduledEvent):
         if self.store is None:
             return
