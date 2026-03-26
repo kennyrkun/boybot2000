@@ -153,7 +153,7 @@ class Events(commands.Cog):
 
         for s in subs:
             channel = await self.bot.fetch_channel(int(s["channel_id"]))
-            e = self._create_event_embed(event)
+            e = await self._create_event_embed(event)
             await channel.send(content = "An event was deleted!", embed = e)
 
     @commands.Cog.listener()
