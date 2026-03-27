@@ -135,11 +135,15 @@ class Events(commands.Cog):
         if not subs:
             return
 
+        sent_channels = []
+
         for s in subs:
             if s["guild_id"] == event.guild.id:
-                channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                e = await self._create_event_embed(event)
-                await channel.send(content = "A new event has been created!", embed = e)
+                if s["channel_id"] not in sent_channels:
+                    channel = await self.bot.fetch_channel(int(s["channel_id"]))
+                    e = await self._create_event_embed(event)
+                    await channel.send(content = "A new event has been created!", embed = e)
+                    sent_channels.append(s["channel_id"])
 
     @commands.Cog.listener()
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
@@ -152,11 +156,15 @@ class Events(commands.Cog):
         if not subs:
             return
 
+        sent_channels = []
+
         for s in subs:
             if s["guild_id"] == event.guild.id:
-                channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                e = await self._create_event_embed(event)
-                await channel.send(content = "An event was deleted!", embed = e)
+                if s["channel_id"] not in sent_channels:
+                    channel = await self.bot.fetch_channel(int(s["channel_id"]))
+                    e = await self._create_event_embed(event)
+                    await channel.send(content = "An event was deleted!", embed = e)
+                    sent_channels.append(s["channel_id"])
 
     @commands.Cog.listener()
     async def on_scheduled_event_update(self, before: discord.ScheduledEvent, after: discord.ScheduledEvent):
@@ -169,11 +177,15 @@ class Events(commands.Cog):
         if not subs:
             return
 
+        sent_channels = []
+
         for s in subs:
             if s["guild_id"] == after.guild.id:
-                channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                e = await self._create_event_embed(after)
-                await channel.send(content = "An event has been updated!", embed = e)
+                if s["channel_id"] not in sent_channels:
+                    channel = await self.bot.fetch_channel(int(s["channel_id"]))
+                    e = await self._create_event_embed(after)
+                    await channel.send(content = "An event has been updated!", embed = e)
+                    sent_channels.append(s["channel_id"])
 
     # -------- Slash Commands --------
 
