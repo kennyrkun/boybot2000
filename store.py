@@ -58,6 +58,7 @@ class Store:
             CREATE TABLE IF NOT EXISTS event_subs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 channel_id INTEGER NOT NULL UNIQUE,
+                guild_id INTEGER NOT NULL,
                 cadence TEXT NOT NULL,
                 hh INTEGER NOT NULL,
                 mi INTEGER NOT NULL,
@@ -165,6 +166,7 @@ class Store:
             """,
             (
                 int(sub["channel_id"]),
+                int(sub["guild_id"]),
                 str(sub["cadence"]),
                 int(sub["hh"]),
                 int(sub["mi"]),

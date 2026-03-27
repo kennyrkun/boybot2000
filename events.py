@@ -136,9 +136,10 @@ class Events(commands.Cog):
             return
 
         for s in subs:
-            channel = await self.bot.fetch_channel(int(s["channel_id"]))
-            e = await self._create_event_embed(event)
-            await channel.send(content = "A new event has been created!", embed = e)
+            if s["guild_id"] == event.guild.id:
+                channel = await self.bot.fetch_channel(int(s["channel_id"]))
+                e = await self._create_event_embed(event)
+                await channel.send(content = "A new event has been created!", embed = e)
 
     @commands.Cog.listener()
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
@@ -152,9 +153,10 @@ class Events(commands.Cog):
             return
 
         for s in subs:
-            channel = await self.bot.fetch_channel(int(s["channel_id"]))
-            e = await self._create_event_embed(event)
-            await channel.send(content = "An event was deleted!", embed = e)
+            if s["guild_id"] == event.guild.id:
+                channel = await self.bot.fetch_channel(int(s["channel_id"]))
+                e = await self._create_event_embed(event)
+                await channel.send(content = "An event was deleted!", embed = e)
 
     @commands.Cog.listener()
     async def on_scheduled_event_update(self, before: discord.ScheduledEvent, after: discord.ScheduledEvent):
@@ -168,9 +170,10 @@ class Events(commands.Cog):
             return
 
         for s in subs:
-            channel = await self.bot.fetch_channel(int(s["channel_id"]))
-            e = await self._create_event_embed(after)
-            await channel.send(content = "An event has been updated!", embed = e)
+            if s["guild_id"] == after.guild.id:
+                channel = await self.bot.fetch_channel(int(s["channel_id"]))
+                e = await self._create_event_embed(after)
+                await channel.send(content = "An event has been updated!", embed = e)
 
     # -------- Slash Commands --------
 
@@ -200,6 +203,7 @@ class Events(commands.Cog):
 
             sub = {
                 "channel_id": inter.channel_id,
+                "guild_id": inter.guild_id
                 "cadence": cadence.value,
                 "hh": int(hh),
                 "mi": int(mi),
