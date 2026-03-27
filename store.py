@@ -27,7 +27,7 @@ class Store:
             """
             CREATE TABLE IF NOT EXISTS weather_subs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                channel_id INTEGER NOT NULL UNIQUE,
+                channel_id INTEGER NOT NULL,
                 zip TEXT NOT NULL,
                 cadence TEXT NOT NULL,
                 hh INTEGER NOT NULL,
@@ -57,7 +57,7 @@ class Store:
             """
             CREATE TABLE IF NOT EXISTS event_subs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                channel_id INTEGER NOT NULL UNIQUE,
+                channel_id INTEGER NOT NULL,
                 guild_id INTEGER NOT NULL,
                 cadence TEXT NOT NULL,
                 hh INTEGER NOT NULL,
@@ -72,7 +72,7 @@ class Store:
             """
             CREATE TABLE IF NOT EXISTS moon_subs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                channel_id INTEGER NOT NULL UNIQUE,
+                channel_id INTEGER NOT NULL,
                 cadence TEXT NOT NULL,
                 hh INTEGER NOT NULL,
                 mi INTEGER NOT NULL,
