@@ -203,7 +203,7 @@ class Events(commands.Cog):
 
             sub = {
                 "channel_id": inter.channel_id,
-                "guild_id": inter.guild_id
+                "guild_id": inter.guild_id,
                 "cadence": cadence.value,
                 "hh": int(hh),
                 "mi": int(mi),
