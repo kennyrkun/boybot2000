@@ -161,8 +161,8 @@ class Store:
         cur = self.db.cursor()
         cur.execute(
             """
-            INSERT INTO event_subs(channel_id, cadence, hh, mi, weekly_days, next_run)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO event_subs(channel_id, guild_id, cadence, hh, mi, weekly_days, next_run)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 int(sub["channel_id"]),
