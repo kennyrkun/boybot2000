@@ -182,7 +182,7 @@ class Store:
         if channel_id is None:
             rows = self.db.execute(
                 """
-                SELECT id, channel_id, cadence, hh, mi, weekly_days, next_run
+                SELECT id, channel_id, guild_id, cadence, hh, mi, weekly_days, next_run
                 FROM event_subs
                 ORDER BY next_run ASC
                 """
@@ -191,7 +191,7 @@ class Store:
 
         rows = self.db.execute(
             """
-            SELECT id, channel_id, cadence, hh, mi, weekly_days, next_run
+            SELECT id, channel_id, guild_id, cadence, hh, mi, weekly_days, next_run
             FROM event_subs
             WHERE channel_id = ?
             ORDER BY next_run ASC
