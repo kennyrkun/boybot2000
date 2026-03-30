@@ -197,21 +197,21 @@ class Events(commands.Cog):
                     changes = []
 
                     if before.name != after.name:
-                        changes.append(f"`**Name**: __{before.name}__ => __{after.name}__.")
+                        changes.append(f"**Name**: `{before.name}` => `{after.name}`.")
 
                     if before.description != after.description:
-                        changes.append(f"`**Location**: __{before.description}__ => __{after.description}__.")
+                        changes.append(f"**Location**: `{before.description}` => `{after.description}`.")
 
                     if before.start_time != after.start_time:
-                        changes.append(f"`**Start time**: <t:{before.start_time.timestamp()}:f> => {after.start_time}.")
+                        changes.append(f"**Start time**: <t:{before.start_time.timestamp()}:f> => {after.start_time}.")
 
                     if before.end_time != after.end_time:
-                        changes.append(f"`**End time**: <t:{before.end_time.timestamp()}:F> => <t:{after.end_time.timestamp()}:F>.")
+                        changes.append(f"**End time**: <t:{before.end_time.timestamp()}:F> => <t:{after.end_time.timestamp()}:F>.")
 
                     if before.location != after.location:
-                        changes.append(f"`**Location**: __{before.location}__ => __{after.location}__.")
+                        changes.append(f"**Location**: `{before.location}` => `{after.location}`.")
 
-                    string = f"{after.name} has been updated!\n"
+                    string = f"`{after.name}` has been updated!\n"
 
                     for change in changes:
                         string += change + "\n"
@@ -223,11 +223,11 @@ class Events(commands.Cog):
 
     @app_commands.command(name = "events_subscribe", description = "Subscribe this channel to a daily or weekly event announcement at a UTC time.")
     @app_commands.describe(
-        time="HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
-        cadence="daily or weekly",
-        weekly_days="For weekly: number of days to include (3, 7, or 10)"
+        time = "HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
+        cadence = "daily or weekly",
+        weekly_days = "For weekly: number of days to include (3, 7, or 10)"
     )
-    @app_commands.choices(cadence=CADENCE_CHOICES)
+    @app_commands.choices(cadence = CADENCE_CHOICES)
     async def events_subscribe(
         self,
         inter: discord.Interaction,
