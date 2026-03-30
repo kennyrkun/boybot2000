@@ -59,7 +59,7 @@ class Events(commands.Cog):
         emb.add_field(name = "When", value = f"<t:{int(event.start_time.timestamp())}:F>", inline = True)
         emb.add_field(name = "Where", value = event.location, inline = True)
 
-        emb.set_author(name = event.creator.display_name, url = None, icon_url = event.creator.avatar.url)
+        emb.set_author(name = event.creator.display_name, url = None, icon_url = event.creator.avatar.url, url = event.url)
 
         return emb
 
