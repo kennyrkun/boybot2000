@@ -213,7 +213,7 @@ class Events(commands.Cog):
 
                     string = f"{after.name} has been updated!\n"
 
-                    for change in changes
+                    for change in changes:
                         string += change + "\n"
 
                     e = await self._create_event_embed(after)
