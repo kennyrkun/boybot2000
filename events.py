@@ -162,8 +162,7 @@ class Events(commands.Cog):
             if s["guild_id"] == event.guild.id:
                 if s["channel_id"] not in sent_channels:
                     channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                    e = await self._create_event_embed(event)
-                    await channel.send(content = "An event was deleted!", embed = e)
+                    await channel.send(content = f"The event `{event.name}` was deleted. :boykisser_pensive:")
                     sent_channels.append(s["channel_id"])
 
     @commands.Cog.listener()
