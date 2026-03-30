@@ -203,10 +203,10 @@ class Events(commands.Cog):
                         changes.append(f"**Location**: `{before.description}` => `{after.description}`.")
 
                     if before.start_time != after.start_time:
-                        changes.append(f"**Start time**: <t:{before.start_time.timestamp()}:f> => {after.start_time}.")
+                        changes.append(f"**Start time**: <t:{int(before.start_time.timestamp())}:f> => <t:{int(after.start_time.timestamp())}:F>.")
 
                     if before.end_time != after.end_time:
-                        changes.append(f"**End time**: <t:{before.end_time.timestamp()}:F> => <t:{after.end_time.timestamp()}:F>.")
+                        changes.append(f"**End time**: <t:{int(before.end_time.timestamp())}:F> => <t:{int(after.end_time.timestamp())}:F>.")
 
                     if before.location != after.location:
                         changes.append(f"**Location**: `{before.location}` => `{after.location}`.")
