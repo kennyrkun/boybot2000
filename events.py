@@ -59,7 +59,7 @@ class Events(commands.Cog):
         emb.add_field(name = "When", value = f"<t:{int(event.start_time.timestamp())}:F>", inline = True)
         emb.add_field(name = "Where", value = event.location, inline = True)
 
-        emb.set_author(name = event.creator.display_name, url = None, icon_url = event.creator.avatar.url, url = event.url)
+        emb.set_author(name = event.creator.display_name, url = event.url, icon_url = event.creator.avatar.url)
 
         return emb
 
@@ -181,10 +181,38 @@ class Events(commands.Cog):
         for s in subs:
             if s["guild_id"] == after.guild.id:
                 if s["channel_id"] not in sent_channels:
+                    sent_channels.append(s["channel_id"])
                     channel = await self.bot.fetch_channel(int(s["channel_id"]))
+
+                    if before.status != after.status:
+                        if after.status == discord.EventStatus.active:
+                            channel.send(content = f"`{after.name}` has begun!")
+                        elif after.status == discord.EventStatus.completed:
+                            channel.send(content = f"`{after.name}` is now over.")
+                        elif after.status == discord.EventStatus.cancelled:
+                            channel.send(content = f"`{after.name}` has been cancelled! :boykisser_damn:")
+
+                        return
+
+                    changes = []
+
+                    if before.name != after.name:
+                        changes.append(f"`**Name**: __{before.name}__ => __{after.name}__.")
+
+                    if before.description != after.description:
+                        changes.append(f"`**Location**: __{before.description}__ => __{after.description}__.")
+
+                    if before.start_time != after.start_time:
+                        changes.append(f"`**Start time**: <t:{before.start_time.timestamp()}:f> => {after.start_time}.")
+
+                    if before.end_time != after.end_time:
+                        changes.append(f"`**End time**: <t:{before.end_time.timestamp()}:F> => <t:{after.end_time.timestamp()}:F>.")
+
+                    if before.location != after.location:
+                        changes.append(f"`**Location**: __{before.location}__ => __{after.location}__.")
+
                     e = await self._create_event_embed(after)
                     await channel.send(content = "An event has been updated!", embed = e)
-                    sent_channels.append(s["channel_id"])
 
     # -------- Slash Commands --------
 
