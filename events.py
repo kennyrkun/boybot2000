@@ -211,8 +211,13 @@ class Events(commands.Cog):
                     if before.location != after.location:
                         changes.append(f"`**Location**: __{before.location}__ => __{after.location}__.")
 
+                    string = f"{after.name} has been updated!\n"
+
+                    for change in changes
+                        string += change + "\n"
+
                     e = await self._create_event_embed(after)
-                    await channel.send(content = "An event has been updated!", embed = e)
+                    await channel.send(content = string, embed = e)
 
     # -------- Slash Commands --------
 
