@@ -40,7 +40,7 @@ class Boytoy(commands.Cog):
                 await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
         elif re.match(r"^b+o+y+(b+o+t+)?$", messageText, re.IGNORECASE):
-            if any(x in messageText for x in [ "good", "great", "thank" ]):
+            if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome" ]):
                 await message.add_reaction("<:boykisser_pat:1488616985502810336>")
             elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly" ]):
                 await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
