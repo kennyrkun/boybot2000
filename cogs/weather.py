@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
-from moon import moon_phase_info_for_date
+from .moon import moon_phase_info_for_date
 
 import discord
 from discord.ext import tasks, commands
