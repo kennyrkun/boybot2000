@@ -47,7 +47,7 @@ class Boytoy(commands.Cog):
             else:
                 await message.add_reaction("<:boykisser_what:1483293684899381248>")
         
-        elif "boys" in message.content:
+        elif any(x in messageText for x in [ "boy", "boys" ]):
             await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
 
 async def setup(bot: commands.Bot):
