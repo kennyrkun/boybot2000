@@ -34,7 +34,7 @@ class boybot2000(commands.Bot):
 
     @app_commands.command(name = "restart", description = "Restarts the bot")
     @commands.has_permissions(administrator = True)
-    async def restart(self):
+    async def restart(self, inter: discord.Interaction):
         exit()
 
 async def main():
