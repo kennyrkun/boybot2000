@@ -1,0 +1,1 @@
+when user first joins, dm ask to react with emote that looks similar. if no reply within 24 hours, kick
