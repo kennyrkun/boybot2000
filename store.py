@@ -281,9 +281,16 @@ class Store:
         self.db.commit()
 
     def increment_yaps(self, user_id: int, guild_id) -> None:
-        self.db.execute("""UPDATE yappers SET message_count = message_count + 1 WHERE user_id = ?
-        IF @@ROWCOUNT = 0
-        INSERT INTO yappers (user_id, guild_id, message_count) values(?, ?, 1);""", (user_id, user_id, guild_id))
+        self.db.execute("""
+        INSERT OR REPLACE INTO yappers 
+            (user_id, guild_id, message_count) 
+            VALUES
+            (
+                ?,
+                ?,
+                (SELECT message_count FROM yappers WHERE user_id = ? AND guild_id = ?) + 1
+            )
+        ;""", (user_id, guild_id, user_id, guild_id))
         self.db.commit()
 
     def get_top_yappers(self, count: int) -> None:
