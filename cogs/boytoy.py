@@ -22,12 +22,10 @@ class Boytoy(commands.Cog):
         if self.store is None:
             log.error("Storage backend not available.")
 
-        self.events_scheduler.start()
-
     def cog_unload(self):
-        self.events_scheduler.cancel()
+        return
 
-    # -------- Event Listeners -------
+    # -------- Event listeners -------
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -48,4 +46,4 @@ class Boytoy(commands.Cog):
             return
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Events(bot))
+    await bot.add_cog(Boytoy(bot))
