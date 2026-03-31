@@ -33,7 +33,7 @@ class boybot2000(commands.Bot):
             log.exception("Failed to sync app commands.")
 
     @app_commands.command(name = "restart", description = "Restarts the bot")
-    @app_commands.has_permissions(administrator = True)
+    @commands.has_permissions(administrator = True)
     async def restart(self):
         exit()
 

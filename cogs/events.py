@@ -228,7 +228,7 @@ class Events(commands.Cog):
         weekly_days = "For weekly: number of days to include (3, 7, or 10)"
     )
     @app_commands.choices(cadence = CADENCE_CHOICES)
-    @app_commands.has_permissions(administrator = True)
+    @commands.has_permissions(administrator = True)
     async def events_subscribe(
         self,
         inter: discord.Interaction,
@@ -268,7 +268,7 @@ class Events(commands.Cog):
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral = True)
 
     @app_commands.command(name="events_unsubscribe", description="Unsubscribe from event announcements for the current channel.")
-    @app_commands.has_permissions(administrator = True)
+    @commands.has_permissions(administrator = True)
     async def events_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
@@ -280,7 +280,7 @@ class Events(commands.Cog):
         await inter.followup.send(f":white_check_mark: Event announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
     @app_commands.command(name = "events_subscriptions", description = "List your event announcement subscriptions and next send time.")
-    @app_commands.has_permissions(administrator = True)
+    @commands.has_permissions(administrator = True)
     async def events_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)

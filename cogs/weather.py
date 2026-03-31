@@ -490,7 +490,7 @@ class Weather(commands.Cog):
     )
     @app_commands.choices(cadence = CADENCE_CHOICES)
     @app_commands.choices(units = UNITS_CHOICES)
-    @app_commands.has_permissions(administrator = True)
+    @commands.has_permissions(administrator = True)
     async def weather_subscribe(
         self,
         inter: discord.Interaction,
@@ -538,7 +538,7 @@ class Weather(commands.Cog):
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
 
     @app_commands.command(name = "weather_subscriptions", description = "List this channel's weather subscriptions and next send time.")
-    @app_commands.has_permissions(administrator = True)
+    @commands.has_permissions(administrator = True)
     async def weather_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
@@ -588,7 +588,7 @@ class Weather(commands.Cog):
 
     # TODO: if the current channel only has one subscription, remove it and don't take id.
     @app_commands.command(name = "weather_unsubscribe", description = "Unsubscribe from weather announcements by ID.")
-    @app_commands.has_permissions(administrator = True)
+    @commands.has_permissions(administrator = True)
     async def weather_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
@@ -598,7 +598,7 @@ class Weather(commands.Cog):
 
     @app_commands.command(name = "weather_alerts", description = "Enable/disable severe weather alert announcements in the current channel.")
     @app_commands.describe(mode = "on/off", min_severity = "advisory | watch | warning (optional, defaults to watch)")
-    @app_commands.has_permissions(administrator = True)
+    @commands.has_permissions(administrator = True)
     async def weather_alerts(self, inter: discord.Interaction, mode: str, zip: app_commands.Range[str, 5, 5], min_severity: Optional[str] = "watch"):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
