@@ -290,7 +290,8 @@ class Store:
                 ?,
                 IFNULL((SELECT message_count FROM yappers WHERE user_id = ? AND guild_id = ?), 0) + 1
             )
-        ;""", (user_id, guild_id, user_id, guild_id))
+        WHERE user_id = ? AND guild_id = ?;""",
+        (user_id, guild_id, user_id, guild_id))
         self.db.commit()
 
     def get_top_yappers(self) -> None:
