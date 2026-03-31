@@ -11,7 +11,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 APP_ID = os.getenv("DISCORD_APP_ID") # optional
 WEATHER_DB_PATH = os.getenv("WEATHER_DB_PATH") or "data/weather.sqlite3"
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.basicConfig(level = logging.INFO, format = "%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("boybot2000")
 
 intents = discord.Intents.default() # change this if more intents are needed
@@ -23,6 +23,7 @@ class boybot2000(commands.Bot):
         await self.load_extension("weather")
         await self.load_extension("events")
         await self.load_extension("moon")
+        await self.load_extension("boytoy")
 
         try:
             synced = await self.tree.sync()
@@ -30,28 +31,11 @@ class boybot2000(commands.Bot):
         except Exception:
             log.exception("Failed to sync app commands.")
 
-    async def on_message(self, message):
-        if message.author.id == self.user.id:
-            return
-
-        if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
-            if message.reference.resolved.author.id == self.user.id:
-                await message.reply("<:boykisser_meow:1485641863024087101>", mention_author = True)
-                return
-
-        if "boybot" in message.content or "boybot2000" in message.content:
-            await message.add_reaction("<:boykisser_meow:1485641863024087101>")
-            return
-        
-        if "boys" in message.content:
-            await message.reply("i luv boys <:boykisser_meow:1485641863024087101>", mention_author = True)
-            return
-
 async def main():
     if not TOKEN:
         raise SystemExit("Missing DISCORD_TOKEN in environment.")
 
-    bot_kwargs = dict(intents=intents)
+    bot_kwargs = dict(intents = intents)
 
     if APP_ID:
         try:
@@ -59,7 +43,7 @@ async def main():
         except ValueError:
             log.warning("DISCORD_APP_ID is set but not an int; ignoring.")
 
-    bot = boybot2000(command_prefix="!", **bot_kwargs)
+    bot = boybot2000(command_prefix = "!", **bot_kwargs)
 
     # Attach store to bot so cogs can use it
     bot.store = Store(WEATHER_DB_PATH)
