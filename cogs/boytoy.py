@@ -29,13 +29,13 @@ class Boytoy(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.id == self.user.id:
+        if message.author.id == self.bot.user.id:
             return
 
         messageText = message.content.casefold()
 
         if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
-            if message.reference.resolved.author.id == self.user.id:
+            if message.reference.resolved.author.id == self.bot.user.id:
                 await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
         elif any(x in messageText for x in [ "boy bot", "boybot", "boybot2000", "boy bot 2000", "boybot 2000" ]):
