@@ -41,8 +41,8 @@ class Boytoy(commands.Cog):
         elif any(x in messageText for x in [ "boy bot", "boybot", "boybot2000", "boy bot 2000", "boybot 2000" ]):
             if any(x in messageText for x in [ "good", "great", "thank" ]):
                 await message.add_reaction("<:boykisser_pat:1488616985502810336>")
-            elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass" ]):
-                await message.add_reaction("<:boykisser_mad_as_hell:boykisser_mad_as_hell>")
+            elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly" ]):
+                await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
                 await message.add_reaction("<:boykisser_what:1483293684899381248>")
         
