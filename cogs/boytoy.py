@@ -32,18 +32,22 @@ class Boytoy(commands.Cog):
         if message.author.id == self.user.id:
             return
 
+        messageText = message.content.casefold()
+
         if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             if message.reference.resolved.author.id == self.user.id:
-                await message.reply("<:boykisser_meow:1485641863024087101>", mention_author = True)
-                return
+                await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
-        if "boybot" in message.content or "boybot2000" in message.content:
-            await message.add_reaction("<:boykisser_meow:1485641863024087101>")
-            return
+        elif any(x in messageText for x in [ "boy bot", "boybot", "boybot2000", "boy bot 2000", "boybot 2000" ]):
+            if any(x in messageText for x in [ "good", "great", "thank" ]):
+                await message.add_reaction("<:boykisser_pat:1488616985502810336>")
+            elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass" ]):
+                await message.add_reaction("<:boykisser_mad_as_hell:boykisser_mad_as_hell>")
+            else:
+                await message.add_reaction("<:boykisser_what:1483293684899381248>")
         
-        if "boys" in message.content:
-            await message.reply("i luv boys <:boykisser_meow:1485641863024087101>", mention_author = True)
-            return
+        elif "boys" in message.content:
+            await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Boytoy(bot))
