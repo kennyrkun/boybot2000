@@ -294,7 +294,7 @@ class Store:
         self.db.commit()
 
     def get_top_yappers(self) -> None:
-        rows = self.db.execute("SELECT * FROM yappers ORDER_BY message_count DESC LIMIT 5").fetchall()
+        rows = self.db.execute("SELECT * FROM yappers ORDER BY message_count DESC LIMIT 5").fetchall()
         return [dict(r) for r in rows]
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:
