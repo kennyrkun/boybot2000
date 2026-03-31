@@ -20,10 +20,10 @@ intents.guild_scheduled_events = True
 
 class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:
-        await self.load_extension("weather")
-        await self.load_extension("events")
-        await self.load_extension("moon")
-        await self.load_extension("boytoy")
+        await self.load_extension("cogs.weather")
+        await self.load_extension("cogs.events")
+        await self.load_extension("cogs.moon")
+        await self.load_extension("cogs.boytoy")
 
         try:
             synced = await self.tree.sync()
