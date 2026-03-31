@@ -293,8 +293,8 @@ class Store:
         ;""", (user_id, guild_id, user_id, guild_id))
         self.db.commit()
 
-    def get_top_yappers(self, count: int) -> None:
-        rows = self.db.execute("SELECT * FROM yappers ORDER_BY message_count DESC LIMIT ?", (count)).fetchall()
+    def get_top_yappers(self) -> None:
+        rows = self.db.execute("SELECT * FROM yappers ORDER_BY message_count DESC LIMIT 5").fetchall()
         return [dict(r) for r in rows]
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:

@@ -37,7 +37,7 @@ class Yappers(commands.Cog):
     @app_commands.command(name = "top_yappers", description = "List the top yappers in this server.")
     async def top_yappers(self, inter: discord.Interaction):
         await inter.response.defer()
-        await inter.followup.send(content = self.store.get_top_yappers(5))
+        await inter.followup.send(content = self.store.get_top_yappers())
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Yappers(bot))
