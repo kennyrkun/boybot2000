@@ -2,6 +2,7 @@ import os
 import asyncio
 import traceback
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -32,13 +33,13 @@ class Boytoy(commands.Cog):
         if message.author.id == self.bot.user.id:
             return
 
-        messageText = message.content.casefold()
+        messageText = message.content.casefold().strip().replace(" ", "")
 
         if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             if message.reference.resolved.author.id == self.bot.user.id:
                 await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
-        elif any(x in messageText for x in [ "boy bot", "boybot", "boybot2000", "boy bot 2000", "boybot 2000" ]):
+        elif re.match(r"^(b+o+y+)?(b+o+t+)?$", messageText, re.IGNORECASE):
             if any(x in messageText for x in [ "good", "great", "thank" ]):
                 await message.add_reaction("<:boykisser_pat:1488616985502810336>")
             elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly" ]):
