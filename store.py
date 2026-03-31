@@ -44,17 +44,6 @@ class Store:
 
         cur.execute(
             """
-            CREATE TABLE IF NOT EXISTS notes (
-                channel_id INTEGER NOT NULL,
-                key TEXT NOT NULL,
-                value TEXT NOT NULL,
-                PRIMARY KEY (channel_id, key)
-            )
-            """
-        )
-
-        cur.execute(
-            """
             CREATE TABLE IF NOT EXISTS event_subs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 channel_id INTEGER NOT NULL,
@@ -78,6 +67,27 @@ class Store:
                 mi INTEGER NOT NULL,
                 weekly_days INTEGER,
                 next_run TEXT NOT NULL
+            )
+            """
+        )
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS yappers (
+                user_id INTEGER PRIMARY KEY UNIQUE,
+                guild_id INTEGER NOT NULL,
+                message_count INTEGER NOT NULL
+            )
+            """
+        )
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS notes (
+                channel_id INTEGER NOT NULL,
+                key TEXT NOT NULL,
+                value TEXT NOT NULL,
+                PRIMARY KEY (channel_id, key)
             )
             """
         )
@@ -269,6 +279,16 @@ class Store:
     def update_moon_sub(self, sub_id: int, next_run: str, **_ignored) -> None:
         self.db.execute("UPDATE moon_subs SET next_run = ? WHERE id = ?", (str(next_run), int(sub_id)))
         self.db.commit()
+
+    def increment_yaps(self, user_id: int, guild_id) -> None:
+        self.db.execute("""UPDATE yappers SET message_count = message_count + 1 WHERE user_id = ?
+        IF @@ROWCOUNT = 0
+        INSERT INTO yappers (user_id, guild_id, message_count) values(?, ?, 1);""", (user_id, user_id, guild_id))
+        self.db.commit()
+
+    def get_top_yappers(self, count: int) -> None:
+        rows = self.db.execute("SELECT * FROM yappers ORDER_BY message_count DESC LIMIT ?", (count)).fetchall()
+        return [dict(r) for r in rows]
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:
         row = self.db.execute(

@@ -88,7 +88,7 @@ class Moon(commands.Cog):
     # -------- Slash Commands --------
 
     @app_commands.command(name = "moon", description = "Show the current moon phase.")
-    async def moon_cmd(self, inter: discord.Interaction):
+    async def moon(self, inter: discord.Interaction):
         await inter.response.defer()
         await inter.followup.send(embed = _get_moon_embed(datetime.utcnow(), True, True))
 
