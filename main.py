@@ -25,6 +25,7 @@ class boybot2000(commands.Bot):
         await self.load_extension("cogs.events")
         await self.load_extension("cogs.moon")
         await self.load_extension("cogs.boytoy")
+        await self.load_extension("cogs.yappers")
 
         try:
             synced = await self.tree.sync()
