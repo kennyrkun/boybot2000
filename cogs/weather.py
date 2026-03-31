@@ -291,7 +291,7 @@ class Weather(commands.Cog):
 
     @app_commands.command(name = "weather_current", description = "Current weather by ZIP.")
     @app_commands.choices(units = UNITS_CHOICES)
-    async def weather_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
+    async def weather(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
@@ -396,7 +396,7 @@ class Weather(commands.Cog):
     @app_commands.command(name = "weather_hourly", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
     @app_commands.describe(hours = "How many hours to show (6-24, optional, defaults to 12)")
     @app_commands.choices(units = UNITS_CHOICES)
-    async def hourly_cmd(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12, units: Optional[app_commands.Choice[str]] = None):
+    async def hourly(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12, units: Optional[app_commands.Choice[str]] = None):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
 
@@ -481,7 +481,7 @@ class Weather(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f Hourly error: {e} {traceback.format_exc()}", ephemeral=True)
 
-    @app_commands.command(name="weather_subscribe", description="Subscribe the current channel to a daily or weekly weather announcement at a local-time hour.")
+    @app_commands.command(name = "weather_subscribe", description = "Subscribe the current channel to a daily or weekly weather announcement at a local-time hour.")
     @app_commands.describe(
         time="HH:MM (24h), HHMM, or h:mma/pm in this channel's saved timezone",
         cadence="daily or weekly",
@@ -490,6 +490,7 @@ class Weather(commands.Cog):
     )
     @app_commands.choices(cadence = CADENCE_CHOICES)
     @app_commands.choices(units = UNITS_CHOICES)
+    @app_commands.has_permissions(administrator = True)
     async def weather_subscribe(
         self,
         inter: discord.Interaction,
@@ -536,7 +537,8 @@ class Weather(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
 
-    @app_commands.command(name="weather_subscriptions", description="List this channel's weather subscriptions and next send time.")
+    @app_commands.command(name = "weather_subscriptions", description = "List this channel's weather subscriptions and next send time.")
+    @app_commands.has_permissions(administrator = True)
     async def weather_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
@@ -585,7 +587,8 @@ class Weather(commands.Cog):
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
     # TODO: if the current channel only has one subscription, remove it and don't take id.
-    @app_commands.command(name="weather_unsubscribe", description="Unsubscribe from weather announcements by ID.")
+    @app_commands.command(name = "weather_unsubscribe", description = "Unsubscribe from weather announcements by ID.")
+    @app_commands.has_permissions(administrator = True)
     async def weather_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral=True)
@@ -595,6 +598,7 @@ class Weather(commands.Cog):
 
     @app_commands.command(name = "weather_alerts", description = "Enable/disable severe weather alert announcements in the current channel.")
     @app_commands.describe(mode = "on/off", min_severity = "advisory | watch | warning (optional, defaults to watch)")
+    @app_commands.has_permissions(administrator = True)
     async def weather_alerts(self, inter: discord.Interaction, mode: str, zip: app_commands.Range[str, 5, 5], min_severity: Optional[str] = "watch"):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)

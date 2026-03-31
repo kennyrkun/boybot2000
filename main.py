@@ -31,6 +31,11 @@ class boybot2000(commands.Bot):
         except Exception:
             log.exception("Failed to sync app commands.")
 
+    @app_commands.command(name = "restart", help = "Restarts the bot")
+    @app_commands.has_permissions(administrator = True)
+    async def restart(self):
+        exit()
+
 async def main():
     if not TOKEN:
         raise SystemExit("Missing DISCORD_TOKEN in environment.")

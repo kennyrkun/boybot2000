@@ -99,6 +99,7 @@ class Moon(commands.Cog):
         weekly_days = "For weekly: number of days to include (3, 7, or 10)"
     )
     @app_commands.choices(cadence = CADENCE_CHOICES)
+    @app_commands.has_permissions(administrator = True)
     async def moon_subscribe(
         self,
         inter: discord.Interaction,
@@ -137,6 +138,7 @@ class Moon(commands.Cog):
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral = True)
 
     @app_commands.command(name="moon_unsubscribe", description="Unsubscribe from moon phase announcements for the current channel.")
+    @app_commands.has_permissions(administrator = True)
     async def moon_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
@@ -148,6 +150,7 @@ class Moon(commands.Cog):
         await inter.followup.send(f":white_check_mark: Moon phase announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral = True)
 
     @app_commands.command(name="moon_subscriptions", description="List your moon phase announcement subscriptions and next send time.")
+    @app_commands.has_permissions(administrator = True)
     async def moon_subscriptions(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
