@@ -60,9 +60,9 @@ class Yappers(commands.Cog):
 
         try:
             self.store.add_yap_sub(inter.guild.id)
-            await inter.followup.send(f":white_check_mark: Subscribed this server to top yapper annoucements. {inter.message.author.id} {inter.guild.id}", ephemeral = True)
+            await inter.followup.send(f":white_check_mark: Subscribed this server to top yapper annoucements. {inter.guild.id}", ephemeral = True)
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()} {inter.message.author.id} {inter.guild.id}", ephemeral = True)
+            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()} {inter.guild.id}", ephemeral = True)
 
     @app_commands.command(name="yap_unsubscribe", description = "Unsubscribe the current guild from top yapper annoucements.")
     async def yap_unsubscribe(self, inter: discord.Interaction):
