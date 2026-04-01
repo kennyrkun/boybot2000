@@ -71,8 +71,6 @@ class Store:
             """
         )
 
-        cur.execute("DROP TABLE yappers");
-
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS yappers (
@@ -295,11 +293,11 @@ class Store:
         ;""", (user_id, guild_id, user_id, guild_id))
         self.db.commit()
 
-        rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = 324679578159284226 ORDER BY message_count DESC LIMIT 5").fetchall()
+        rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id)).fetchall()
         return [dict(r) for r in rows]
 
     def get_top_yappers(self, guild_id: int):
-        rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = 324679578159284226 ORDER BY message_count DESC LIMIT 5").fetchall()
+        rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id)).fetchall()
         return [dict(r) for r in rows]
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:
