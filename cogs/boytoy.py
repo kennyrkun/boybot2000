@@ -23,7 +23,7 @@ class Boytoy(commands.Cog):
         if self.store is None:
             log.error("Storage backend not available.")
 
-        self.regex = re.compile(r"((t|b)+o+(y|t)( ?)+){2}", messageText, re.IGNORECASE)
+        self.regex = re.compile(r"((t|b)+o+(y|t)( ?)+){2}", re.IGNORECASE)
 
     def cog_unload(self):
         return
