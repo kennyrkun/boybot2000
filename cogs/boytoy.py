@@ -23,6 +23,8 @@ class Boytoy(commands.Cog):
         if self.store is None:
             log.error("Storage backend not available.")
 
+        self.regex = re.compile(r"((t|b)+o+(y|t)( ?)+){2}", messageText, re.IGNORECASE)
+
     def cog_unload(self):
         return
 
@@ -39,7 +41,7 @@ class Boytoy(commands.Cog):
             if message.reference.resolved.author.id == self.bot.user.id:
                 await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
-        elif re.match(r"((t|b)+o+(y|t)( ?)+){2}", messageText, re.IGNORECASE):
+        elif regex.search(r"((t|b)+o+(y|t)( ?)+){2}", messageText, re.IGNORECASE):
             if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome" ]):
                 await message.add_reaction("<:boykisser_pat:1488616985502810336>")
             elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly" ]):
