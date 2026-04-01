@@ -71,10 +71,12 @@ class Store:
             """
         )
 
+        cur.execute("DROP TABLE yappers;")
+
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS yappers (
-                user_id INTEGER PRIMARY KEY,
+                user_id INTEGER NOT NULL,
                 guild_id INTEGER NOT NULL,
                 message_count INTEGER NOT NULL
             )
