@@ -71,9 +71,10 @@ class Store:
             """
         )
 
+        cur.execute("DROP TABLE yappers");
+
         cur.execute(
             """
-            DROP TABLE yappers;
             CREATE TABLE IF NOT EXISTS yappers (
                 user_id INTEGER PRIMARY KEY,
                 guild_id INTEGER NOT NULL,
