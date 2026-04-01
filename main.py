@@ -21,17 +21,21 @@ intents.guild_scheduled_events = True
 
 class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:
-        await self.load_extension("cogs.weather")
-        await self.load_extension("cogs.events")
-        await self.load_extension("cogs.moon")
-        await self.load_extension("cogs.boytoy")
-        await self.load_extension("cogs.yappers")
-
         try:
+            # remove all bot commands, then add them again
+            await bot.tree.sync(guild = None)
+
+            await self.load_extension("cogs.weather")
+            await self.load_extension("cogs.events")
+            await self.load_extension("cogs.moon")
+            await self.load_extension("cogs.boytoy")
+            await self.load_extension("cogs.yappers")
+
+            # remove all bot commands and then sync them again
             synced = await self.tree.sync()
             log.info("Synced %d app commands globally.", len(synced))
-        except Exception:
-            log.exception("Failed to sync app commands.")
+        except Exception as e:
+            log.exception(f"Exception during startup: {e}.")
 
     @app_commands.command(name = "restart", description = "Restarts the bot")
     @commands.has_permissions(administrator = True)
