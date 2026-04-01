@@ -282,7 +282,7 @@ class Store:
         self.db.execute("UPDATE moon_subs SET next_run = ? WHERE id = ?", (str(next_run), int(sub_id)))
         self.db.commit()
 
-    def increment_yaps(self, user_id: int, guild_id) -> None:
+    def increment_yaps(self, user_id: int, guild_id: int) -> None:
         self.db.execute("""
         INSERT OR REPLACE INTO yappers 
             (user_id, guild_id, message_count) 
@@ -298,7 +298,7 @@ class Store:
         rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id)).fetchall()
         return [dict(r) for r in rows]
 
-    def get_top_yappers(self, guild_id) -> None:
+    def get_top_yappers(self, guild_id: int) -> None:
         rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id)).fetchall()
         return [dict(r) for r in rows]
 
