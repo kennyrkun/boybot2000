@@ -391,7 +391,7 @@ class Weather(commands.Cog):
             emb.set_footer(text=f"Units: {units} • Timezone: {tz_name}")
             await inter.followup.send(embed=emb)
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f Weather error: {e} {traceback.format_exc()}", ephemeral=True)
+            await inter.followup.send(f"\u26A0\ufe0f Weather error: {e}\n{traceback.format_exc()}", ephemeral=True)
 
     @app_commands.command(name = "weather_hourly", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
     @app_commands.describe(hours = "How many hours to show (6-24, optional, defaults to 12)")
@@ -479,7 +479,7 @@ class Weather(commands.Cog):
             _add_chunked_fields(emb, "Forecast", lines[:want_hours])
             await inter.followup.send(embed=emb)
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f Hourly error: {e} {traceback.format_exc()}", ephemeral=True)
+            await inter.followup.send(f"\u26A0\ufe0f Hourly error: {e}\n{traceback.format_exc()}", ephemeral=True)
 
     @app_commands.command(name = "weather_subscribe", description = "Subscribe the current channel to a daily or weekly weather announcement at a local-time hour.")
     @app_commands.describe(
@@ -535,7 +535,7 @@ class Weather(commands.Cog):
                 ephemeral = True
             )
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral=True)
+            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral=True)
 
     @app_commands.command(name = "weather_subscriptions", description = "List this channel's weather subscriptions and next send time.")
     @commands.has_permissions(administrator = True)
@@ -719,10 +719,10 @@ class Weather(commands.Cog):
                         except Exception as e:
                             fallback = now_utc + timedelta(minutes=5)
                             self.store.update_weather_sub(s["id"], next_run_utc=fallback.isoformat())
-                            await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Weather error: {e} {traceback.format_exc()}")
+                            await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Weather error: {e}\n{traceback.format_exc()}")
 
         except Exception as e:
-            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Weather subscriptions error: {e} {traceback.format_exc()}")
+            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Weather subscriptions error: {e}\n{traceback.format_exc()}")
 
     @weather_scheduler.before_loop
     async def before_weather(self):

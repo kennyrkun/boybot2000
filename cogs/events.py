@@ -265,7 +265,7 @@ class Events(commands.Cog):
                 ephemeral=True
             )
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral = True)
+            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
 
     @app_commands.command(name="events_unsubscribe", description="Unsubscribe from event announcements for the current channel.")
     @commands.has_permissions(administrator = True)
@@ -367,10 +367,10 @@ class Events(commands.Cog):
                     except Exception as e:
                         fallback = now + timedelta(minutes = 5)
                         self.store.update_event_sub(s["id"], next_run = fallback.isoformat())
-                        await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Events error: {e} {traceback.format_exc()}")
+                        await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Events error: {e}\n{traceback.format_exc()}")
 
         except Exception as e:
-            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Events subscription error: {e} {traceback.format_exc()}")
+            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Events subscription error: {e}\n{traceback.format_exc()}")
 
     @events_scheduler.before_loop
     async def before_events(self):
