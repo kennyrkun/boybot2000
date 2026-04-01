@@ -19,6 +19,8 @@ class Yappers(commands.Cog):
 
         # Try to discover the Store from bot or import-time fallback
         self.store = getattr(bot, "store", None)
+
+        self.topYappers = {}
         
         if self.store is None:
             log.error("Storage backend not available.")
@@ -32,15 +34,13 @@ class Yappers(commands.Cog):
     async def on_message(self, message):
         newTopYappers = self.store.increment_yaps(message.author.id, message.guild.id)
 
-        if self.topYappers is None:
-            return
+        if self.topYappers[message.guild.id] is not None:
+            for x in newTopYappers:
+                if newTopYappers[x] != self.topYappers[message.guild.id][x]:
+                    await message.reply(content = "You are this server's new #{x} top yapper!")
+                    break
 
-        for x in newTopYappers:
-            if newTopYappers[x] != self.topYappers[x]:
-                await message.reply(content = "You are this server's new #{x} top yapper!")
-                break
-
-        self.topYappers = newTopYappers
+        self.topYappers[message.guild.id] = newTopYappers
 
     # ------- Slash commands -------
 
