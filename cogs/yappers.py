@@ -41,7 +41,7 @@ class Yappers(commands.Cog):
         string = "**Top yappers:**\n"
 
         for yapper in self.store.get_top_yappers():
-            string += f"<@{yapper.user_id}>\n: {yapper.message_count}"
+            string += f"<@{yapper["user_id"]}>: {yapper["message_count"]}\n"
 
         await inter.followup.send(content = string)
 
