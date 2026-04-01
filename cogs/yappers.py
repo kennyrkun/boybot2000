@@ -53,7 +53,7 @@ class Yappers(commands.Cog):
         for yapper in self.store.get_top_yappers(inter.guild.id):
             string += f"<@{yapper['user_id']}>: {yapper['message_count']}\n"
 
-        await inter.followup.send(content = string)
+        await inter.followup.send(content = string, ephemeral = True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Yappers(bot))
