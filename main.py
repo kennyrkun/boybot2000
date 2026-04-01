@@ -18,6 +18,7 @@ log = logging.getLogger("boybot2000")
 intents = discord.Intents.default() # change this if more intents are needed
 intents.message_content = True
 intents.guild_scheduled_events = True
+intents.guilds = True
 
 class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:

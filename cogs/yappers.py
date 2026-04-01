@@ -32,7 +32,7 @@ class Yappers(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.guild.id not in self.store.list_yap_subs():
+        if message.guild is None or message.guild.id not in self.store.list_yap_subs():
             return
 
         newTopYappers = self.store.increment_yaps(message.author.id, message.guild.id)
