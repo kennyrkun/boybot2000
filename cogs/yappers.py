@@ -5,6 +5,7 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
+from sqlite3 import IntegrityError
 
 import discord
 from discord.ext import tasks, commands
