@@ -71,7 +71,6 @@ class Store:
         )
 
         cur.execute("CREATE TABLE IF NOT EXISTS yap_subs (guild_id INTEGER PRIMARY KEY UNIQUE)")
-        cur.execute("DROP TABLE yappers;")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS yappers (
