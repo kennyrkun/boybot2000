@@ -22,7 +22,6 @@ class Store:
             )
             """
         )
-
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS weather_subs (
@@ -71,8 +70,14 @@ class Store:
             """
         )
 
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS yap_subs (
+                guild_id INTEGER PRIMARY KEY UNIQUE,
+            )
+            """
+        )
         cur.execute("DROP TABLE yappers;")
-
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS yappers (
@@ -245,7 +250,7 @@ class Store:
         self.db.commit()
         return int(cur.lastrowid)
 
-    def list_moon_subs(self, channel_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    def list_moon_subs(self, channel_id: int) -> List[Dict[str, Any]]:
         """List moon subscriptions. If channel_id is None, returns all subs."""
         if channel_id is None:
             rows = self.db.execute(
@@ -282,6 +287,22 @@ class Store:
         self.db.execute("UPDATE moon_subs SET next_run = ? WHERE id = ?", (str(next_run), int(sub_id)))
         self.db.commit()
 
+    def add_yap_sub(self, guild_id: int) -> int:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO yap_subs(guild_id) VALUES(?)", (int(guild_id)))
+        self.db.commit()
+        return int(cur.lastrowid)
+
+    def list_yap_subs(self) -> List[Dict[str, Any]]:
+        rows = self.db.execute("SELECT guild_id FROM yap_subs").fetchall()
+        return [dict(r) for r in rows]
+
+    def remove_yap_sub(self, guild_id: int) -> bool:
+        cur = self.db.cursor()
+        cur.execute("DELETE FROM yap_subs WHERE guild_id = ?", (int(guild_id)))
+        self.db.commit()
+        return cur.rowcount > 0
+
     def increment_yaps(self, user_id: int, guild_id: int):
         self.db.execute("""
         INSERT OR REPLACE INTO yappers 
@@ -295,11 +316,11 @@ class Store:
         ;""", (user_id, guild_id, user_id, guild_id))
         self.db.commit()
 
-        rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (int(guild_id))).fetchall()
+        rows = self.db.execute("SELECT guild_id, user_id, message_count FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (int(guild_id))).fetchall()
         return [dict(r) for r in rows]
 
     def get_top_yappers(self, guild_id: int):
-        rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (int(guild_id))).fetchall()
+        rows = self.db.execute("SELECT guild_id, user_id, message_count FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (int(guild_id))).fetchall()
         return [dict(r) for r in rows]
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:

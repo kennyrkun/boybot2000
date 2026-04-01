@@ -32,6 +32,11 @@ class Yappers(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.guild.id not in self.store.list_yap_subs():
+            return
+
+        message.reply(content = (message.author.id + " " + message.guild.id))
+
         newTopYappers = self.store.increment_yaps(message.author.id, message.guild.id)
 
         if message.guild.id in self.topYappers:
@@ -44,6 +49,31 @@ class Yappers(commands.Cog):
         self.topYappers[message.guild.id] = newTopYappers
 
     # ------- Slash commands -------
+
+    @app_commands.command(name = "yap_subscribe", description = "Subscribe this guild to top yapper announcements.")
+    @commands.has_permissions(administrator = True)
+    async def yap_subscribe(self, inter: discord.Interaction,):
+        if self.store is None:
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+        
+        await inter.response.defer(ephemeral = True)
+
+        try:
+            self.store.add_yap_sub(inter.guild.id)
+            await inter.followup.send(f":white_check_mark: Subscribed this server to top yapper annoucements.", ephemeral = True)
+        except Exception as e:
+            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e} {traceback.format_exc()}", ephemeral = True)
+
+    @app_commands.command(name="yap_unsubscribe", description = "Unsubscribe the current guild from top yapper annoucements.")
+    async def yap_unsubscribe(self, inter: discord.Interaction):
+        if self.store is None:
+            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
+
+        await inter.response.defer(ephemeral = True)
+
+        ok = self.store.remove_yap_sub(inter.guild.id)
+
+        await inter.followup.send(f":white_check_mark: This server has been subscribed to top yapper announcements." if ok else f"Failed to cancel top yapper subscription for this server.", ephemeral = True)
 
     @app_commands.command(name = "top_yappers", description = "List the top yappers in this server.")
     async def top_yappers(self, inter: discord.Interaction):
