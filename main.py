@@ -23,7 +23,7 @@ class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:
         try:
             # remove all bot commands, then add them again
-            await bot.tree.sync(guild = None)
+            await self.tree.sync(guild = None)
 
             await self.load_extension("cogs.weather")
             await self.load_extension("cogs.events")
