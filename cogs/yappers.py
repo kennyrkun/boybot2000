@@ -30,7 +30,17 @@ class Yappers(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        self.store.increment_yaps(message.author.id, message.guild.id)
+        newTopYappers = self.store.increment_yaps(message.author.id, message.guild.id)
+
+        if self.topYappers is None:
+            return
+
+        for x in newTopYappers:
+            if newTopYappers[x] != self.topYappers[x]:
+                await message.reply(content = "You are this server's new #{x} top yapper!")
+                break
+
+        self.topYappers = newTopYappers
 
     # ------- Slash commands -------
 
