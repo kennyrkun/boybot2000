@@ -35,8 +35,9 @@ class Yappers(commands.Cog):
         newTopYappers = self.store.increment_yaps(message.author.id, message.guild.id)
 
         if message.guild.id in self.topYappers:
-            for x in range(0, len(newTopYappers)):
-                if newTopYappers[x]["user_id"] != self.topYappers[message.guild.id][x]["user_id"]:
+            # use the length of old top yappers because the new list could be longer
+            for x in range(0, len(self.topYappers[message.guild.id]) - 1):
+                if self.topYappers[message.guild.id][x]["user_id"] != newTopYappers[x]["user_id"]:
                     await message.reply(content = "You are this server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages!")
                     break
 
