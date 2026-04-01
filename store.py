@@ -283,17 +283,17 @@ class Store:
 
     def add_yap_sub(self, guild_id: int) -> int:
         cur = self.db.cursor()
-        cur.execute("INSERT INTO yap_subs(guild_id) VALUES(?)", (int(guild_id)))
+        cur.execute("INSERT INTO yap_subs(guild_id) VALUES(?)", (guild_id,))
         self.db.commit()
         return int(cur.lastrowid)
 
     def list_yap_subs(self) -> List[Dict[str, Any]]:
-        rows = self.db.execute("SELECT guild_id FROM yap_subs").fetchall()
+        rows = self.db.execute("SELECT * FROM yap_subs").fetchall()
         return [dict(r) for r in rows]
 
     def remove_yap_sub(self, guild_id: int) -> bool:
         cur = self.db.cursor()
-        cur.execute("DELETE FROM yap_subs WHERE guild_id = ?", (int(guild_id)))
+        cur.execute("DELETE FROM yap_subs WHERE guild_id = ?", (guild_id,))
         self.db.commit()
         return cur.rowcount > 0
 
@@ -310,11 +310,11 @@ class Store:
         ;""", (user_id, guild_id, user_id, guild_id))
         self.db.commit()
 
-        rows = self.db.execute("SELECT guild_id, user_id, message_count FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (int(guild_id))).fetchall()
+        rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id,)).fetchall()
         return [dict(r) for r in rows]
 
     def get_top_yappers(self, guild_id: int):
-        rows = self.db.execute("SELECT guild_id, user_id, message_count FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (int(guild_id))).fetchall()
+        rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id,)).fetchall()
         return [dict(r) for r in rows]
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:
