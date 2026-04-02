@@ -1,8 +1,9 @@
-import os
 import asyncio
-import traceback
 import logging
+import os
 import re
+import random
+import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -17,41 +18,66 @@ class Boytoy(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        # Try to discover the Store from bot or import-time fallback
-        self.store = getattr(bot, "store", None)
-        
-        if self.store is None:
-            log.error("Storage backend not available.")
-
         self.regex = re.compile(r"((t|b)+o+(y|t)( ?)+){2}", re.IGNORECASE)
 
     def cog_unload(self):
         return
 
+    def check_cog_enabled(self, guildId: int):
+        return type(self).__name__ in self.bot.store.get_enabled_extensions(guildId)
+
+    def cog_check(self, ctx):
+        return self.check_cog_enabled(ctx.guild.id)
+
+    def interaction_check(self, inter):
+        return self.check_cog_enabled(inter.guild.id)
+
     # -------- Event listeners -------
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.guild is None:
+            return
+
+        if not self.check_cog_enabled(message.guild.id):
+            return
+
+        # TODO: this may not be required since we're using discord.Bot
         if message.author.id == self.bot.user.id:
             return
 
         messageText = message.content.casefold().strip().replace(" ", "")
 
+        # waits just a little bit so that typing doesn't show up immediately.
+        await asyncio.sleep(random.randint(0, 2))
+
         if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             if message.reference.resolved.author.id == self.bot.user.id:
-                await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
+                async with message.channel.typing():
+                    await asyncio.sleep(random.randint(0, 4))
+
+                return await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
         elif self.regex.search(messageText):
+            await asyncio.sleep(random.randint(0, 4))
+
             if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome", "yay", "best", "nice" ]):
-                await message.add_reaction("<:boykisser_pat:1488616985502810336>")
+                return await message.add_reaction("<:boykisser_pat:1488616985502810336>")
             elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly", "ass" ]):
-                await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
+                return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
-                await message.add_reaction("<:boykisser_what:1483293684899381248>")
+                return await message.add_reaction("<:boykisser_what:1483293684899381248>")
         
         # TODO: had to remove "boy" from this because it would reply to boykisser emotes
         elif any(x in messageText for x in [ "boys" ]):
-            await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
+            async with message.channel.typing():
+                await asyncio.sleep(random.randint(0, 4))
+
+            return await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
+
+        # sometimes, just type a little bit but don't say anything. like he changed his mind.
+        if random.randint(0, 1000) < 10:
+            return await message.channel.typing()
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Boytoy(bot))

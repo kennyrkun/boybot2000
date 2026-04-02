@@ -30,16 +30,19 @@ class Events(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        # Try to discover the Store from bot or import-time fallback
-        self.store = getattr(bot, "store", None)
-        
-        if self.store is None:
-            log.error("Storage backend not available.")
-
         self.events_scheduler.start()
 
     def cog_unload(self):
         self.events_scheduler.cancel()
+
+    def check_cog_enabled(self, guildId: int):
+        return type(self).__name__ in self.bot.store.get_enabled_extensions(guildId)
+
+    def cog_check(self, ctx):
+        return self.check_cog_enabled(ctx.guild.id)
+
+    def interaction_check(self, inter):
+        return self.check_cog_enabled(inter.guild.id)
 
     # -------- Helper functions ---------
 
@@ -71,42 +74,35 @@ class Events(commands.Cog):
         eventsInFuture   = []
         earliestEvent    = None
 
-        if len(events) > 1:
-            ignorePastDate = now + timedelta(days = interval)
-            ignorePastDate2 = now + timedelta(days = 14)
+        ignorePastDate = now + timedelta(days = interval)
+        ignorePastDate2 = now + timedelta(days = 14)
 
-            for event in events:
-                if event.status is not discord.EventStatus.scheduled and event.status is not discord.EventStatus.active:
+        for event in events:
+            if event.status is not discord.EventStatus.scheduled and event.status is not discord.EventStatus.active:
+                continue
+
+            if earliestEvent is None or event.start_time < earliestEvent.start_time:
+                earliestEvent = event
+
+            if event.start_time.timestamp() > ignorePastDate.timestamp():
+                # don't show events waaaaaay in the future at all
+                if event.start_time.timestamp() > ignorePastDate2.timestamp():
                     continue
 
-                if earliestEvent is None or event.start_time < earliestEvent.start_time:
-                    earliestEvent = event
+                eventsInFuture.append(event)
+                continue
 
-                if event.start_time.timestamp() > ignorePastDate.timestamp():
-                    # don't show events waaaaaay in the future at all
-                    if event.start_time.timestamp() > ignorePastDate2.timestamp():
-                        continue
+            eventsInInterval.append(event)
 
-                    eventsInFuture.append(event)
-                    continue
+        eventsInInterval.sort(key = lambda x: x.start_time, reverse = False)
+        eventsInFuture.sort(key = lambda x: x.start_time, reverse = False)
 
-                eventsInInterval.append(event)
+        # add in-interval events first so that they are shown first in embeds
+        allEvents = eventsInInterval + eventsInFuture
 
-            eventsInInterval.sort(key = lambda x: x.start_time, reverse = False)
-            eventsInFuture.sort(key = lambda x: x.start_time, reverse = False)
-
-            # add in-interval events first so that they are shown first in embeds
-            allEvents = eventsInInterval + eventsInFuture
-
+        if len(allEvents) > 0:
             currentEventsCount = len(eventsInInterval)
             futureEventCount = len(eventsInFuture)
-            
-            embeds = []
-
-            # create an embed for the first 10 events ordered by sooner start_time, max of 10 (discord limitation but also that's enough)
-            for x in range(0, min(len(allEvents), 9)):
-                embed = await self._create_event_embed(allEvents[x])
-                embeds.append(embed)
 
             strings = []
 
@@ -114,24 +110,27 @@ class Events(commands.Cog):
                 strings.append(f"there {'are' if (currentEventsCount > 1) else 'is'} {currentEventsCount} event{'s' if currentEventsCount > 1 else ''} {noun}")
 
             if futureEventCount > 0:
-                strings.append(f"there {'are' if futureEventCount > 1 else 'is'} {futureEventCount} event{'s' if futureEventCount > 1 else ''} in the future")
+                strings.append(f"there {'are' if futureEventCount > 1 else 'is'} {futureEventCount} event{'s' if futureEventCount > 1 else ''} in the near future")
 
-            string = " and ".join(strings).capitalize() + "!"
+            string = " and ".join(strings).capitalize() + "!\n"
 
-            # delete after 86400 does not seem to work
-            await channel.send(content = string, embeds = embeds, delete_after = 86400)
+            urls = ""
+
+            for event in allEvents:
+                urls += f"[{event.name}]({event.url})\n"
+
+            await channel.send(content = string + urls, delete_after = 86400)
         else:
-            await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
+            await channel.send(f"There are no events {noun} or in the near future... :boykisser_sob:")
 
     # -------- Discord ScheduledEvent events -------
 
     @commands.Cog.listener()
     async def on_scheduled_event_create(self, event: discord.ScheduledEvent):
-        if self.store is None:
-            return
+        # TODO: add cog check for guild here
         
         now = datetime.utcnow()
-        subs = self.store.list_event_subs(None)
+        subs = self.bot.store.list_event_subs(None)
 
         if not subs:
             return
@@ -142,17 +141,14 @@ class Events(commands.Cog):
             if s["guild_id"] == event.guild.id:
                 if s["channel_id"] not in sent_channels:
                     channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                    e = await self._create_event_embed(event)
-                    await channel.send(content = "A new event has been created!", embed = e)
-                    sent_channels.append(s["channel_id"])
+                    await channel.send(content = f"[new event just dropped uwu :333]({event.url})")
 
     @commands.Cog.listener()
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
-        if self.store is None:
-            return
+        # TODO: add cog check for guild here
         
         now = datetime.utcnow()
-        subs = self.store.list_event_subs(None)
+        subs = self.bot.store.list_event_subs(None)
 
         if not subs:
             return
@@ -168,11 +164,10 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_scheduled_event_update(self, before: discord.ScheduledEvent, after: discord.ScheduledEvent):
-        if self.store is None:
-            return
+        # TODO: add cog check for guild here
         
         now = datetime.utcnow()
-        subs = self.store.list_event_subs(None)
+        subs = self.bot.store.list_event_subs(None)
 
         if not subs:
             return
@@ -212,13 +207,12 @@ class Events(commands.Cog):
                     if before.location != after.location:
                         changes.append(f"**Location**: `{before.location}` => `{after.location}`.")
 
-                    string = f"`{after.name}` has been updated!\n"
+                    string = f"[{after.name}]({after.url}) has been updated!\n"
 
                     for change in changes:
                         string += change + "\n"
 
-                    e = await self._create_event_embed(after)
-                    await channel.send(content = string, embed = e)
+                    await channel.send(content = string)
 
     # -------- Slash Commands --------
 
@@ -237,10 +231,7 @@ class Events(commands.Cog):
         cadence: app_commands.Choice[str],
         weekly_days: Optional[app_commands.Range[int, 3, 10]] = 7
     ):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
-        
-        await inter.response.defer(ephemeral=True)
+        await inter.response.defer(ephemeral = True)
 
         try:
             hh, mi = _parse_time(time)
@@ -257,7 +248,7 @@ class Events(commands.Cog):
                 "next_run": first.isoformat(),
             }
 
-            sid = self.store.add_event_sub(sub)
+            sid = self.bot.store.add_event_sub(sub)
 
             await inter.followup.send(
                 f":white_check_mark: Subscribed <#{sub['channel_id']}> to {cadence.value} event announcements at **{first.strftime('%I:%M %p')}**.\n"
@@ -271,24 +262,18 @@ class Events(commands.Cog):
     @app_commands.command(name="events_unsubscribe", description="Unsubscribe from event announcements for the current channel.")
     @commands.has_permissions(administrator = True)
     async def events_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
-            
         await inter.response.defer(ephemeral = True)
 
-        ok = self.store.remove_event_sub(subscription_id, requester_id = inter.channel_id)
+        ok = self.bot.store.remove_event_sub(subscription_id, requester_id = inter.channel_id)
 
         await inter.followup.send(f":white_check_mark: Event announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
     @app_commands.command(name = "events_subscriptions", description = "List your event announcement subscriptions and next send time.")
     @commands.has_permissions(administrator = True)
     async def events_subscriptions(self, inter: discord.Interaction):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
-
         await inter.response.defer(ephemeral = True)
 
-        items = self.store.list_event_subs(inter.channel_id)
+        items = self.bot.store.list_event_subs(inter.channel_id)
 
         if not items:
             return await inter.followup.send("There are no events subscriptions.", ephemeral = True)
@@ -318,32 +303,32 @@ class Events(commands.Cog):
             if needs:
                 first = _next_run(now, hh, mi, cadence)
                 nxt = first
-                self.store.update_event_sub(s["id"], channel_id = int(s["channel_id"]), next_run = nxt.isoformat())
+                self.bot.store.update_event_sub(s["id"], channel_id = int(s["channel_id"]), next_run = nxt.isoformat())
 
             out_lines.append(
                 f"#{s['id']} in <#{s['channel_id']}> {cadence} at {hh:02d}:{mi:02d} - next: {nxt.strftime('%m-%d-%Y %H:%M %Z')}"
             )
 
-        await inter.followup.send("\n".join(out_lines), ephemeral=True)
+        await inter.followup.send("\n".join(out_lines), ephemeral = True)
 
     @app_commands.command(name = "events_list", description = "Show a list of events in the current channel.")
     async def events_list(self, inter: discord.Interaction):
         await self._send_event_list(inter.channel_id, 1, "today", datetime.utcnow()) # TODO: make this ephemeral
 
     # -------- Schedulers --------
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds = 60)
     async def events_scheduler(self):
-        if self.store is None:
-            return
-        
         try:
             now = datetime.utcnow()
-            subs = self.store.list_event_subs(None)
+            subs = self.bot.store.list_event_subs(None)
 
             if not subs:
                 return
 
             for s in subs:
+                if not self.check_cog_enabled(s["guild_id"]):
+                    return
+
                 if s["cadence"] == "daily":
                     interval = 1
                     noun = "today"
@@ -364,10 +349,10 @@ class Events(commands.Cog):
                         if next <= datetime.utcnow():
                             next += timedelta(days=interval)
 
-                        self.store.update_event_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
+                        self.bot.store.update_event_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
                     except Exception as e:
                         fallback = now + timedelta(minutes = 5)
-                        self.store.update_event_sub(s["id"], next_run = fallback.isoformat())
+                        self.bot.store.update_event_sub(s["id"], next_run = fallback.isoformat())
                         await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Events error: {e}\n{traceback.format_exc()}")
 
         except Exception as e:

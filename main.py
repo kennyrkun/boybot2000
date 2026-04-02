@@ -1,6 +1,7 @@
 import os
 import asyncio
 import logging
+from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -10,7 +11,7 @@ from store import Store
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 APP_ID = os.getenv("DISCORD_APP_ID") # optional
-WEATHER_DB_PATH = os.getenv("WEATHER_DB_PATH") or "data/weather.sqlite3"
+DB_PATH = os.getenv("WEATHER_DB_PATH") or "data/weather.sqlite3"
 
 logging.basicConfig(level = logging.INFO, format = "%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("boybot2000")
@@ -19,13 +20,53 @@ intents = discord.Intents.default() # change this if more intents are needed
 intents.message_content = True
 intents.guild_scheduled_events = True
 intents.guilds = True
+intents.members = True
+
+class ExtensionManager(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    group = app_commands.Group(name = "extensions", description = "Manage extensions this bot can use in this server.")
+
+    @group.command(name = "on", description = "Enables a particular extension.")
+    @app_commands.checks.has_permissions(administrator = True)
+    async def on(self, inter: discord.Interaction,  extension: str) -> None:
+        if await self.verifyExtensionName(inter, extension) and self.bot.store.enable_extension(inter.guild.id, extension):
+            return await inter.followup.send(f"Enabled extension {extension} for this server.", ephemeral = True)
+        else:
+            return await inter.followup.send(f"Failed to enable extension {extension} for this server.", ephemeral = True)
+
+    @group.command(name = "off", description = "Disables a particular extension.")
+    @app_commands.checks.has_permissions(administrator = True)
+    async def off(self, inter: discord.Interaction,  extension: str) -> None:
+        if await self.verifyExtensionName(inter, extension) and self.bot.store.disable_extension(inter.guild.id, extension):
+            return await inter.followup.send(f"Disabled extension {extension} for this server.", ephemeral = True)
+        else:
+            return await inter.followup.send(f"Failed to disable extension {extension} for this server.", ephemeral = True)
+
+    async def verifyExtensionName(self, inter: discord.Interaction, extensionName: str) -> bool:
+        await inter.response.defer(ephemeral = True)
+
+        if extensionName in [ "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers" ]:
+            return True
+
+        return False
 
 class boybot2000(commands.Bot):
+    async def on_ready(self):
+        log.info("Logged in as %s (%s)", self.user, self.user.id)
+
     async def setup_hook(self) -> None:
-        await self.load_extension("cogs.weather")
+        self.store = Store(DB_PATH)
+
+        await self.add_cog(ExtensionManager(self))
+
+        await self.load_extension("cogs.boytoy")
+        await self.load_extension("cogs.captcha")
         await self.load_extension("cogs.events")
         await self.load_extension("cogs.moon")
-        await self.load_extension("cogs.boytoy")
+        #await self.load_extension("cogs.radio")
+        await self.load_extension("cogs.weather")
         await self.load_extension("cogs.yappers")
 
         try:
@@ -33,11 +74,6 @@ class boybot2000(commands.Bot):
             log.info("Synced %d app commands globally.", len(synced))
         except Exception:
             log.exception("Failed to sync app commands.")
-
-    @app_commands.command(name = "restart", description = "Restarts the bot")
-    @commands.has_permissions(administrator = True)
-    async def restart(self, inter: discord.Interaction):
-        exit()
 
 async def main():
     if not TOKEN:
@@ -53,12 +89,11 @@ async def main():
 
     bot = boybot2000(command_prefix = "!", **bot_kwargs)
 
-    # Attach store to bot so cogs can use it
-    bot.store = Store(WEATHER_DB_PATH)
-
-    @bot.event
-    async def on_ready():
-        log.info("Logged in as %s (%s)", bot.user, bot.user.id)
+    # if your setup is configured to restart the process, this is effectively a restart.
+    @bot.command(name = "stop", description = "Stops the bot.")
+    @app_commands.checks.has_permissions(administrator = True)
+    async def restart(inter: discord.Interaction) -> None:
+        raise SystemExit("Stop requested.") # TODO: log by whom
 
     async with bot:
         await bot.start(TOKEN)

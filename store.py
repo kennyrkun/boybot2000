@@ -3,16 +3,39 @@ import sqlite3
 from typing import Optional, Dict, Any, List
 
 class Store:
-    """Tiny SQLite-backed store for weather preferences and schedules."""
+    """Tiny SQLite-backed store for persistent bot configuration and data."""
 
     def __init__(self, db_path):
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        self.db = sqlite3.connect(db_path, check_same_thread=False)
+        os.makedirs(os.path.dirname(db_path), exist_ok = True)
+
+        self.db = sqlite3.connect(db_path, check_same_thread = False)
         self.db.row_factory = sqlite3.Row
+        
         self._init_schema()
 
     def _init_schema(self):
         cur = self.db.cursor()
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS extensions_enabled (
+                guild_id INTEGER NOT NULL,
+                name INTEGER NOT NULL
+            )
+            """
+        )
+        cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS name_and_guildid ON extensions_enabled (name, guild_id)")
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS captcha_queue (
+                guild_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+            """
+        )
+        cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS userid_and_guildid ON captcha_queue (user_id, guild_id)")
 
         cur.execute(
             """
@@ -108,6 +131,48 @@ class Store:
             (int(channel_id), str(zip_code)),
         )
         self.db.commit()
+
+    def enable_extension(self, guild_id: int, name: str) -> bool:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO extensions_enabled(guild_id, name) VALUES(?, ?)", (guild_id, name,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def disable_extension(self, guild_id: int, name: str) -> bool:
+        cur = self.db.cursor()
+        cur.execute("DELETE FROM extensions_enabled WHERE guild_id = ? AND name = ?", (guild_id, name,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def get_enabled_extensions(self, guild_id: int) -> List[str]:
+        rows = self.db.execute("SELECT name FROM extensions_enabled WHERE guild_id = ?", (guild_id,)).fetchall()
+        return [r[0] for r in rows]
+
+    def enable_extension(self, guild_id: int, name: str) -> bool:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO extensions_enabled(guild_id, name) VALUES(?, ?)", (guild_id, name,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def add_captcha_user(self, guild_id: int, user_id: int, timestamp: int) -> bool:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO captcha_queue(guild_id, user_id, timestamp) VALUES(?, ?, ?)", (guild_id, user_id, timestamp,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def remove_captcha_user(self, guild_id: int, user_id: int) -> bool:
+        cur = self.db.cursor()
+        cur.execute("DELETE FROM captcha_queue WHERE guild_id = ? AND user_id = ?", (guild_id, user_id,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def list_captcha_users(self, guild_id: Optional[int] = None) -> List[Dict[int, Any]]:
+        if guild_id is None:
+            rows = self.db.execute("SELECT * FROM captcha_queue").fetchall()
+        else:
+            rows = self.db.execute("SELECT user_id, timestamp FROM captcha_queue WHERE guild_id = ?", (guild_id,)).fetchall()
+
+        return [dict(r) for r in rows]
 
     def add_weather_sub(self, sub: Dict[str, Any]) -> int:
         cur = self.db.cursor()

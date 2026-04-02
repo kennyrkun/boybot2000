@@ -75,6 +75,15 @@ class Radio(commands.Cog):
     def cog_unload(self):
         return
 
+    def check_cog_enabled(self, guildId: int):
+        return type(self).__name__ in self.bot.store.get_enabled_extensions(guildId)
+
+    def cog_check(self, ctx):
+        return self.check_cog_enabled(ctx.guild.id)
+
+    def interaction_check(self, inter):
+        return self.check_cog_enabled(inter.guild.id)
+
     async def killSubprocesses():
         global subprocesses
 

@@ -18,28 +18,38 @@ class Yappers(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        # Try to discover the Store from bot or import-time fallback
-        self.store = getattr(bot, "store", None)
-
         self.topYappers = {}
         
-        if self.store is None:
-            log.error("Storage backend not available.")
-
     def cog_unload(self):
         return
+
+    def check_cog_enabled(self, guildId: int):
+        return type(self).__name__ in self.bot.store.get_enabled_extensions(guildId)
+
+    def cog_check(self, ctx):
+        return self.check_cog_enabled(ctx.guild.id)
+
+    def interaction_check(self, inter):
+        return self.check_cog_enabled(inter.guild.id)
 
     # -------- Event listeners -------
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.guild is None:
+            return
+
+        if not self.check_cog_enabled(message.guild.id):
+            return
+
+        # TODO: this may not be required since we're using discord.Bot
         if message.author.id == self.bot.user.id:
             return
 
-        if message.guild is None or message.guild.id not in self.store.list_yap_subs():
+        if message.guild.id not in self.bot.store.list_yap_subs():
             return
 
-        newTopYappers = self.store.increment_yaps(message.author.id, message.guild.id)
+        newTopYappers = self.bot.store.increment_yaps(message.author.id, message.guild.id)
 
         if message.guild.id in self.topYappers:
             # use the length of old top yappers because the new list could be longer
@@ -48,7 +58,7 @@ class Yappers(commands.Cog):
                     await message.reply(
                         content = 
                         f"uwu!! {message.author.display_name} is the server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages! yap yap yap!\n" +
-                        "-# This message will self-destruct in <t:{int((datetime.now() + timedelta(minutes=1)).timestamp())}:R>",
+                        f"-# This message will self-destruct in <t:{int((datetime.now() + timedelta(minutes=1)).timestamp())}:R>",
                         delete_after = 60
                     )
                     break
@@ -60,13 +70,10 @@ class Yappers(commands.Cog):
     @app_commands.command(name = "yap_subscribe", description = "Subscribe this guild to top yapper announcements.")
     @commands.has_permissions(administrator = True)
     async def yap_subscribe(self, inter: discord.Interaction):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
-        
         await inter.response.defer(ephemeral = True)
 
         try:
-            self.store.add_yap_sub(inter.guild.id)
+            self.bot.store.add_yap_sub(inter.guild.id)
             await inter.followup.send(f":white_check_mark: Subscribed this server to top yapper annoucements.", ephemeral = True)
         except IntegrityError:
             await inter.followup.send(f"This server is already subscribed to top yapper annoucements!", ephemeral = True)
@@ -76,12 +83,9 @@ class Yappers(commands.Cog):
     @app_commands.command(name = "yap_unsubscribe", description = "Unsubscribe the current guild from top yapper annoucements.")
     @commands.has_permissions(administrator = True)
     async def yap_unsubscribe(self, inter: discord.Interaction):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
-
         await inter.response.defer(ephemeral = True)
 
-        ok = self.store.remove_yap_sub(inter.guild.id)
+        ok = self.bot.store.remove_yap_sub(inter.guild.id)
 
         await inter.followup.send(f":white_check_mark: This server has been unsubscribed from top yapper announcements." if ok else f"Failed to cancel top yapper subscription for this server.", ephemeral = True)
 
@@ -89,11 +93,11 @@ class Yappers(commands.Cog):
     async def top_yappers(self, inter: discord.Interaction):
         await inter.response.defer()
 
-        if inter.guild is None or inter.guild.id not in self.store.list_yap_subs():
+        if inter.guild is None or inter.guild.id not in self.bot.store.list_yap_subs():
             await inter.followup.send("This server is not subscribed to top yapper announcements.", ephemeral = True)
             return
 
-        topYappers = self.store.get_top_yappers(inter.guild.id)
+        topYappers = self.bot.store.get_top_yappers(inter.guild.id)
 
         if len(topYappers) < 1:
             await inter.followup.send("This server does not have any yappers yet!")

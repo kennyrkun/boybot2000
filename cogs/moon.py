@@ -74,16 +74,19 @@ class Moon(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        # Try to discover the Store from bot or import-time fallback
-        self.store = getattr(bot, "store", None)
-        
-        if self.store is None:
-            log.error("Storage backend not available.")
-
         self.moon_scheduler.start()
 
     def cog_unload(self):
         self.moon_scheduler.cancel()
+
+    def check_cog_enabled(self, guildId: int):
+        return type(self).__name__ in self.bot.store.get_enabled_extensions(guildId)
+
+    def cog_check(self, ctx):
+        return self.check_cog_enabled(ctx.guild.id)
+
+    def interaction_check(self, inter):
+        return self.check_cog_enabled(inter.guild.id)
 
     # -------- Slash Commands --------
 
@@ -107,9 +110,6 @@ class Moon(commands.Cog):
         cadence: app_commands.Choice[str],
         weekly_days: Optional[app_commands.Range[int, 3, 10]] = 7
     ):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
-        
         await inter.response.defer(ephemeral = True)
 
         try:
@@ -126,7 +126,7 @@ class Moon(commands.Cog):
                 "next_run": first.isoformat(),
             }
 
-            sid = self.store.add_moon_sub(sub)
+            sid = self.bot.store.add_moon_sub(sub)
 
             await inter.followup.send(
                 f":white_check_mark: Subscribed <#{sub['channel_id']}> to {cadence.value} moon phase announcements at **{first.strftime('%I:%M %p')}**.\n"
@@ -140,24 +140,18 @@ class Moon(commands.Cog):
     @app_commands.command(name="moon_unsubscribe", description="Unsubscribe from moon phase announcements for the current channel.")
     @commands.has_permissions(administrator = True)
     async def moon_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
-
         await inter.response.defer(ephemeral = True)
 
-        ok = self.store.remove_moon_sub(subscription_id, requester_id=inter.channel_id)
+        ok = self.bot.store.remove_moon_sub(subscription_id, requester_id=inter.channel_id)
 
         await inter.followup.send(f":white_check_mark: Moon phase announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral = True)
 
     @app_commands.command(name="moon_subscriptions", description="List your moon phase announcement subscriptions and next send time.")
     @commands.has_permissions(administrator = True)
     async def moon_subscriptions(self, inter: discord.Interaction):
-        if self.store is None:
-            return await inter.response.send_message("Storage backend not available.", ephemeral = True)
-
         await inter.response.defer(ephemeral = True)
 
-        items = self.store.list_moon_subs(inter.channel_id)
+        items = self.bot.store.list_moon_subs(inter.channel_id)
 
         if not items:
             return await inter.followup.send("There are no moon subscriptions.", ephemeral = True)
@@ -187,7 +181,7 @@ class Moon(commands.Cog):
             if needs:
                 first = _next_run(now, hh, mi, cadence)
                 nxt = first
-                self.store.update_moon_sub(s["id"], channel_id=int(s["channel_id"]), next_run=nxt.isoformat())
+                self.bot.store.update_moon_sub(s["id"], channel_id=int(s["channel_id"]), next_run=nxt.isoformat())
 
             out_lines.append(
                 f"#{s['id']} in <#{s['channel_id']}> {cadence} at {hh:02d}:{mi:02d} - next: {nxt.strftime('%m-%d-%Y %H:%M %Z')}"
@@ -198,12 +192,9 @@ class Moon(commands.Cog):
     # -------- Schedulers --------
     @tasks.loop(seconds=60)
     async def moon_scheduler(self):
-        if self.store is None:
-            return
-        
         try:
             now = datetime.utcnow()
-            subs = self.store.list_moon_subs(None)
+            subs = self.bot.store.list_moon_subs(None)
 
             if not subs:
                 return
@@ -229,6 +220,10 @@ class Moon(commands.Cog):
                                 embs.append(_get_moon_embed(now + timedelta(days = x)))
 
                         channel = await self.bot.fetch_channel(s["channel_id"])
+
+                        if not self.check_cog_enabled(channel.guild.id):
+                            continue
+
                         await channel.send(embeds = embs)
 
                         next = datetime.utcnow()
@@ -237,10 +232,10 @@ class Moon(commands.Cog):
                         if next <= datetime.utcnow():
                             next += timedelta(days = interval)
 
-                        self.store.update_moon_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
+                        self.bot.store.update_moon_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
                     except Exception as e:
                         fallback = now + timedelta(minutes = 5)
-                        self.store.update_moon_sub(s["id"], next_run = fallback.isoformat())
+                        self.bot.store.update_moon_sub(s["id"], next_run = fallback.isoformat())
                         await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Moon error: {e}\n{traceback.format_exc()}")
 
         except Exception as e:
