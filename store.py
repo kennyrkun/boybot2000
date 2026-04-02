@@ -71,6 +71,7 @@ class Store:
         )
 
         cur.execute("CREATE TABLE IF NOT EXISTS yap_subs (guild_id INTEGER PRIMARY KEY UNIQUE)")
+        cur.execute("DROP TABLE yappers")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS yappers (
@@ -80,7 +81,7 @@ class Store:
             )
             """
         )
-        cur.execute("CREATE UNIQUE INDEX userid_and_guildid ON yappers (user_id, guild_id)")
+        cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS userid_and_guildid ON yappers (user_id, guild_id)")
 
         cur.execute(
             """
