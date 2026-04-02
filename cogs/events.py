@@ -118,6 +118,7 @@ class Events(commands.Cog):
 
             string = " and ".join(strings).capitalize() + "!"
 
+            # delete after 86400 does not seem to work
             await channel.send(content = string, embeds = embeds, delete_after = 86400)
         else:
             await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
