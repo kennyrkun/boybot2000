@@ -95,7 +95,7 @@ class Yappers(commands.Cog):
         for yapper in topYappers:
             string += f"<@{yapper['user_id']}>: {yapper['message_count']}\n"
 
-        string += topYappers
+        string += str(topYappers)
 
         await inter.followup.send(content = string, ephemeral = True)
 
