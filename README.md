@@ -29,3 +29,10 @@ Replies with the current moon state.
 ## moon_subscribe
 ## moon_unsubscribe
 ## moon_subscriptions
+
+## yap_subscribe
+Subscribes the guild to yapper announcements. The Yappers cog tracks how many messages each user sends in a particular guild. Messages are not tracked unless the guild has a yapper subscription. When a user surpasses another user's message count, a message is sent in the same channel. The message is deleted after 1 minute.
+## yap_unsubscribe
+Unsubscribes the guild to yapper announcements.
+## top_yappers
+Displays top 5 yappers.
