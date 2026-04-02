@@ -286,9 +286,9 @@ class Store:
         self.db.commit()
         return int(cur.lastrowid)
 
-    def list_yap_subs(self) -> List[Dict[str, Any]]:
+    def list_yap_subs(self) -> List[str]:
         rows = self.db.execute("SELECT * FROM yap_subs").fetchall()
-        return [dict(r) for r in rows]
+        return [r[0] for r in rows]
 
     def remove_yap_sub(self, guild_id: int) -> bool:
         cur = self.db.cursor()
