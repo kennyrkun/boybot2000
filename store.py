@@ -308,7 +308,7 @@ class Store:
                 ?,
                 1
             )
-            ON CONFLICT(userid_and_guildid) DO UPDATE SET message_count = message_count + 1
+            ON CONFLICT DO UPDATE SET message_count = message_count + 1
         ;""", (user_id, guild_id, user_id, guild_id))
         self.db.commit()
 
