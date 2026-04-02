@@ -92,7 +92,7 @@ class Yappers(commands.Cog):
 
         string = "**Top yappers:**\n"
 
-        for yapper in topYappers(inter.guild.id):
+        for yapper in topYappers:
             string += f"<@{yapper['user_id']}>: {yapper['message_count']}\n"
 
         string += topYappers
