@@ -47,7 +47,7 @@ class Yappers(commands.Cog):
                 if self.topYappers[message.guild.id][x]["user_id"] != newTopYappers[x]["user_id"]:
                     await message.reply(
                         content = f"""
-                        uwu!! {message.author.display_name} has displaced <@{self.topYappers[message.guild.id][x]['user_id']}> as this server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages! that's so awesome!!!\n
+                        uwu!! {message.author.display_name} is the server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages! yap yap yap!\n
                         -# This message will self-destruct in <t:{(datetime.now() + timedelta(minutes=1)).timestamp()}:R>
                         """, 
                         delete_after = 60
