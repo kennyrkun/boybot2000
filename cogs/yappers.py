@@ -48,7 +48,7 @@ class Yappers(commands.Cog):
                     await message.reply(
                         content = 
                         f"uwu!! {message.author.display_name} is the server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages! yap yap yap!\n" +
-                        "-# This message will self-destruct in <t:{int((datetime.now() + timedelta(minutes=1)).timestamp())}:R>",
+                        f"-# This message will self-destruct in <t:{int((datetime.now() + timedelta(minutes=1)).timestamp())}:R>",
                         delete_after = 60
                     )
                     break
