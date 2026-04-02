@@ -42,9 +42,9 @@ class Boytoy(commands.Cog):
                 await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
         elif self.regex.search(messageText):
-            if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome" ]):
+            if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome", "yay", "best", "nice" ]):
                 await message.add_reaction("<:boykisser_pat:1488616985502810336>")
-            elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly" ]):
+            elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly", "ass" ]):
                 await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
                 await message.add_reaction("<:boykisser_what:1483293684899381248>")
