@@ -61,7 +61,7 @@ class Yappers(commands.Cog):
             self.store.add_yap_sub(inter.guild.id)
             await inter.followup.send(f":white_check_mark: Subscribed this server to top yapper annoucements.", ephemeral = True)
         except IntegrityError:
-            await inter.followup.send(f"This guild is already subscribed to top yapper annoucements!", ephemeral = True)
+            await inter.followup.send(f"This server is already subscribed to top yapper annoucements!", ephemeral = True)
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
 
@@ -74,14 +74,14 @@ class Yappers(commands.Cog):
 
         ok = self.store.remove_yap_sub(inter.guild.id)
 
-        await inter.followup.send(f":white_check_mark: This server has been subscribed to top yapper announcements." if ok else f"Failed to cancel top yapper subscription for this server.", ephemeral = True)
+        await inter.followup.send(f":white_check_mark: This server has been unsubscribed from top yapper announcements." if ok else f"Failed to cancel top yapper subscription for this server.", ephemeral = True)
 
     @app_commands.command(name = "top_yappers", description = "List the top yappers in this server.")
     async def top_yappers(self, inter: discord.Interaction):
         await inter.response.defer()
 
         if inter.guild is None or inter.guild.id not in self.store.list_yap_subs():
-            await inter.followup.send("This guild is not subscribed to top yapper announcements.", ephemeral = True)
+            await inter.followup.send("This server is not subscribed to top yapper announcements.", ephemeral = True)
             return
 
         topYappers = self.store.get_top_yappers(inter.guild.id)
