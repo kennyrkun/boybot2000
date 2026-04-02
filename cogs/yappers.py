@@ -33,6 +33,9 @@ class Yappers(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.author.id == self.bot.user.id:
+            return
+
         if message.guild is None or message.guild.id not in self.store.list_yap_subs():
             return
 
