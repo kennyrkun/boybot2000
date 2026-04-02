@@ -59,7 +59,7 @@ class Yappers(commands.Cog):
 
     @app_commands.command(name = "yap_subscribe", description = "Subscribe this guild to top yapper announcements.")
     @commands.has_permissions(administrator = True)
-    async def yap_subscribe(self, inter: discord.Interaction,):
+    async def yap_subscribe(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
         
