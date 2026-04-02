@@ -65,7 +65,7 @@ class Yappers(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
 
-    @app_commands.command(name="yap_unsubscribe", description = "Unsubscribe the current guild from top yapper annoucements.")
+    @app_commands.command(name = "yap_unsubscribe", description = "Unsubscribe the current guild from top yapper annoucements.")
     async def yap_unsubscribe(self, inter: discord.Interaction):
         if self.store is None:
             return await inter.response.send_message("Storage backend not available.", ephemeral = True)
@@ -82,6 +82,12 @@ class Yappers(commands.Cog):
 
         if inter.guild is None or inter.guild.id not in self.store.list_yap_subs():
             await inter.followup.send("This guild is not subscribed to top yapper announcements.", ephemeral = True)
+            return
+
+        topYappers = self.store.get_top_yappers(inter.guild.id)
+
+        if len(topYappers) < 1:
+            await inter.followup.send("This server does not have any yappers yet!")
             return
 
         string = "**Top yappers:**\n"
