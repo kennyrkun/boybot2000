@@ -80,6 +80,10 @@ class Yappers(commands.Cog):
     async def top_yappers(self, inter: discord.Interaction):
         await inter.response.defer()
 
+        if inter.guild is None or inter.guild.id not in self.store.list_yap_subs():
+            await inter.followup.send("This guild is not subscribed to top yapper announcements.", ephemeral = True)
+            return
+
         string = "**Top yappers:**\n"
 
         for yapper in self.store.get_top_yappers(inter.guild.id):
