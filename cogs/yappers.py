@@ -46,10 +46,9 @@ class Yappers(commands.Cog):
             for x in range(0, len(self.topYappers[message.guild.id]) - 1):
                 if self.topYappers[message.guild.id][x]["user_id"] != newTopYappers[x]["user_id"]:
                     await message.reply(
-                        content = f"""
-                        uwu!! {message.author.display_name} is the server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages! yap yap yap!\n
-                        -# This message will self-destruct in <t:{(datetime.now() + timedelta(minutes=1)).timestamp()}:R>
-                        """, 
+                        content = 
+                        f"uwu!! {message.author.display_name} is the server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages! yap yap yap!\n" +
+                        "-# This message will self-destruct in <t:{int((datetime.now() + timedelta(minutes=1)).timestamp())}:R>",
                         delete_after = 60
                     )
                     break
