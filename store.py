@@ -81,7 +81,7 @@ class Store:
             )
             """
         )
-        cur.execute("CREATE UNIQUE CLUSTERED INDEX userid_and_guildid ON yappers (user_id, guild_id)")
+        cur.execute("CREATE UNIQUE INDEX userid_and_guildid ON yappers (user_id, guild_id)")
 
         cur.execute(
             """
