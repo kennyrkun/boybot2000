@@ -309,7 +309,7 @@ class Store:
                 1
             )
             ON CONFLICT DO UPDATE SET message_count = message_count + 1
-        ;""", (user_id, guild_id, user_id, guild_id))
+        ;""", (user_id, guild_id))
         self.db.commit()
 
         rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id,)).fetchall()
