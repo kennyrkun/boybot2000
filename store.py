@@ -71,6 +71,7 @@ class Store:
         )
 
         cur.execute("CREATE TABLE IF NOT EXISTS yap_subs (guild_id INTEGER PRIMARY KEY UNIQUE)")
+        cur.execute("DROP TABLE yappers")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS yappers (
@@ -80,6 +81,7 @@ class Store:
             )
             """
         )
+        cur.execute("CREATE UNIQUE CLUSTERED INDEX userid_and_guildid ON yappers (user_id, guild_id)")
 
         cur.execute(
             """
@@ -298,14 +300,15 @@ class Store:
 
     def increment_yaps(self, user_id: int, guild_id: int) -> List[Dict[str, Any]]:
         self.db.execute("""
-        INSERT OR REPLACE INTO yappers 
+        INSERT INTO yappers 
             (user_id, guild_id, message_count) 
             VALUES
             (
                 ?,
                 ?,
-                IFNULL((SELECT message_count FROM yappers WHERE user_id = ? AND guild_id = ?), 0) + 1
+                1
             )
+            ON CONFLICT(userid_and_guildid) DO UPDATE SET message_count = message_count + 1
         ;""", (user_id, guild_id, user_id, guild_id))
         self.db.commit()
 
