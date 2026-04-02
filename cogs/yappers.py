@@ -45,7 +45,7 @@ class Yappers(commands.Cog):
             # use the length of old top yappers because the new list could be longer
             for x in range(0, len(self.topYappers[message.guild.id]) - 1):
                 if self.topYappers[message.guild.id][x]["user_id"] != newTopYappers[x]["user_id"]:
-                    await message.reply(content = f"<@{message.author.id}> has dethroned <@{self.topYappers[message.guild.id][x]['user_id']}> as this server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages!")
+                    await message.reply(content = f"You have dethroned <@{self.topYappers[message.guild.id][x]['user_id']}> as this server's new #{x + 1} top yapper with {newTopYappers[x]['message_count']} messages!\nThis message will disappear in <t:{datetime.now() + timedelta(minutes=1)}:R>", ephemeral = True, delete_after = 60)
                     break
 
         self.topYappers[message.guild.id] = newTopYappers
