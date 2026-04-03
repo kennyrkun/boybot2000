@@ -100,13 +100,6 @@ class Events(commands.Cog):
 
             currentEventsCount = len(eventsInInterval)
             futureEventCount = len(eventsInFuture)
-            
-            embeds = []
-
-            # create an embed for the first 10 events ordered by sooner start_time, max of 10 (discord limitation but also that's enough)
-            for x in range(0, min(len(allEvents), 9)):
-                embed = await self._create_event_embed(allEvents[x])
-                embeds.append(embed)
 
             strings = []
 
@@ -116,10 +109,15 @@ class Events(commands.Cog):
             if futureEventCount > 0:
                 strings.append(f"there {'are' if futureEventCount > 1 else 'is'} {futureEventCount} event{'s' if futureEventCount > 1 else ''} in the future")
 
-            string = " and ".join(strings).capitalize() + "!"
+            string = " and ".join(strings).capitalize() + "!\n"
+
+            urls = ""
+
+            for event in allEvents:
+                urls += event.url + "\n"
 
             # delete after 86400 does not seem to work
-            await channel.send(content = string, embeds = embeds, delete_after = 86400)
+            await channel.send(content = string + urls, delete_after = 86400)
         else:
             await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
 
@@ -142,9 +140,7 @@ class Events(commands.Cog):
             if s["guild_id"] == event.guild.id:
                 if s["channel_id"] not in sent_channels:
                     channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                    e = await self._create_event_embed(event)
-                    await channel.send(content = "A new event has been created!", embed = e)
-                    sent_channels.append(s["channel_id"])
+                    await channel.send(content = f"[new event just dropped uwu :333]({event.url})")
 
     @commands.Cog.listener()
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
