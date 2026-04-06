@@ -115,7 +115,7 @@ class Events(commands.Cog):
             urls = ""
 
             for event in allEvents:
-                urls += event.url + "\n"
+                urls += f"[{event.name}]({event.url})\n"
 
             # delete after 86400 does not seem to work
             await channel.send(content = string + urls, delete_after = 86400)
