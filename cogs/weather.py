@@ -636,7 +636,7 @@ class Weather(commands.Cog):
             if not subs:
                 return
 
-            async with aiohttp.ClientSession(headers=HTTP_HEADERS) as session:
+            async with aiohttp.ClientSession(headers = HTTP_HEADERS) as session:
 
                 for s in subs:
                     due = datetime.fromisoformat(s["next_run_utc"]).replace(tzinfo=timezone.utc)
@@ -649,7 +649,7 @@ class Weather(commands.Cog):
                             units = (s.get("units") or "").strip().lower()
 
                             if s["cadence"] == "daily":
-                                outlook = await _fetch_outlook(session, lat, lon, days=2, tz_name=tz_name, units=units)
+                                outlook = await _fetch_outlook(session, lat, lon, days = 1, tz_name = tz_name, units = units)
                                 first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
                                 first_hi_f = None
 
@@ -659,21 +659,24 @@ class Weather(commands.Cog):
                                     except Exception:
                                         first_hi_f = None
 
-                                emb = discord.Embed(
-                                    title=f"\U0001F324\ufe0f Daily Outlook — {city}, {state} {s['zip']}",
-                                    colour=wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
-                                )
-
                                 for (d, line, sunrise, sunset, uv, _hi) in outlook:
                                     extras = []
                                     if sunrise: extras.append(f"\U0001F305 {fmt_sun(sunrise)}")
                                     if sunset: extras.append(f"\U0001F307 {fmt_sun(sunset)}")
                                     if uv is not None: extras.append(f"\U0001F506 UV {round(uv,1)}")
-                                    value = "\n".join([line, " - ".join(extras)]) if extras else line
-                                    log.debug(outlook)
-                                    emb.add_field(name=d, value=value, inline=False)
+                                    value = "\n".join([line, "\n".join(extras)]) if extras else line
 
-                                await channel.send(embed=emb)
+                                    emb = discord.Embed(
+                                        title = f"\U0001F324\ufe0f Daily Outlook — {d}",
+                                        colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70),
+                                        description = value
+                                    )
+
+                                    emb.set_footer(f"{city}, {state} {s['zip']}")
+
+                                    await channel.send(embed=emb)
+
+                                    break
 
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
