@@ -388,7 +388,7 @@ class Weather(commands.Cog):
             m_name, m_emoji, m_age = moon_phase_info_for_date(datetime.utcnow())
             emb.add_field(name="Moon", value=f"{m_emoji} {m_name} ({m_age}d)", inline=True)
 
-            emb.set_footer(text=f"Units: {units} • Timezone: {tz_name}")
+            emb.set_footer(text = f"Units: {units} • Timezone: {tz_name}")
             await inter.followup.send(embed=emb)
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f Weather error: {e}\n{traceback.format_exc()}", ephemeral=True)
@@ -672,7 +672,7 @@ class Weather(commands.Cog):
                                         description = value
                                     )
 
-                                    emb.set_footer(f"{city}, {state} {s['zip']}")
+                                    emb.set_footer(text = f"{city}, {state} {s['zip']}")
 
                                     await channel.send(embed=emb)
 
