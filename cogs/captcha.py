@@ -90,7 +90,7 @@ class Captcha(commands.Cog):
     # --------- Text Commands --------
 
     @commands.command()
-    async def dialogtest(ctx: commands.Context[commands.Bot]) -> None:
+    async def dialogtest(self, ctx: commands.Context[commands.Bot]) -> None:
         view.message = await ctx.send(UserJoinChallengeView(ctx.author))
 
     # -------- Schedulers --------
