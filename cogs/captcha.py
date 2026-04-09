@@ -12,6 +12,55 @@ from discord import app_commands
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("captcha")
 
+class UserJoinChallengeView(discord.ui.LayoutView):
+    count = 0
+    message: discord.Message | None = None
+    container = discord.ui.Container["MyLayoutView"](
+        discord.ui.Section(
+            "## OKC Community Verification",
+            "Click the button that says ",
+            accessory=discord.ui.Thumbnail["MyLayoutView"]("https://i.imgur.com/9sDnoUW.jpeg"),
+        ),
+        accent_color=discord.Color.blurple(),
+    )
+    row: discord.ui.ActionRow[MyLayoutView] = discord.ui.ActionRow()
+
+    def __init__(self, user: discord.User | discord.Member, timeout: float = 60.0) -> None:
+        super().__init__(timeout=timeout)
+        self.user = user
+
+    # this method should return True if all checks pass, else False is returned
+    async def interaction_check(self, interaction: discord.Interaction[discord.Client]) -> bool:
+        if interaction.user == self.user:
+            return True
+        
+        await interaction.response.send_message(f"The command was initiated by {self.user.mention}", ephemeral=True)
+        return False
+
+    # this method is called when the period mentioned in timeout kwarg passes.
+    async def on_timeout(self) -> None:
+        for child in self.walk_children():
+            if isinstance(child, discord.ui.Button):
+                child.disabled = True
+
+        if self.message:
+            await self.message.edit(view=self)
+
+    # adding a component using its decorator
+    @row.button(label="0", style=discord.ButtonStyle.green)
+    async def counter(self, inter: discord.Interaction, button: discord.ui.Button[MyLayoutView]) -> None:
+        self.count += 1
+        button.label = str(self.count)
+        await inter.response.edit_message(view=self)
+
+    # error handler for the view
+    async def on_error(
+        self, interaction: discord.Interaction[discord.Client], error: Exception, item: discord.ui.Item[typing.Any]
+    ) -> None:
+        tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+        message = f"An error occurred while processing the interaction for {str(item)}:\n```py\n{tb}\n```"
+        await interaction.response.send_message(message)
+
 class Captcha(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -27,12 +76,19 @@ class Captcha(commands.Cog):
     def cog_unload(self):
         self.captcha_scheduler.cancel()
 
-    # -------- Event handlers -------
+    # -------- Event handlers --------
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         if self.store is None:
             return
+
+    # --------- Text Commands --------
+
+    @bot.command()
+    async def dialogtest(ctx: commands.Context[commands.Bot]) -> None:
+        view = UserJoinChallengeView(ctx.author)
+        view.message = await ctx.send(view = view)
 
     # -------- Schedulers --------
 
