@@ -47,6 +47,12 @@ class Events(commands.Cog):
 
         return True
 
+    def interaction_check(self, inter):
+        if inter.guild.id in self.bot.store.get_enabled_cogs(inter.guild.id):
+            return False
+
+        return True
+
     # -------- Helper functions ---------
 
     async def _create_event_embed(self, event: discord.ScheduledEvent):

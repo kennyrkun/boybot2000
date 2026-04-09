@@ -293,6 +293,12 @@ class Weather(commands.Cog):
 
         return True
 
+    def interaction_check(self, inter):
+        if inter.guild.id in self.bot.store.get_enabled_cogs(inter.guild.id):
+            return False
+
+        return True
+
     # -------- Slash Commands --------
 
     @app_commands.command(name = "weather_current", description = "Current weather by ZIP.")

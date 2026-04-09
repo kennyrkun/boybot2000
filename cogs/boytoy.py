@@ -34,6 +34,12 @@ class Boytoy(commands.Cog):
 
         return True
 
+    def interaction_check(self, inter):
+        if inter.guild.id in self.bot.store.get_enabled_cogs(inter.guild.id):
+            return False
+
+        return True
+
     # -------- Event listeners -------
 
     @commands.Cog.listener()
