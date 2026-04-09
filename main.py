@@ -20,7 +20,6 @@ intents.message_content = True
 intents.guild_scheduled_events = True
 intents.guilds = True
 intents.members = True
-intents.Reactions = True
 
 class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:
