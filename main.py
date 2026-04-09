@@ -46,7 +46,7 @@ class boybot2000(commands.Bot):
         app_commands.Choice(name="enable", value=1),
         app_commands.Choice(name="disable", value=0),
     ])
-    async def cogs(self, inter: discord.Interaction, option: Optional[app_commands.Choice[str]] = None,  cogName: Optional[str] = None) -> None:
+    async def cogs(self, inter: discord.Interaction, option: Optional[app_commands.Choice[int]] = None,  cogName: Optional[str] = None) -> None:
         await inter.response.defer()
 
         # TODO: verify cog name
