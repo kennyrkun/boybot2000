@@ -23,10 +23,14 @@ intents.members = True
 
 class boybot2000(commands.Bot):
     async def setup_hook(self) -> None:
-        await self.load_extension("cogs.weather")
+        self.store = Store(WEATHER_DB_PATH)
+
+        await self.load_extension("cogs.boytoy")
+        await self.load_extension("cogs.captcha")
         await self.load_extension("cogs.events")
         await self.load_extension("cogs.moon")
-        await self.load_extension("cogs.boytoy")
+        #await self.load_extension("cogs.radio")
+        await self.load_extension("cogs.weather")
         await self.load_extension("cogs.yappers")
 
         try:
@@ -35,9 +39,41 @@ class boybot2000(commands.Bot):
         except Exception:
             log.exception("Failed to sync app commands.")
 
+    @app_commands.command(name = "cogs", description = "Restarts the bot")
+    @commands.has_permissions(administrator = True)
+    @app_commands.choices(option = [
+        app_commands.Choice(name="enable", value=1),
+        app_commands.Choice(name="disable", value=0),
+    ])
+    async def cogs(self, inter: discord.Interaction, option: Options[app_commands.Choice[str]] = None,  cogName: Optional[str] = None) -> None:
+        await inter.response.defer()
+
+        # TODO: verify cog name
+
+        if options is None:
+            strings = ""
+            for cogs in self.store.get_enabled_cogs(inter.guild.id):
+                strings += f"{cog}\n"
+
+            return inter.followup.send("**Enabled cogs**:\n" + strings, ephemeral = True)
+
+        if cogName is None:
+            return await inter.followup.send("Cog name is required when option is provided.")
+
+        if option:
+            if self.store.enable_cog(inter.guild.id):
+                return await inter.followup.send(f"Enabled cog {cogName} for this server.", ephemeral = True)
+            else:
+                return await inter.followup.send(f"Failed to enable cog {cogName} for this server.", ephemeral = True)
+        else:
+            if self.store.disable_cog(inter.guild.id):
+                return await inter.followup.send(f"Disabled cog {cogName} for this server.", ephemeral = True)
+            else:
+                return await inter.followup.send(f"Failed to disable cog {cogName} for this server.", ephemeral = True)
+
     @app_commands.command(name = "restart", description = "Restarts the bot")
     @commands.has_permissions(administrator = True)
-    async def restart(self, inter: discord.Interaction):
+    async def restart(self, inter: discord.Interaction) -> None:
         exit()
 
 async def main():
@@ -53,9 +89,6 @@ async def main():
             log.warning("DISCORD_APP_ID is set but not an int; ignoring.")
 
     bot = boybot2000(command_prefix = "!", **bot_kwargs)
-
-    # Attach store to bot so cogs can use it
-    bot.store = Store(WEATHER_DB_PATH)
 
     @bot.event
     async def on_ready():

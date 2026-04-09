@@ -287,6 +287,12 @@ class Weather(commands.Cog):
         self.weather_scheduler.cancel()
         self.weather_alerts_scheduler.cancel()
 
+    def cog_check(self, ctx):
+        if ctx.guild.id in self.bot.store.get_enabled_cogs(ctx.guild.id):
+            return False
+
+        return True
+
     # -------- Slash Commands --------
 
     @app_commands.command(name = "weather_current", description = "Current weather by ZIP.")

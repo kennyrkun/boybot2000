@@ -75,6 +75,12 @@ class Radio(commands.Cog):
     def cog_unload(self):
         return
 
+    def cog_check(self, ctx):
+        if ctx.guild.id in self.bot.store.get_enabled_cogs(ctx.guild.id):
+            return False
+
+        return True
+
     async def killSubprocesses():
         global subprocesses
 

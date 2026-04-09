@@ -80,6 +80,12 @@ class Captcha(commands.Cog):
     def cog_unload(self):
         self.captcha_scheduler.cancel()
 
+    def cog_check(self, ctx):
+        if ctx.guild.id in self.bot.store.get_enabled_cogs(ctx.guild.id):
+            return False
+
+        return True
+
     # -------- Event handlers --------
 
     @commands.Cog.listener()
@@ -90,8 +96,9 @@ class Captcha(commands.Cog):
     # --------- Text Commands --------
 
     @commands.command()
-    async def dialogtest(self, ctx: commands.Context[commands.Bot]) -> None:
-        view.message = await ctx.send(UserJoinChallengeView(ctx.author))
+    async def challenge(self, ctx):
+        view = UserJoinChallengeView(ctx.author)
+        view.message = await ctx.send()
 
     # -------- Schedulers --------
 

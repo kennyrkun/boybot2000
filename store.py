@@ -16,6 +16,15 @@ class Store:
 
         cur.execute(
             """
+            CREATE TABLE IF NOT EXISTS cogs_enabled (
+                guild_id INTEGER PRIMARY KEY UNIQUE,
+                cog_name INTEGER NOT NULL
+            )
+            """
+        )
+
+        cur.execute(
+            """
             CREATE TABLE IF NOT EXISTS weather_zips (
                 channel_id INTEGER PRIMARY KEY,
                 zip TEXT NOT NULL
@@ -108,6 +117,22 @@ class Store:
             (int(channel_id), str(zip_code)),
         )
         self.db.commit()
+
+    def enable_cog(self, guild_id: int, cog_name: str) -> bool:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO cogs_enabled(guild_id, cog_name) VALUES(?, ?)", (guild_id, cog_name,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def disable_cog(self, guild_id: int, cog_name: str) -> bool:
+        cur = self.db.cursor()
+        cur.execute("DELETE FROM cogs_enabled WHERE guild_id = ? AND cog_name = ?", (guild_id, cog_name,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def get_enabled_cogs(self, guild_id: int) -> List[str]:
+        rows = self.db.execute("SELECT cog_name FROM cogs_enabled WHERE guild_id = ?", (guild_id,)).fetchall()
+        return [list(r) for r in rows]
 
     def add_weather_sub(self, sub: Dict[str, Any]) -> int:
         cur = self.db.cursor()

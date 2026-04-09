@@ -41,6 +41,12 @@ class Events(commands.Cog):
     def cog_unload(self):
         self.events_scheduler.cancel()
 
+    def cog_check(self, ctx):
+        if ctx.guild.id in self.bot.store.get_enabled_cogs(ctx.guild.id):
+            return False
+
+        return True
+
     # -------- Helper functions ---------
 
     async def _create_event_embed(self, event: discord.ScheduledEvent):
