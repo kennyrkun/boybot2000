@@ -132,7 +132,7 @@ class Events(commands.Cog):
             # delete after 86400 does not seem to work
             await channel.send(content = string + urls, delete_after = 86400)
         else:
-            await channel.send("There are no events {noun} or in the future... :boykisser_sob:")
+            await channel.send(f"There are no events {noun} or in the future... :boykisser_sob:")
 
     # -------- Discord ScheduledEvent events -------
 
