@@ -16,15 +16,15 @@ log = logging.getLogger("captcha")
 class UserJoinChallengeView(discord.ui.LayoutView):
     count = 0
     message: discord.Message | None = None
-    container = discord.ui.Container["MyLayoutView"](
+    container = discord.ui.Container["UserJoinChallengeView"](
         discord.ui.Section(
             "## OKC Community Verification",
             "Click the button that says ",
-            accessory=discord.ui.Thumbnail["MyLayoutView"]("https://i.imgur.com/9sDnoUW.jpeg"),
+            accessory=discord.ui.Thumbnail["UserJoinChallengeView"]("https://i.imgur.com/9sDnoUW.jpeg"),
         ),
         accent_color=discord.Color.blurple(),
     )
-    row: discord.ui.ActionRow[MyLayoutView] = discord.ui.ActionRow()
+    row: discord.ui.ActionRow[UserJoinChallengeView] = discord.ui.ActionRow()
 
     def __init__(self, user: discord.User | discord.Member, timeout: float = 60.0) -> None:
         super().__init__(timeout=timeout)
@@ -49,7 +49,7 @@ class UserJoinChallengeView(discord.ui.LayoutView):
 
     # adding a component using its decorator
     @row.button(label="0", style=discord.ButtonStyle.green)
-    async def counter(self, inter: discord.Interaction, button: discord.ui.Button[MyLayoutView]) -> None:
+    async def counter(self, inter: discord.Interaction, button: discord.ui.Button[UserJoinChallengeView]) -> None:
         self.count += 1
         button.label = str(self.count)
         await inter.response.edit_message(view=self)
