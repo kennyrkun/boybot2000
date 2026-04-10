@@ -120,7 +120,7 @@ class Events(commands.Cog):
                 strings.append(f"there {'are' if (currentEventsCount > 1) else 'is'} {currentEventsCount} event{'s' if currentEventsCount > 1 else ''} {noun}")
 
             if futureEventCount > 0:
-                strings.append(f"there {'are' if futureEventCount > 1 else 'is'} {futureEventCount} event{'s' if futureEventCount > 1 else ''} in the future")
+                strings.append(f"there {'are' if futureEventCount > 1 else 'is'} {futureEventCount} event{'s' if futureEventCount > 1 else ''} in the near future")
 
             string = " and ".join(strings).capitalize() + "!\n"
 
@@ -132,7 +132,7 @@ class Events(commands.Cog):
             # delete after 86400 does not seem to work
             await channel.send(content = string + urls, delete_after = 86400)
         else:
-            await channel.send(f"There are no events {noun} or in the future... :boykisser_sob:")
+            await channel.send(f"There are no events {noun} or in the near future... :boykisser_sob:")
 
     # -------- Discord ScheduledEvent events -------
 
