@@ -10,59 +10,29 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
-__all__: tuple[str, ...] = ("UserJoinChallengeView",)
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("captcha")
 
-class UserJoinChallengeView(discord.ui.LayoutView):
-    count = 0
-    message: discord.Message | None = None
-    container = discord.ui.Container["UserJoinChallengeView"](
-        discord.ui.Section(
-            "## OKC Community Verification",
-            "Click the button that says ",
-            accessory=discord.ui.Thumbnail["UserJoinChallengeView"]("https://i.imgur.com/9sDnoUW.jpeg"),
-        ),
-        accent_color=discord.Color.blurple(),
-    )
-    row: discord.ui.ActionRow[UserJoinChallengeView] = discord.ui.ActionRow()
+class Confirm(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        self.value = None
 
-    def __init__(self, user: discord.User | discord.Member, timeout: float = 60.0) -> None:
-        super().__init__(timeout=timeout)
-        self.user = user
+    # When the confirm button is pressed, set the inner value to `True` and
+    # stop the View from listening to more input.
+    # We also send the user an ephemeral message that we're confirming their choice.
+    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message('Confirming', ephemeral=True)
+        self.value = True
+        self.stop()
 
-    # this method should return True if all checks pass, else False is returned
-    async def interaction_check(self, interaction: discord.Interaction[discord.Client]) -> bool:
-        if interaction.user == self.user:
-            return True
-        
-        await interaction.response.send_message(f"The command was initiated by {self.user.mention}", ephemeral=True)
-        return False
-
-    # this method is called when the period mentioned in timeout kwarg passes.
-    async def on_timeout(self) -> None:
-        for child in self.walk_children():
-            if isinstance(child, discord.ui.Button):
-                child.disabled = True
-
-        if self.message:
-            await self.message.edit(view=self)
-
-    # adding a component using its decorator
-    @row.button(label="0", style=discord.ButtonStyle.green)
-    async def counter(self, inter: discord.Interaction, button: discord.ui.Button[UserJoinChallengeView]) -> None:
-        self.count += 1
-        button.label = str(self.count)
-        await inter.response.edit_message(view=self)
-
-    # error handler for the view
-    async def on_error(
-        self, interaction: discord.Interaction[discord.Client], error: Exception, item: discord.ui.Item[typing.Any]
-    ) -> None:
-        tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-        message = f"An error occurred while processing the interaction for {str(item)}:\n```py\n{tb}\n```"
-        await interaction.response.send_message(message)
+    # This one is similar to the confirmation button except sets the inner value to `False`
+    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message('Cancelling', ephemeral=True)
+        self.value = False
+        self.stop()
 
 class Captcha(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -101,9 +71,18 @@ class Captcha(commands.Cog):
     # --------- Text Commands --------
 
     @commands.command()
-    async def challenge(self, ctx):
-        view = UserJoinChallengeView(ctx.author)
-        view.message = await ctx.send()
+    async def challenge(self, ctx: commands.Context):
+        # We create the view and assign it to a variable so we can wait for it later.
+        view = Confirm()
+        await ctx.send('Do you want to continue?', view=view)
+        # Wait for the View to stop listening for input...
+        await view.wait()
+        if view.value is None:
+            print('Timed out...')
+        elif view.value:
+            print('Confirmed...')
+        else:
+            print('Cancelled...')
 
     # -------- Schedulers --------
 
