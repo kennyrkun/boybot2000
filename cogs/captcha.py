@@ -10,7 +10,9 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
-logging.basicConfig(level = logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+__all__: tuple[str, ...] = ("UserJoinChallengeView",)
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("captcha")
 
 class UserJoinChallengeView(discord.ui.LayoutView):
