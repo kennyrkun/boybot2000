@@ -24,7 +24,7 @@ intents.members = True
 
 class boybot2000(commands.Bot):
     async def on_ready(self):
-        log.info("Logged in as %s (%s)", bot.user, bot.user.id)
+        log.info("Logged in as %s (%s)", self.user, self.user.id)
 
     async def setup_hook(self) -> None:
         self.store = Store(DB_PATH)
