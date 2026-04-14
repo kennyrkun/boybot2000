@@ -51,9 +51,14 @@ class Boytoy(commands.Cog):
 
         if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             if message.reference.resolved.author.id == self.bot.user.id:
+                async with message.channel.typing():
+                    await asyncio.sleep(random.randint(0, 5))
+
                 await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
         elif self.regex.search(messageText):
+            await asyncio.sleep(random.randint(0, 5))
+
             if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome", "yay", "best", "nice" ]):
                 await message.add_reaction("<:boykisser_pat:1488616985502810336>")
             elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly", "ass" ]):
@@ -63,6 +68,9 @@ class Boytoy(commands.Cog):
         
         # TODO: had to remove "boy" from this because it would reply to boykisser emotes
         elif any(x in messageText for x in [ "boys" ]):
+            async with message.channel.typing():
+                await asyncio.sleep(random.randint(0, 5))
+
             await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
 
 async def setup(bot: commands.Bot):

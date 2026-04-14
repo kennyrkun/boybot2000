@@ -11,7 +11,7 @@ from store import Store
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 APP_ID = os.getenv("DISCORD_APP_ID") # optional
-WEATHER_DB_PATH = os.getenv("WEATHER_DB_PATH") or "data/weather.sqlite3"
+DB_PATH = os.getenv("WEATHER_DB_PATH") or "data/weather.sqlite3"
 
 logging.basicConfig(level = logging.INFO, format = "%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("boybot2000")
@@ -23,8 +23,11 @@ intents.guilds = True
 intents.members = True
 
 class boybot2000(commands.Bot):
+    async def on_ready():
+        log.info("Logged in as %s (%s)", bot.user, bot.user.id)
+
     async def setup_hook(self) -> None:
-        self.store = Store(WEATHER_DB_PATH)
+        self.store = Store(DB_PATH)
 
         await self.load_extension("cogs.boytoy")
         await self.load_extension("cogs.captcha")
@@ -40,11 +43,11 @@ class boybot2000(commands.Bot):
         except Exception:
             log.exception("Failed to sync app commands.")
 
-    @app_commands.command(name = "cogs", description = "Restarts the bot")
+    @bot.command(name = "cogs", description = "Restarts the bot")
     @commands.has_permissions(administrator = True)
-    @app_commands.choices(option = [
-        app_commands.Choice(name="enable", value=1),
-        app_commands.Choice(name="disable", value=0),
+    @bot.choices(option = [
+        app_commands.Choice(name = "enable", value = 1),
+        app_commands.Choice(name = "disable", value = 0),
     ])
     async def cogs(self, inter: discord.Interaction, option: Optional[app_commands.Choice[int]] = None,  cogName: Optional[str] = None) -> None:
         await inter.response.defer()
@@ -90,10 +93,6 @@ async def main():
             log.warning("DISCORD_APP_ID is set but not an int; ignoring.")
 
     bot = boybot2000(command_prefix = "!", **bot_kwargs)
-
-    @bot.event
-    async def on_ready():
-        log.info("Logged in as %s (%s)", bot.user, bot.user.id)
 
     async with bot:
         await bot.start(TOKEN)

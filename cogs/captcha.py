@@ -10,7 +10,7 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.basicConfig(level = logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("captcha")
 
 class Confirm(discord.ui.View):

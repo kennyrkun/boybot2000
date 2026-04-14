@@ -113,7 +113,6 @@ class Events(commands.Cog):
             currentEventsCount = len(eventsInInterval)
             futureEventCount = len(eventsInFuture)
 
-
             strings = []
 
             if currentEventsCount > 0:
