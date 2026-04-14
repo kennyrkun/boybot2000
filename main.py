@@ -43,9 +43,9 @@ class boybot2000(commands.Bot):
         except Exception:
             log.exception("Failed to sync app commands.")
 
-    @bot.command(name = "cogs", description = "Restarts the bot")
+    @app_commands.command(name = "cogs", description = "Restarts the bot")
     @commands.has_permissions(administrator = True)
-    @bot.choices(option = [
+    @app_commands.choices(option = [
         app_commands.Choice(name = "enable", value = 1),
         app_commands.Choice(name = "disable", value = 0),
     ])
