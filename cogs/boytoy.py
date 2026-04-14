@@ -78,7 +78,7 @@ class Boytoy(commands.Cog):
             return await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
 
         # sometimes, just type a little bit but don't say anything. like he changed his mind.
-        if random.randint(0, 100) < 5:
+        if random.randint(0, 1000) < 10:
             return await message.channel.typing()
 
 async def setup(bot: commands.Bot):
