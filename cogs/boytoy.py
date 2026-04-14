@@ -1,8 +1,9 @@
-import os
 import asyncio
-import traceback
 import logging
+import os
 import re
+import random
+import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -49,29 +50,36 @@ class Boytoy(commands.Cog):
 
         messageText = message.content.casefold().strip().replace(" ", "")
 
+        # waits just a little bit so that typing doesn't show up immediately.
+        await asyncio.sleep(random.randint(0, 2))
+
         if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             if message.reference.resolved.author.id == self.bot.user.id:
                 async with message.channel.typing():
-                    await asyncio.sleep(random.randint(0, 5))
+                    await asyncio.sleep(random.randint(0, 4))
 
-                await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
+                return await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
         elif self.regex.search(messageText):
-            await asyncio.sleep(random.randint(0, 5))
+            await asyncio.sleep(random.randint(0, 4))
 
             if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome", "yay", "best", "nice" ]):
-                await message.add_reaction("<:boykisser_pat:1488616985502810336>")
+                return await message.add_reaction("<:boykisser_pat:1488616985502810336>")
             elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly", "ass" ]):
-                await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
+                return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
-                await message.add_reaction("<:boykisser_what:1483293684899381248>")
+                return await message.add_reaction("<:boykisser_what:1483293684899381248>")
         
         # TODO: had to remove "boy" from this because it would reply to boykisser emotes
         elif any(x in messageText for x in [ "boys" ]):
             async with message.channel.typing():
-                await asyncio.sleep(random.randint(0, 5))
+                await asyncio.sleep(random.randint(0, 4))
 
-            await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
+            return await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
+
+        # sometimes, just type a little bit but don't say anything. like he changed his mind.
+        if random.randint(0, 100) < 5:
+            return await message.channel.typing()
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Boytoy(bot))
