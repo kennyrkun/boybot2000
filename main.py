@@ -23,7 +23,7 @@ intents.guilds = True
 intents.members = True
 
 class boybot2000(commands.Bot):
-    async def on_ready():
+    async def on_ready(self):
         log.info("Logged in as %s (%s)", bot.user, bot.user.id)
 
     async def setup_hook(self) -> None:
