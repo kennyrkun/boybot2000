@@ -19,6 +19,8 @@ class Yappers(commands.Cog):
         self.bot = bot
 
         self.topYappers = {}
+
+    group = app_commands.Group(name = "yappers", description = "Yappers cog commands.")
         
     def cog_unload(self):
         return
@@ -67,7 +69,7 @@ class Yappers(commands.Cog):
 
     # ------- Slash commands -------
 
-    @app_commands.command(name = "yap_subscribe", description = "Subscribe this guild to top yapper announcements.")
+    @group.command(name = "yap_subscribe", description = "Subscribe this guild to top yapper announcements.")
     @commands.has_permissions(administrator = True)
     async def yap_subscribe(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
@@ -80,7 +82,7 @@ class Yappers(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
 
-    @app_commands.command(name = "yap_unsubscribe", description = "Unsubscribe the current guild from top yapper annoucements.")
+    @group.command(name = "yap_unsubscribe", description = "Unsubscribe the current guild from top yapper annoucements.")
     @commands.has_permissions(administrator = True)
     async def yap_unsubscribe(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
@@ -89,7 +91,7 @@ class Yappers(commands.Cog):
 
         await inter.followup.send(f":white_check_mark: This server has been unsubscribed from top yapper announcements." if ok else f"Failed to cancel top yapper subscription for this server.", ephemeral = True)
 
-    @app_commands.command(name = "top_yappers", description = "List the top yappers in this server.")
+    @group.command(name = "top_yappers", description = "List the top yappers in this server.")
     async def top_yappers(self, inter: discord.Interaction):
         await inter.response.defer()
 
