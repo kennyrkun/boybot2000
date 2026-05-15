@@ -32,6 +32,8 @@ class Events(commands.Cog):
 
         self.events_scheduler.start()
 
+    group = app_commands.Group(name = "events", description = "Event commands.")
+
     def cog_unload(self):
         self.events_scheduler.cancel()
 
@@ -216,7 +218,11 @@ class Events(commands.Cog):
 
     # -------- Slash Commands --------
 
-    @app_commands.command(name = "events_subscribe", description = "Subscribe this channel to a daily or weekly event announcement at a UTC time.")
+    @group.command(name = "list", description = "Show a list of events in the current channel.")
+    async def events_list(self, inter: discord.Interaction):
+        await self._send_event_list(inter.channel_id, 1, "today", datetime.utcnow()) # TODO: make this ephemeral
+
+    @group.command(name = "subscribe", description = "Subscribe this channel to a daily or weekly event announcement at a UTC time.")
     @app_commands.describe(
         time = "HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
         cadence = "daily or weekly",
@@ -259,7 +265,7 @@ class Events(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
 
-    @app_commands.command(name="events_unsubscribe", description="Unsubscribe from event announcements for the current channel.")
+    @group.command(name = "unsubscribe", description = "Unsubscribe from event announcements for the current channel.")
     @commands.has_permissions(administrator = True)
     async def events_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         await inter.response.defer(ephemeral = True)
@@ -268,7 +274,7 @@ class Events(commands.Cog):
 
         await inter.followup.send(f":white_check_mark: Event announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
-    @app_commands.command(name = "events_subscriptions", description = "List your event announcement subscriptions and next send time.")
+    @group.command(name = "subscriptions", description = "List your event announcement subscriptions and next send time.")
     @commands.has_permissions(administrator = True)
     async def events_subscriptions(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
@@ -310,10 +316,6 @@ class Events(commands.Cog):
             )
 
         await inter.followup.send("\n".join(out_lines), ephemeral = True)
-
-    @app_commands.command(name = "events_list", description = "Show a list of events in the current channel.")
-    async def events_list(self, inter: discord.Interaction):
-        await self._send_event_list(inter.channel_id, 1, "today", datetime.utcnow()) # TODO: make this ephemeral
 
     # -------- Schedulers --------
     @tasks.loop(seconds = 60)
