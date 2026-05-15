@@ -72,7 +72,7 @@ class boybot2000(commands.Bot):
 					await self.load_extension(f"cogs.{file[:-3]}")
 					self.availableCogs.append(file[:-3])
 				except Exception as e:
-					error.log(f"Failed to load extension {file}: {e}.")
+					log.error(f"Failed to load extension {file}: {e}.")
 
 		self.NaturalLanguage = self.get_cog("NaturalLanguage")
 
