@@ -1,0 +1,66 @@
+import asyncio
+import logging
+import os
+import re
+import random
+import traceback
+import requests
+from datetime import datetime, timedelta, timezone
+from typing import Optional, Dict, Any, List, Tuple
+
+import discord
+from discord.ext import tasks, commands
+from discord import app_commands
+
+logging.basicConfig(level = logging.INFO, format = "%(asctime)s %(levelname)s %(name)s: %(message)s")
+log = logging.getLogger("NaturalLanguage")
+
+class NaturalLanguage(commands.Cog):
+	def __init__(self, bot: commands.Bot):
+		self.bot = bot
+
+		self.model = "gemma2:2b"
+		self.ollamaUri = "https://ollama:11434"
+
+	def cog_unload(self):
+		return
+
+	def check_cog_enabled(self, guildId: int):
+		return type(self).__name__ in self.bot.store.get_enabled_extensions(guildId)
+
+	def cog_check(self, ctx):
+		return self.check_cog_enabled(ctx.guild.id)
+
+	def interaction_check(self, inter):
+		return self.check_cog_enabled(inter.guild.id)
+
+	# -------- Helper functions -------
+
+	def prompt(self, guildId: int, prompt: str):
+		if not self.cog_check(guildId):
+			return None
+
+		if not prompt:
+			raise Exception("No prompt was provided to NaturalLanguage cog.")
+
+		request = requests.post(f"{self.ollamaUri}/api/generate", json = {
+			"model": self.model,
+			"prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. " + prompt,
+			"stream": False,
+		})
+
+		response = request.json()
+
+		if response.get("error") is not None:
+			raise Exception("Error response from model: " + response.get("error"))
+		elif response.get("response") is None:
+			raise Exception("Response from model was None.")
+
+		response = response.get("response")
+
+		response += f"\n\n-# This response was generated using {self.model}."
+
+		return response
+
+async def setup(bot: commands.Bot):
+	await bot.add_cog(NaturalLanguage(bot))
