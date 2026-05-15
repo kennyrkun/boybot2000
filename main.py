@@ -68,8 +68,11 @@ class boybot2000(commands.Bot):
 
 		for file in os.listdir("cogs"):
 			if file.endswith(".py"):
-				await self.load_extension(f"cogs.{file[:-3]}")
-				self.availableCogs.append(file[:-3])
+				try:
+					await self.load_extension(f"cogs.{file[:-3]}")
+					self.availableCogs.append(file[:-3])
+				except Exception as e:
+					error.log(f"Failed to load extension {file}: {e}.")
 
 		self.NaturalLanguage = self.get_cog("NaturalLanguage")
 
