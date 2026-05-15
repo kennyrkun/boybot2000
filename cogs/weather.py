@@ -260,6 +260,48 @@ NWS_SEV_MAP = {"minor": 0, "moderate": 1, "severe": 2, "extreme": 2}
 def _seen_key(uid: int, alert_id: str) -> str:
     return f"wx_seen:{int(uid)}:{alert_id}"
 
+async def _fetch_nws_alerts(session: aiohttp.ClientSession, lat: float, lon: float):
+    url = "https://api.weather.gov/alerts/active"
+    params = {
+        "point": f"{lat},{lon}",
+        "status": "actual",
+        "message_type":
+        "alert"
+    }
+
+    try:
+        async with session.get(url, params = params, timeout = aiohttp.ClientTimeout(total = 12), headers = HTTP_HEADERS) as r:
+            if r.status != 200:
+                return []
+
+            data = await r.json()
+    except Exception:
+        return []
+
+    feats = data.get("features", []) or []
+    out = []
+    
+    for f in feats:
+        p = f.get("properties", {}) or {}
+
+        out.append({
+            "id": p.get("id") or f.get("id"),
+            "event": p.get("event"),
+            "headline": p.get("headline"),
+            "severity": (p.get("severity") or "").lower(),
+            "certainty": (p.get("certainty") or "").lower(),
+            "urgency": (p.get("urgency") or "").lower(),
+            "areas": p.get("areaDesc"),
+            "starts": p.get("onset") or p.get("effective"),
+            "ends": p.get("ends") or p.get("expires"),
+            "instr": p.get("instruction"),
+            "desc": p.get("description"),
+            "sender": p.get("senderName"),
+            "link":  p.get("uri"),
+        })
+
+    return out
+
 CADENCE_CHOICES = [
     app_commands.Choice(name="daily", value="daily"),
     app_commands.Choice(name="weekly (send on this weekday)", value="weekly"),
@@ -277,6 +319,8 @@ class Weather(commands.Cog):
         self.weather_scheduler.start()
         self.weather_alerts_scheduler.start()
 
+    group = app_commands.Group(name = "weather", description = "Weather commands.")
+
     def cog_unload(self):
         self.weather_scheduler.cancel()
         self.weather_alerts_scheduler.cancel()
@@ -292,7 +336,7 @@ class Weather(commands.Cog):
 
     # -------- Slash Commands --------
 
-    @app_commands.command(name = "weather_current", description = "Current weather by ZIP.")
+    @group.command(name = "current", description = "Current weather by ZIP.")
     @app_commands.choices(units = UNITS_CHOICES)
     async def weather(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
         await inter.response.defer()
@@ -393,7 +437,7 @@ class Weather(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f Weather error: {e}\n{traceback.format_exc()}", ephemeral=True)
 
-    @app_commands.command(name = "weather_hourly", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
+    @group.command(name = "forecast", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
     @app_commands.describe(hours = "How many hours to show (6-24, optional, defaults to 12)")
     @app_commands.choices(units = UNITS_CHOICES)
     async def hourly(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], hours: Optional[app_commands.Range[int, 6, 24]] = 12, units: Optional[app_commands.Choice[str]] = None):
@@ -478,7 +522,7 @@ class Weather(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f Hourly error: {e}\n{traceback.format_exc()}", ephemeral=True)
 
-    @app_commands.command(name = "weather_subscribe", description = "Subscribe the current channel to a daily or weekly weather announcement at a local-time hour.")
+    @group.command(name = "subscribe", description = "Subscribe the current channel to a daily or weekly weather announcement at a local-time hour.")
     @app_commands.describe(
         time="HH:MM (24h), HHMM, or h:mma/pm in this channel's saved timezone",
         cadence="daily or weekly",
@@ -531,7 +575,7 @@ class Weather(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral=True)
 
-    @app_commands.command(name = "weather_subscriptions", description = "List this channel's weather subscriptions and next send time.")
+    @group.command(name = "subscriptions", description = "List this channel's weather subscriptions and next send time.")
     @commands.has_permissions(administrator = True)
     async def weather_subscriptions(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
@@ -578,7 +622,7 @@ class Weather(commands.Cog):
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
     # TODO: if the current channel only has one subscription, remove it and don't take id.
-    @app_commands.command(name = "weather_unsubscribe", description = "Unsubscribe from weather announcements by ID.")
+    @group.command(name = "unsubscribe", description = "Unsubscribe from weather announcements by ID.")
     @commands.has_permissions(administrator = True)
     async def weather_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         await inter.response.defer(ephemeral = True)
@@ -587,7 +631,7 @@ class Weather(commands.Cog):
 
         await inter.followup.send(f":white_check_mark: Weather announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral=True)
 
-    @app_commands.command(name = "weather_alerts", description = "Enable/disable severe weather alert announcements in the current channel.")
+    @group.command(name = "alerts", description = "Enable/disable severe weather alert announcements in the current channel.")
     @app_commands.describe(mode = "on/off", min_severity = "advisory | watch | warning (optional, defaults to watch)")
     @commands.has_permissions(administrator = True)
     async def weather_alerts(self, inter: discord.Interaction, mode: str, zip: app_commands.Range[str, 5, 5], min_severity: Optional[str] = "watch"):
@@ -720,37 +764,6 @@ class Weather(commands.Cog):
     async def before_weather(self):
         await self.bot.wait_until_ready()
 
-    async def _fetch_nws_alerts(self, session: aiohttp.ClientSession, lat: float, lon: float):
-        url = "https://api.weather.gov/alerts/active"
-        params = {"point": f"{lat},{lon}", "status": "actual", "message_type": "alert"}
-        try:
-            async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=12), headers=HTTP_HEADERS) as r:
-                if r.status != 200:
-                    return []
-                data = await r.json()
-        except Exception:
-            return []
-        feats = data.get("features", []) or []
-        out = []
-        for f in feats:
-            p = f.get("properties", {}) or {}
-            out.append({
-                "id": p.get("id") or f.get("id"),
-                "event": p.get("event"),
-                "headline": p.get("headline"),
-                "severity": (p.get("severity") or "").lower(),
-                "certainty": (p.get("certainty") or "").lower(),
-                "urgency": (p.get("urgency") or "").lower(),
-                "areas": p.get("areaDesc"),
-                "starts": p.get("onset") or p.get("effective"),
-                "ends": p.get("ends") or p.get("expires"),
-                "instr": p.get("instruction"),
-                "desc": p.get("description"),
-                "sender": p.get("senderName"),
-                "link":  p.get("uri"),
-            })
-        return out
-
     @tasks.loop(seconds = 300)
     async def weather_alerts_scheduler(self):
         try:
@@ -777,7 +790,7 @@ class Weather(commands.Cog):
                         continue
                     try:
                         city, state, lat, lon = await _zip_to_place_and_coords(session, z)
-                        alerts = await self._fetch_nws_alerts(session, lat, lon)
+                        alerts = await _fetch_nws_alerts(session, lat, lon)
                         min_sev = self.bot.store.get_note(uid, "wx_alerts_min_sev") or "watch"
                         min_rank = SEVERITY_ORDER.get(min_sev, 1)
 
