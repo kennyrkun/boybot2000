@@ -20,7 +20,7 @@ class NaturalLanguage(commands.Cog):
 		self.bot = bot
 
 		self.model = "gemma2:2b"
-		self.ollamaUri = "https://ollama:11434"
+		self.ollamaUri = "http://ollama:11434"
 
 		# TODO: skip this via environment variable
 		request = requests.post(f"{self.ollamaUri}/api/show", json = {
