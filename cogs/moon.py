@@ -139,7 +139,7 @@ class Moon(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
 
-    @group.command(name="unsubscribe", description="Unsubscribe from moon phase announcements for the current channel.")
+    @group.command(name = "unsubscribe", description = "Unsubscribe from moon phase announcements for the current channel.")
     @commands.has_permissions(administrator = True)
     async def moon_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         await inter.response.defer(ephemeral = True)

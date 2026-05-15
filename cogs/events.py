@@ -2,6 +2,7 @@ import os
 import asyncio
 import traceback
 import logging
+import requests
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -48,27 +49,25 @@ class Events(commands.Cog):
 
     # -------- Helper functions ---------
 
-    async def _create_event_embed(self, event: discord.ScheduledEvent):
-        if event.creator is None:
-            event.creator = await self.bot.fetch_user(event.creator_id)
-
-        emb = discord.Embed(
-            title = event.name,
-            description = event.description,
-            colour = event.creator.accent_colour
-        )
-
-        if event.user_count > 0: 
-            emb.add_field(name = "Interested", value = event.user_count, inline = True)
-
-        emb.add_field(name = "When", value = f"<t:{int(event.start_time.timestamp())}:F>", inline = True)
-        emb.add_field(name = "Where", value = event.location, inline = True)
-
-        emb.set_author(name = event.creator.display_name, url = event.url, icon_url = event.creator.avatar.url)
-
-        return emb
-
     async def _send_event_list(self, channelId: int, interval: int, noun: str, now: datetime):
+        def promptResponse(events):
+            request = requests.post(f"http://localhost:11434/api/chat", json = {
+                "model": "gemma2:2b",
+                "prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + events,
+                "stream": False,
+            })
+
+            response = request.json()
+
+            if response.get("error") is not None:
+                raise Exception("Error response from model: " + response.get("error"))
+            elif response.get("resposne") is None:
+                raise Exception("Response from model was None.")
+
+            response = response.get("response")
+
+            return response
+
         channel = await self.bot.fetch_channel(channelId)
         events = channel.guild.scheduled_events
 
@@ -117,11 +116,16 @@ class Events(commands.Cog):
             string = " and ".join(strings).capitalize() + "!\n"
 
             urls = ""
+            prompt = ""
 
             for event in allEvents:
                 urls += f"[{event.name}]({event.url})\n"
+                prompt += f"{event.name} {event.description} {event.start_time}"
 
-            await channel.send(content = string + urls, delete_after = 86400)
+            response = promptResponse(prompt)
+
+            #await channel.send(content = string + urls, delete_after = 86400)
+            await channel.send(content = prompt, delete_after = 86400)
         else:
             await channel.send(f"There are no events {noun} or in the near future... :boykisser_sob:")
 

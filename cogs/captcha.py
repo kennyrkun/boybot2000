@@ -107,7 +107,6 @@ class Captcha(commands.Cog):
     async def challenge(self, ctx: commands.Context):
         # user might not have all the right variables, hopefully it is always a Member object.
         await self.challengeMember(ctx.author)
-    
 
     # -------- Schedulers --------
 
