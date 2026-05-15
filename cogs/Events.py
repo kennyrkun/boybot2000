@@ -48,7 +48,8 @@ class Events(commands.Cog):
 
     # -------- Helper functions ---------
 
-    async def _send_event_list(self, channelId: int, interval: int, noun: str, now: datetime):
+    # have to keep channel ID in this because even though it doesn't send, NaturalLanguage needs to know the guildId
+    async def _get_event_list(self, channelId: int, interval: int, noun: str, now: datetime):
         channel = await self.bot.fetch_channel(channelId)
         events = channel.guild.scheduled_events
 
@@ -109,9 +110,9 @@ class Events(commands.Cog):
                 string + urls
             )
 
-            await channel.send(content = response, delete_after = 86400)
+            return response
         else:
-            await channel.send(f"There are no events {noun} or in the near future... :boykisser_sob:")
+            return f"There are no events {noun} or in the near future... :boykisser_sob:"
 
     # -------- Discord ScheduledEvent events -------
 
@@ -208,7 +209,8 @@ class Events(commands.Cog):
 
     @group.command(name = "list", description = "Show a list of events in the current channel.")
     async def events_list(self, inter: discord.Interaction):
-        await self._send_event_list(inter.channel_id, 1, "today", datetime.utcnow()) # TODO: make this ephemeral
+        await inter.response.defer()
+        await inter.followup.send(self._get_event_list(inter.channel_id, 1, "today", datetime.utcnow()))
 
     @group.command(name = "subscribe", description = "Subscribe this channel to a daily or weekly event announcement at a UTC time.")
     @app_commands.describe(
@@ -331,13 +333,15 @@ class Events(commands.Cog):
 
                 if due <= now:
                     try:
-                        await self._send_event_list(int(s["channel_id"]), interval, noun, now)
+                        channel = self.bot.fetch_channel(s["channel_id"])
+                        events = await self._get_event_list(channel.id, interval, noun, now)
+                        await channel.send(events, delete_after = 86400)
 
                         next = datetime.utcnow()
-                        next = next.replace(hour=s["hh"], minute = s["mi"], second = 0, microsecond = 0)
+                        next = next.replace(hour = s["hh"], minute = s["mi"], second = 0, microsecond = 0)
 
                         if next <= datetime.utcnow():
-                            next += timedelta(days=interval)
+                            next += timedelta(days = interval)
 
                         self.bot.store.update_event_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
                     except Exception as e:
