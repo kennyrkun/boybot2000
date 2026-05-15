@@ -4,7 +4,7 @@ import os
 import re
 import random
 import traceback
-import requests
+import aiohttp
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 

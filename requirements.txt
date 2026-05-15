@@ -3,4 +3,3 @@ aiohttp==3.9.5
 astral==3.2
 numpy==2.4
 samplerate==0.2.4
-requests==2.34.2
