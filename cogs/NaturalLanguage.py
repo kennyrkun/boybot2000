@@ -22,6 +22,16 @@ class NaturalLanguage(commands.Cog):
 		self.model = "gemma2:2b"
 		self.ollamaUri = "https://ollama:11434"
 
+		# TODO: skip this via environment variable
+		request = requests.post(f"{self.ollamaUri}/api/show", json = {
+			"model": self.model
+		})
+
+		if request.get("license") is None:
+			request = requests.post(f"{self.ollamaUri}/api/pull", json = {
+				"model": self.model
+			})
+
 	def cog_unload(self):
 		return
 
