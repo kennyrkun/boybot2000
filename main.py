@@ -67,11 +67,14 @@ class boybot2000(commands.Bot):
         # Natural Language must go first, because it is added to every cog including itself
         self.availableCogs = [ "NaturalLanguage", "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers" ]
 
+        natLangCog = self.get_cog("cogs.NaturalLanguage")
+
         for cog in self.availableCogs:
             await self.load_extension(f"cogs.{cog}")
 
             cog = self.get_cog(f"cogs.{cog}")
-            cog.NaturalLanguage = self.get_cog("cogs.NaturalLanguage")
+
+            setattr(cog, "NaturalLanguage", natLangCog)
 
         try:
             synced = await self.tree.sync()
