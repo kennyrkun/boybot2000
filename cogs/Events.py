@@ -210,7 +210,8 @@ class Events(commands.Cog):
     @group.command(name = "list", description = "Show a list of events in the current channel.")
     async def events_list(self, inter: discord.Interaction):
         await inter.response.defer()
-        await inter.followup.send(self._get_event_list(inter.channel_id, 1, "today", datetime.utcnow()))
+        events = await self._get_event_list(inter.channel_id, 1, "today", datetime.utcnow())
+        await inter.followup.send(events)
 
     @group.command(name = "subscribe", description = "Subscribe this channel to a daily or weekly event announcement at a UTC time.")
     @app_commands.describe(
