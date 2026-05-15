@@ -103,7 +103,7 @@ class Moon(commands.Cog):
         cadence = "daily or weekly",
         weekly_days = "For weekly: number of days to include (3, 7, or 10)"
     )
-    @app_commmands.choices(cadence = CADENCE_CHOICES)
+    @app_commands.choices(cadence = CADENCE_CHOICES)
     @commands.has_permissions(administrator = True)
     async def moon_subscribe(
         self,
