@@ -104,7 +104,7 @@ class Events(commands.Cog):
                 prompt += f"Name: {event.name}\nDescription: {event.description}\nStart time: {event.start_time}"
 
             response = (
-                self.NaturalLanguage.prompt("Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + events) 
+                self.bot.NaturalLanguage.prompt("Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + events) 
                 or 
                 string + urls
             )
