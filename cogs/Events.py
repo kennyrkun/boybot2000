@@ -102,10 +102,10 @@ class Events(commands.Cog):
 
             for event in allEvents:
                 urls += f"[{event.name}]({event.url})\n"
-                prompt += f"Name: {event.name}\nDescription: {event.description}\nStart time: {event.start_time}"
+                prompt += f"Name: {event.name}\nDescription: {event.description}\nStart time: {event.start_time} URL: {event.url}"
 
             response = (
-                await self.bot.NaturalLanguage.prompt(channel.guild.id, "Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + prompt) 
+                await self.bot.NaturalLanguage.prompt(channel.guild.id, "Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Format the name of each event like this: [Name](URL). Here is the list of events:" + prompt) 
                 or 
                 string + urls
             )
