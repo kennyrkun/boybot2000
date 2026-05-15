@@ -65,7 +65,7 @@ class boybot2000(commands.Bot):
         await self.add_cog(ExtensionManager(self))
 
         # Natural Language must go first, because it is added to every cog including itself
-        self.availableCogs = [ "NaturalLanguage", "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers" ]
+        self.availableCogs = [ "NaturalLanguage", "Boytoy", "Captcha", "Events", "Moon", "Weather", "Yappers" ]
 
         natLangCog = self.get_cog("NaturalLanguage")
 
