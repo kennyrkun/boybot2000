@@ -104,12 +104,12 @@ class Events(commands.Cog):
                 prompt += f"Name: {event.name}\nDescription: {event.description}\nStart time: {event.start_time}"
 
             response = (
-                self.bot.NaturalLanguage.prompt("Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + events) 
+                self.bot.NaturalLanguage.prompt("Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + prompt) 
                 or 
                 string + urls
             )
 
-            await channel.send(content = prompt, delete_after = 86400)
+            await channel.send(content = response, delete_after = 86400)
         else:
             await channel.send(f"There are no events {noun} or in the near future... :boykisser_sob:")
 
