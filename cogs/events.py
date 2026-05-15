@@ -51,7 +51,7 @@ class Events(commands.Cog):
 
     async def _send_event_list(self, channelId: int, interval: int, noun: str, now: datetime):
         def promptResponse(events):
-            request = requests.post(f"http://localhost:11434/api/chat", json = {
+            request = requests.post(f"http://ollama:11434/api/chat", json = {
                 "model": "gemma2:2b",
                 "prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + events,
                 "stream": False,
