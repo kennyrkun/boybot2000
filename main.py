@@ -56,10 +56,6 @@ class ExtensionManager(commands.Cog):
         return False
 
 class boybot2000(commands.Bot):
-    def __init__(self):
-        # Natural Language must go first, because it is added to every cog including itself
-        self.availableCogs = [ "NaturalLanguage", "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers" ]
-
     async def on_ready(self):
         log.info("Logged in as %s (%s)", self.user, self.user.id)
 
@@ -67,6 +63,9 @@ class boybot2000(commands.Bot):
         self.store = Store(DB_PATH)
 
         await self.add_cog(ExtensionManager(self))
+
+        # Natural Language must go first, because it is added to every cog including itself
+        self.availableCogs = [ "NaturalLanguage", "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers" ]
 
         for cog in self.availableCogs:
             await self.load_extension(f"cogs.{cog}")
