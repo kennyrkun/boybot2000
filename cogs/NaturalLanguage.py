@@ -57,11 +57,11 @@ class NaturalLanguage(commands.Cog):
 			raise Exception("No prompt was provided to NaturalLanguage cog.")
 
 		async with aiohttp.ClientSession() as session:
-			async with session.post(f"{self.ollamaUri}/api/generate", data = {
-			"model": self.model,
-			"prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. " + prompt,
-			"stream": False,
-		}) as request:
+			async with session.post(f"{self.ollamaUri}/api/generate", json = {
+				"model": self.model,
+				"prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. " + prompt,
+				"stream": False,
+			}) as request:
 				if request.status != 200:
 					raise RuntimeError(f"Prompt request returned {request.status}.")
 
