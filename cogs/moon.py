@@ -76,6 +76,8 @@ class Moon(commands.Cog):
 
         self.moon_scheduler.start()
 
+    group = app_commands.Group(name = "moon", description = "Moon commands.")
+
     def cog_unload(self):
         self.moon_scheduler.cancel()
 
@@ -90,18 +92,18 @@ class Moon(commands.Cog):
 
     # -------- Slash Commands --------
 
-    @app_commands.command(name = "moon", description = "Show the current moon phase.")
+    @group.command(name = "current", description = "Show the current moon phase.")
     async def moon(self, inter: discord.Interaction):
         await inter.response.defer()
         await inter.followup.send(embed = _get_moon_embed(datetime.utcnow(), True, True))
 
-    @app_commands.command(name = "moon_subscribe", description = "Subscribe this channel to a daily or weekly moon phase announcement at a UTC time.")
+    @group.command(name = "subscribe", description = "Subscribe this channel to a daily or weekly moon phase announcement at a UTC time.")
     @app_commands.describe(
         time = "HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
         cadence = "daily or weekly",
         weekly_days = "For weekly: number of days to include (3, 7, or 10)"
     )
-    @app_commands.choices(cadence = CADENCE_CHOICES)
+    @group.choices(cadence = CADENCE_CHOICES)
     @commands.has_permissions(administrator = True)
     async def moon_subscribe(
         self,
@@ -137,7 +139,7 @@ class Moon(commands.Cog):
         except Exception as e:
             await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
 
-    @app_commands.command(name="moon_unsubscribe", description="Unsubscribe from moon phase announcements for the current channel.")
+    @group.command(name="unsubscribe", description="Unsubscribe from moon phase announcements for the current channel.")
     @commands.has_permissions(administrator = True)
     async def moon_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         await inter.response.defer(ephemeral = True)
@@ -146,7 +148,7 @@ class Moon(commands.Cog):
 
         await inter.followup.send(f":white_check_mark: Moon phase announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral = True)
 
-    @app_commands.command(name="moon_subscriptions", description="List your moon phase announcement subscriptions and next send time.")
+    @group.command(name = "subscriptions", description = "List your moon phase announcement subscriptions and next send time.")
     @commands.has_permissions(administrator = True)
     async def moon_subscriptions(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
@@ -190,7 +192,7 @@ class Moon(commands.Cog):
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
     # -------- Schedulers --------
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds = 60)
     async def moon_scheduler(self):
         try:
             now = datetime.utcnow()
