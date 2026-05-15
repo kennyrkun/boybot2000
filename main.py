@@ -47,7 +47,7 @@ class ExtensionManager(commands.Cog):
     async def verifyExtensionName(self, inter: discord.Interaction, extensionName: str) -> bool:
         await inter.response.defer(ephemeral = True)
 
-        if extensionName in [ "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers" ]:
+        if extensionName in [ "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers", "NaturalLanguage" ]:
             return True
 
         return False
@@ -61,13 +61,13 @@ class boybot2000(commands.Bot):
 
         await self.add_cog(ExtensionManager(self))
 
-        await self.load_extension("cogs.boytoy")
-        await self.load_extension("cogs.captcha")
-        await self.load_extension("cogs.events")
-        await self.load_extension("cogs.moon")
-        #await self.load_extension("cogs.radio")
-        await self.load_extension("cogs.weather")
-        await self.load_extension("cogs.yappers")
+        await self.load_extension("cogs.Boytoy")
+        await self.load_extension("cogs.Captcha")
+        await self.load_extension("cogs.Events")
+        await self.load_extension("cogs.Moon")
+        #await self.load_extension("cogs.Radio")
+        await self.load_extension("cogs.Weather")
+        await self.load_extension("cogs.Yappers")
 
         try:
             synced = await self.tree.sync()

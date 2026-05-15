@@ -2,7 +2,6 @@ import os
 import asyncio
 import traceback
 import logging
-import requests
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -50,24 +49,6 @@ class Events(commands.Cog):
     # -------- Helper functions ---------
 
     async def _send_event_list(self, channelId: int, interval: int, noun: str, now: datetime):
-        def promptResponse(events):
-            request = requests.post(f"http://ollama:11434/api/generate", json = {
-                "model": "gemma2:2b",
-                "prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + events,
-                "stream": False,
-            })
-
-            response = request.json()
-
-            if response.get("error") is not None:
-                raise Exception("Error response from model: " + response.get("error"))
-            elif response.get("response") is None:
-                raise Exception("Response from model was None.")
-
-            response = response.get("response")
-
-            return response
-
         channel = await self.bot.fetch_channel(channelId)
         events = channel.guild.scheduled_events
 
@@ -120,11 +101,14 @@ class Events(commands.Cog):
 
             for event in allEvents:
                 urls += f"[{event.name}]({event.url})\n"
-                prompt += f"{event.name} {event.description} {event.start_time}"
+                prompt += f"Name: {event.name}\nDescription: {event.description}\nStart time: {event.start_time}"
 
-            response = promptResponse(prompt)
+            response = (
+                self.bot.get_cog("NaturalLanguage").prompt("Given the list of events provided, generate a small list of upcoming events ordered by date and include a short description. Here is the list of events:" + events) 
+                or 
+                string + urls
+            )
 
-            #await channel.send(content = string + urls, delete_after = 86400)
             await channel.send(content = prompt, delete_after = 86400)
         else:
             await channel.send(f"There are no events {noun} or in the near future... :boykisser_sob:")
