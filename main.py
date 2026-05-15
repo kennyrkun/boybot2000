@@ -29,6 +29,7 @@ class ExtensionManager(commands.Cog):
     group = app_commands.Group(name = "extensions", description = "Manage extensions this bot can use in this server.")
 
     @group.command(name = "on", description = "Enables a particular extension.")
+    # TODO: add auto-complete options using list of files in cogs folder
     @app_commands.checks.has_permissions(administrator = True)
     async def on(self, inter: discord.Interaction,  extension: str) -> None:
         if await self.verifyExtensionName(inter, extension) and self.bot.store.enable_extension(inter.guild.id, extension):
@@ -37,6 +38,7 @@ class ExtensionManager(commands.Cog):
             return await inter.followup.send(f"Failed to enable extension {extension} for this server.", ephemeral = True)
 
     @group.command(name = "off", description = "Disables a particular extension.")
+    # TODO: add auto-complete options using list of files in cogs folder
     @app_commands.checks.has_permissions(administrator = True)
     async def off(self, inter: discord.Interaction,  extension: str) -> None:
         if await self.verifyExtensionName(inter, extension) and self.bot.store.disable_extension(inter.guild.id, extension):
@@ -47,6 +49,7 @@ class ExtensionManager(commands.Cog):
     async def verifyExtensionName(self, inter: discord.Interaction, extensionName: str) -> bool:
         await inter.response.defer(ephemeral = True)
 
+        # TODO: just check if the file exists in the cogs folder
         if extensionName in [ "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers", "NaturalLanguage" ]:
             return True
 
