@@ -69,9 +69,9 @@ class NaturalLanguage(commands.Cog):
 		elif response.get("response") is None:
 			raise Exception("Response from model was None.")
 
-		response = response.get("response")
+		response = response.get("response").strip()
 
-		response += f"\n\n-# This response was generated using {self.model}."
+		response += f"\n-# This response was generated using {self.model}."
 
 		return response
 
