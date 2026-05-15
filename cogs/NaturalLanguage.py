@@ -27,7 +27,9 @@ class NaturalLanguage(commands.Cog):
 			"model": self.model
 		})
 
-		if request.get("license") is None:
+		response = request.json()
+
+		if response.get("license") is None:
 			request = requests.post(f"{self.ollamaUri}/api/pull", json = {
 				"model": self.model
 			})
