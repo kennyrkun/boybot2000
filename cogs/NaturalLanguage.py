@@ -49,20 +49,23 @@ class NaturalLanguage(commands.Cog):
 
 	# -------- Helper functions -------
 
-	def prompt(self, guildId: int, prompt: str) -> Optional[str]:
+	async def prompt(self, guildId: int, prompt: str) -> Optional[str]:
 		if not self.check_cog_enabled(guildId):
 			return None
 
 		if not prompt:
 			raise Exception("No prompt was provided to NaturalLanguage cog.")
 
-		request = requests.post(f"{self.ollamaUri}/api/generate", json = {
+		async with aiohttp.ClientSession() as session:
+			async with session.post(f"{self.ollamaUri}/api/generate", data = {
 			"model": self.model,
 			"prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. " + prompt,
 			"stream": False,
-		})
+		}) as request:
+				if request.status != 200:
+					raise RuntimeError(f"Prompt request returned {request.status}.")
 
-		response = request.json()
+		response = await request.json()
 
 		if response.get("error") is not None:
 			raise Exception("Error response from model: " + response.get("error"))
