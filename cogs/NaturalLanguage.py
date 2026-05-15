@@ -46,7 +46,7 @@ class NaturalLanguage(commands.Cog):
 
 	# -------- Helper functions -------
 
-	def prompt(self, guildId: int, prompt: str) -> str | None:
+	def prompt(self, guildId: int, prompt: str) -> Optional[str]:
 		if not self.cog_check(guildId):
 			return None
 

@@ -50,12 +50,16 @@ class ExtensionManager(commands.Cog):
         await inter.response.defer(ephemeral = True)
 
         # TODO: just check if the file exists in the cogs folder
-        if extensionName in [ "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers", "NaturalLanguage" ]:
+        if extensionName in self.bot.availableCogs:
             return True
 
         return False
 
 class boybot2000(commands.Bot):
+    def __init__(self):
+        # Natural Language must go first, because it is added to every cog including itself
+        self.availableCogs = [ "NaturalLanguage", "Boytoy", "Captcha", "Events", "Moon", "Radio", "Weather", "Yappers" ]
+
     async def on_ready(self):
         log.info("Logged in as %s (%s)", self.user, self.user.id)
 
@@ -64,13 +68,11 @@ class boybot2000(commands.Bot):
 
         await self.add_cog(ExtensionManager(self))
 
-        await self.load_extension("cogs.Boytoy")
-        await self.load_extension("cogs.Captcha")
-        await self.load_extension("cogs.Events")
-        await self.load_extension("cogs.Moon")
-        #await self.load_extension("cogs.Radio")
-        await self.load_extension("cogs.Weather")
-        await self.load_extension("cogs.Yappers")
+        for cog in self.availableCogs:
+            await self.load_extension(f"cogs.{cog}")
+
+            cog = self.get_cog(f"cogs.{cog}")
+            cog.NaturalLanguage = self.get_cog("cogs.NaturalLanguage")
 
         try:
             synced = await self.tree.sync()
