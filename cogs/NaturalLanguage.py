@@ -53,30 +53,34 @@ class NaturalLanguage(commands.Cog):
 		if not self.check_cog_enabled(guildId):
 			return None
 
-		if not prompt:
-			raise Exception("No prompt was provided to NaturalLanguage cog.")
+		try:
+			if not prompt:
+				raise Exception("No prompt was provided to NaturalLanguage cog.")
 
-		async with aiohttp.ClientSession() as session:
-			async with session.post(f"{self.ollamaUri}/api/generate", json = {
-				"model": self.model,
-				"prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. " + prompt,
-				"stream": False,
-			}) as request:
-				if request.status != 200:
-					raise RuntimeError(f"Prompt request returned {request.status}.")
+			async with aiohttp.ClientSession() as session:
+				async with session.post(f"{self.ollamaUri}/api/generate", timeout = 120, json = {
+					"model": self.model,
+					"prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. " + prompt,
+					"stream": False,
+				}) as request:
+					if request.status != 200:
+						raise RuntimeError(f"Prompt request returned {request.status}.")
 
-		response = await request.json()
+			response = await request.json()
 
-		if response.get("error") is not None:
-			raise Exception("Error response from model: " + response.get("error"))
-		elif response.get("response") is None:
-			raise Exception("Response from model was None.")
+			if response.get("error") is not None:
+				raise Exception("Error response from model: " + response.get("error"))
+			elif response.get("response") is None:
+				raise Exception("Response from model was None.")
 
-		response = response.get("response").strip()
+			response = response.get("response").strip()
 
-		response += f"\n-# This response was generated using {self.model}."
+			response += f"\n-# This response was generated using {self.model}."
 
-		return response
+			return response
+		except Exception as e:
+			log.error(e)
+			return None
 
 async def setup(bot: commands.Bot):
 	await bot.add_cog(NaturalLanguage(bot))
