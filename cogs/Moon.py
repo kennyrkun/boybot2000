@@ -137,7 +137,8 @@ class Moon(commands.Cog):
                 ephemeral = True
             )
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
+            log.error(f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
+            await inter.followup.send("i just can't do it anymore man...", ephemeral = True)
 
     @group.command(name = "unsubscribe", description = "Unsubscribe from moon phase announcements for the current channel.")
     @commands.has_permissions(administrator = True)
@@ -238,10 +239,10 @@ class Moon(commands.Cog):
                     except Exception as e:
                         fallback = now + timedelta(minutes = 5)
                         self.bot.store.update_moon_sub(s["id"], next_run = fallback.isoformat())
-                        await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Moon error: {e}\n{traceback.format_exc()}")
+                        log.error(f"Moon error: {e}\n{traceback.format_exc()}")
 
         except Exception as e:
-            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Moon subscriptions error: {e}\n{traceback.format_exc()}")
+            log.error(f"Moon subscriptions error: {e}\n{traceback.format_exc()}")
 
     @moon_scheduler.before_loop
     async def before_moon(self):
