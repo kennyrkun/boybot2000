@@ -58,28 +58,28 @@ class NaturalLanguage(commands.Cog):
 				raise Exception("No prompt was provided to NaturalLanguage cog.")
 
 			async with aiohttp.ClientSession() as session:
-				async with session.post(f"{self.ollamaUri}/api/generate", timeout = 420, json = {
+				async with session.post(f"{self.ollamaUri}/api/generate", timeout = 120, json = {
 					"model": self.model,
-					"prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. " + prompt,
+					"prompt": "You are a funny UWU redditor who loves being silly and using text based emotes. Keep responses as short as possible. Do not use markdown formatting. Do not use real emojis, only text-based emojis. You may also use <:boykisser_meow:1488616984592781545>, <:boykisser_what:1483293684899381248>, <:boykisser_pat:1488616985502810336>, or <:boykisser_sip:1488616986677084322> as valid emojis; they must be used exactly as written." + prompt,
 					"stream": False,
 				}) as request:
 					if request.status != 200:
 						raise RuntimeError(f"Prompt request returned {request.status}.")
 
-			response = await request.json()
+					response = await request.json()
 
-			if response.get("error") is not None:
-				raise Exception("Error response from model: " + response.get("error"))
-			elif response.get("response") is None:
-				raise Exception("Response from model was None.")
+					if response.get("error") is not None:
+						raise Exception("Error response from model: " + response.get("error"))
+					elif response.get("response") is None:
+						raise Exception("Response from model was None.")
 
-			response = response.get("response").strip()
+					response = response.get("response").strip()
 
-			response += f"\n-# This response was generated using {self.model}."
+					response += f"\n-# This response was generated using {self.model}."
 
-			return response
+					return response
 		except Exception as e:
-			log.error(f"Error during prompt: {e}")
+			log.error(f"Prompt error: {e}")
 			return None
 
 async def setup(bot: commands.Bot):
