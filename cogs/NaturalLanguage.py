@@ -79,7 +79,7 @@ class NaturalLanguage(commands.Cog):
 
 			return response
 		except Exception as e:
-			log.error(e)
+			log.error(f"Error during prompt: {e}")
 			return None
 
 async def setup(bot: commands.Bot):
