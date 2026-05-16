@@ -335,7 +335,7 @@ class Events(commands.Cog):
 
                 if due <= now:
                     try:
-                        channel = self.bot.fetch_channel(s["channel_id"])
+                        channel = await self.bot.fetch_channel(s["channel_id"])
                         events = await self._get_event_list(channel.id, interval, noun, now)
                         await channel.send(events, delete_after = 86400)
 
