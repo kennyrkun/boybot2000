@@ -74,7 +74,7 @@ class Boytoy(commands.Cog):
                 await asyncio.sleep(random.randint(0, 4))
 
             return await message.reply(
-                await self.bot.NaturalLanguage.prompt(channel.guild.id, "In a sentence or less, talk about how much you love cute, tall, and strong boys.")
+                await self.bot.NaturalLanguage.prompt(message.channel.guild.id, "In a sentence or less, talk about how much you love cute, tall, and strong boys.")
                 or "i luv boys <:boykisser_meow:1488616984592781545>",
                 mention_author = True
             )
