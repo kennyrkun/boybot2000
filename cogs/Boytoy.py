@@ -73,10 +73,14 @@ class Boytoy(commands.Cog):
             async with message.channel.typing():
                 await asyncio.sleep(random.randint(0, 4))
 
-            return await message.reply("i luv boys <:boykisser_meow:1488616984592781545>", mention_author = True)
+            return await message.reply(
+                await self.bot.NaturalLanguage.prompt(channel.guild.id, "In a sentence or less, talk about how much you love cute, tall, and strong boys.")
+                or "i luv boys <:boykisser_meow:1488616984592781545>",
+                mention_author = True
+            )
 
         # sometimes, just type a little bit but don't say anything. like he changed his mind.
-        if random.randint(0, 1000) < 10:
+        if random.randint(0, 1000) < 5:
             return await message.channel.typing()
 
 async def setup(bot: commands.Bot):
