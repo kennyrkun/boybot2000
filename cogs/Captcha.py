@@ -10,7 +10,7 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
-logging.basicConfig(level = logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.basicConfig(level = logging.INFO, format = "%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("captcha")
 
 class BotCheck(discord.ui.View):
@@ -95,7 +95,7 @@ class Captcha(commands.Cog):
             return
 
         # if the user is already in the captcha pending list, ignore them
-        if member.id in self.bot.store.list_captcha_users(member.guild):
+        if member.id in self.bot.store.list_captcha_users(member.guild.id):
             return
 
         if self.bot.store.add_captcha_user(member.id, member.guild.id, datetime.utcnow()):
