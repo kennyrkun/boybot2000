@@ -132,7 +132,10 @@ class Events(commands.Cog):
             if s["guild_id"] == event.guild.id:
                 if s["channel_id"] not in sent_channels:
                     channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                    await channel.send(content = f"[new event just dropped uwu :333]({event.url})")
+                    await channel.send(content = 
+                        self.bot.NaturalLanguage.prompt(channel.guild.id, "A new event has been created, say something about being exciting about the new event. Make sure to include uwu and :3")
+                        or f"[new event just dropped uwu :333]({event.url})"
+                    )
 
     @commands.Cog.listener()
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
