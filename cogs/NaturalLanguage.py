@@ -93,7 +93,7 @@ class NaturalLanguage(commands.Cog):
 
 					return response
 		except Exception as e:
-			log.error(f"Prompt error: {e}")
+			log.error(f"Prompt error: {e}\n{traceback.format_exc()}")
 			return None
 
 async def setup(bot: commands.Bot):
