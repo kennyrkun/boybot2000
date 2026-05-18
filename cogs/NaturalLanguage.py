@@ -76,15 +76,15 @@ class NaturalLanguage(commands.Cog):
 					""" + prompt,
 					"stream": False,
 				}) as request:
-					if request.status != 200:
-						raise RuntimeError(f"Prompt request returned {request.status}.")
-
 					response = await request.json()
 
+					if request.status != 200:
+						raise RuntimeError(f"Prompt request returned {request.status}.\n\n" + str(response))
+
 					if response.get("error") is not None:
-						raise Exception("Error response from model: " + response.get("error") + "\n\n" + str(response))
+						raise RuntimeError("Error response from model: " + response.get("error") + "\n\n" + str(response))
 					elif response.get("response") is None:
-						raise Exception("Response from model was None\n\n" + str(response))
+						raise RuntimeError("Response from model was None\n\n" + str(response))
 
 					response = response.get("response").strip()
 
