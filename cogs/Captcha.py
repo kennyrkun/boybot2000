@@ -131,7 +131,7 @@ class Captcha(commands.Cog):
                     guild.kick(user.user_id)
 
         except Exception as e:
-            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Captcha error: {e}\n{traceback.format_exc()}")
+            log.error(f"Captcha error: {e}\n{traceback.format_exc()}")
 
     @captcha_scheduler.before_loop
     async def before_captcha(self):
