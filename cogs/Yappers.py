@@ -80,7 +80,7 @@ class Yappers(commands.Cog):
         except IntegrityError:
             await inter.followup.send(f"This server is already subscribed to top yapper annoucements!", ephemeral = True)
         except Exception as e:
-            log.error(f"Yap subscription failure: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+            log.error(f"Yap subscription failure: {type(e).__name__}: {e}\n\n{traceback.format_exc()}")
             await inter.followup.send(f"I JUST CANT TAKE IT ANYMORE MAN", ephemeral = True)
 
     @group.command(name = "unsubscribe", description = "Unsubscribe the current guild from top yapper annoucements.")

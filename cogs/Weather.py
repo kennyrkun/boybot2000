@@ -435,7 +435,7 @@ class Weather(commands.Cog):
             emb.set_footer(text = f"Units: {units} • Timezone: {tz_name}")
             await inter.followup.send(embed=emb)
         except Exception as e:
-            log.error(f"Weather error: {e}\n{traceback.format_exc()}")
+            log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
             await inter.followup.send("i can't man, i can't i just can't do it anymore i can't take it anymore man i just can't do it", ephemeral = True)
 
     @group.command(name = "forecast", description = "Hourly forecast for a given zip code for the next 6-24 hours (default 12).")
@@ -521,7 +521,7 @@ class Weather(commands.Cog):
             _add_chunked_fields(emb, "Forecast", lines[:want_hours])
             await inter.followup.send(embed=emb)
         except Exception as e:
-            log.error(f"Hourly error: {e}\n{traceback.format_exc()}")
+            log.error(f"Hourly error: {e}\n\n{traceback.format_exc()}")
             await inter.followup.send(f"nah man it's too much man i can't do it anymore man", ephemeral = True)
 
     @group.command(name = "subscribe", description = "Subscribe the current channel to a daily or weekly weather announcement at a local-time hour.")
@@ -575,7 +575,7 @@ class Weather(commands.Cog):
                 ephemeral = True
             )
         except Exception as e:
-            log.error(f"Weather subscription set error: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+            log.error(f"Weather subscription set error: {type(e).__name__}: {e}\n\n{traceback.format_exc()}")
             await inter.followup.send("its too much man i cant take it anymore man i cant do it i cant do it i cant do it anymore man it", ephemeral = True)
 
     @group.command(name = "subscriptions", description = "List this channel's weather subscriptions and next send time.")
@@ -758,10 +758,10 @@ class Weather(commands.Cog):
                         except Exception as e:
                             fallback = now_utc + timedelta(minutes = 5)
                             self.bot.store.update_weather_sub(s["id"], next_run_utc=fallback.isoformat())
-                            log.error(f"Weather error: {e}\n{traceback.format_exc()}")
+                            log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
 
         except Exception as e:
-            log.error(f"Weather subscriptions error: {e}\n{traceback.format_exc()}")
+            log.error(f"Weather subscriptions error: {e}\n\n{traceback.format_exc()}")
 
     @weather_scheduler.before_loop
     async def before_weather(self):

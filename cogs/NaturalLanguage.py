@@ -82,9 +82,9 @@ class NaturalLanguage(commands.Cog):
 					response = await request.json()
 
 					if response.get("error") is not None:
-						raise Exception("Error response from model: " + response.get("error") + "\n" + str(response))
+						raise Exception("Error response from model: " + response.get("error") + "\n\n" + str(response))
 					elif response.get("response") is None:
-						raise Exception("Response from model was None\n" + str(response))
+						raise Exception("Response from model was None\n\n" + str(response))
 
 					response = response.get("response").strip()
 
@@ -93,7 +93,7 @@ class NaturalLanguage(commands.Cog):
 
 					return response
 		except Exception as e:
-			log.error(f"Prompt error: {e}\n{traceback.format_exc()}")
+			log.error(f"Prompt error: {e}\n\n{traceback.format_exc()}")
 			return None
 
 async def setup(bot: commands.Bot):
