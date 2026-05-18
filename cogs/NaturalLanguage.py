@@ -19,23 +19,22 @@ class NaturalLanguage(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 
-		self.model = "gemma2:2b"
-		self.ollamaUri = "http://ollama:11434"
-		# TODO: make this an env
-		self.announce = False
+		self.model = os.getenv("OLLAMA_MODEL", "gemma2:2b")
+		self.ollamaUri = os.getenv("OLLAMA_URI", "http://ollama:11434")
+		self.announce = os.getenv("OLLAMA_ANNOUNCE", False)
 
-		# TODO: skip this via environment variable
-		# TODO: this fails due to unable to resolve host for some reason
-		#request = requests.post(f"{self.ollamaUri}/api/show", json = {
-		#	"model": self.model
-		#})
-
-		#response = request.json()
-
-		#if response.get("license") is None:
-		#	request = requests.post(f"{self.ollamaUri}/api/pull", json = {
-		#		"model": self.model
-		#	})
+#		# TODO: skip this via environment variable
+#		# TODO: this fails due to unable to resolve host for some reason
+#		request = requests.post(f"{self.ollamaUri}/api/show", json = {
+#			"model": self.model
+#		})
+#
+#		response = request.json()
+#
+#		if response.get("license") is None:
+#			request = requests.post(f"{self.ollamaUri}/api/pull", json = {
+#				"model": self.model
+#			})
 
 	def cog_unload(self):
 		return
@@ -73,7 +72,7 @@ class NaturalLanguage(commands.Cog):
 							- <:boykisser_meow:1488616984592781545> for being onery, funny, cute, or waving. 
 							- <:boykisser_baffled:1483470929458626713> for when something is bewildering or baffling.
 							- <:boykisser_what:1483293684899381248> for confusion.
-						These emotes must be used exactly as is enclosed in quotes.
+						These emotes must be used exactly as is. Use the entire emote, including the carets, colons, and numbers.
 					""" + prompt,
 					"stream": False,
 				}) as request:
