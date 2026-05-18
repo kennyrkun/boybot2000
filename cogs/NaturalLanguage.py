@@ -80,8 +80,7 @@ class NaturalLanguage(commands.Cog):
 
 					if request.status != 200:
 						raise RuntimeError(f"Prompt request returned {request.status}.\n\n" + str(response))
-
-					if response.get("error") is not None:
+					elif response.get("error") is not None:
 						raise RuntimeError("Error response from model: " + response.get("error") + "\n\n" + str(response))
 					elif response.get("response") is None:
 						raise RuntimeError("Response from model was None\n\n" + str(response))
