@@ -82,9 +82,9 @@ class NaturalLanguage(commands.Cog):
 					response = await request.json()
 
 					if response.get("error") is not None:
-						raise Exception("Error response from model: " + response.get("error"))
+						raise Exception("Error response from model: " + response.get("error") + "\n" + str(response))
 					elif response.get("response") is None:
-						raise Exception("Response from model was None.")
+						raise Exception("Response from model was None\n" + str(response))
 
 					response = response.get("response").strip()
 
