@@ -70,7 +70,7 @@ class Boytoy(commands.Cog):
                 return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
                 async with message.channel.typing():
-                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, f"You will be given a message to read. If the message is directed AT you, reply to it. If the message is talking ABOUT you, but not directly to you, reply with only and exactly with 'Indirect'. Message from {message.author.global_name}: {message.content}")
+                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, f"You will be given a message to read. If the message is directed AT you, reply to it. If the message is talking ABOUT you, but not directly to you, reply with only and exactly with 'Indirect'. Otherwise, reply normally. Message from {message.author.global_name}: {message.content}")
 
                     if response and response != "Indirect":
                         return await message.reply(response, mention_author = True)
@@ -86,7 +86,7 @@ class Boytoy(commands.Cog):
                 await asyncio.sleep(random.randint(0, 4))
 
             return await message.reply(
-                await self.bot.NaturalLanguage.prompt(message.channel.guild.id, "The following message may contain talk about boys. You love boys. You like boys. You are very into boys. You DO NOT dislike boys. You DO NOT hate boys. If it does mention boys, talk about how much you love boys, especially if they're cute, tall, and strong in one sentence or less. Here is the message: " + message.content)
+                await self.bot.NaturalLanguage.prompt(message.channel.guild.id, "If the message talks about boys, reply with how much you love boys. Here is the message: " + message.content)
                 or "i luv boys <:boykisser_meow:1488616984592781545>",
                 mention_author = True
             )
