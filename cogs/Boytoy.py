@@ -77,7 +77,7 @@ class Boytoy(commands.Cog):
 
                 return await message.add_reaction("<:boykisser_what:1483293684899381248>")
 
-        elif any(x in messageText for x in [ "clanker" ]):
+        elif any(x in messageText for x in [ "clanker", "burger king" ]):
             return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
         
         # TODO: had to remove "boy" from this because it would reply to boykisser emotes
