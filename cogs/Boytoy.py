@@ -68,9 +68,9 @@ class Boytoy(commands.Cog):
                 return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
                 async with message.channel.typing():
-                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, f"Reply to this message from {message.author.global_name}: {message.content}")
+                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, f"You will be given a message to read. If the message is directed AT you, reply to it. If the message is talking ABOUT you, but not directly to you, reply with only and exactly with 'Indirect'. Read and reply to this message from {message.author.global_name}: {message.content}")
 
-                    if response:
+                    if response and response != "Indirect":
                         return await message.reply(response, mention_author = True)
 
                 return await message.add_reaction("<:boykisser_what:1483293684899381248>")
