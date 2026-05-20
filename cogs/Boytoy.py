@@ -68,7 +68,7 @@ class Boytoy(commands.Cog):
                 return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
                 async with message.channel.typing():
-                    response = await self.bot.NaturalLanguage.prompt(channel.guild.id, f"Reply to this message from {message.author.global_name}: {message.content}")
+                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, f"Reply to this message from {message.author.global_name}: {message.content}")
 
                     if response:
                         return await message.reply(response, mention_author = True)
