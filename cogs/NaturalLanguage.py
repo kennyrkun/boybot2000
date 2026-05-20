@@ -59,6 +59,8 @@ class NaturalLanguage(commands.Cog):
 				raise Exception("No prompt was provided to NaturalLanguage cog.")
 
 			async with aiohttp.ClientSession() as session:
+				log.info("Dispatching prompt...")
+
 				async with session.post(f"{self.ollamaUri}/api/generate", timeout = 120, json = {
 					"model": self.model,
 					"prompt": """
