@@ -34,6 +34,8 @@ class Boytoy(commands.Cog):
 
     # -------- Event listeners -------
 
+    # TODO: listen for message edits, if the message is something we've already replied to, re-read the message and reply again?
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.guild is None:
