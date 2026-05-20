@@ -132,10 +132,10 @@ class Events(commands.Cog):
             if s["guild_id"] == event.guild.id:
                 if s["channel_id"] not in sent_channels:
                     channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                    await channel.send(content = "[" + (
-                            await self.bot.NaturalLanguage.prompt(channel.guild.id, "A new event has been created, say something about being exciting about the new event. Make sure to include uwu and :3")
+                    await channel.send(content = (
+                            await self.bot.NaturalLanguage.prompt(channel.guild.id, f"A new event has been created! You are super excited to go, and want to make sure everybody else is too! Talk about how excited you are about the event! Make sure to include uwu and :3 Here is the event title and description: {event.name} | {event.description}")
                             or "new event just dropped uwu :333"
-                        ) + f"]({event.url})"
+                        ) + f"\n[{event.name}]({event.url})"
                     )
 
     @commands.Cog.listener()
