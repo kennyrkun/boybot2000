@@ -58,6 +58,7 @@ class Boytoy(commands.Cog):
 
                 return await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
 
+        # if they said boybot
         elif self.regex.search(messageText):
             await asyncio.sleep(random.randint(0, 4))
 
@@ -66,6 +67,11 @@ class Boytoy(commands.Cog):
             elif any(x in messageText for x in [ "bad", "dumb", "stupid", "idiot", "dipshit", "retard", "fuck", "ass", "ugly", "ass" ]):
                 return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
+                response = await self.bot.NaturalLanguage.prompt(channel.guild.id, f"Reply to this message from {message.author.global_name}: {message.content}")
+
+                if response:
+                    return await message.reply(response, mention_author = True)
+
                 return await message.add_reaction("<:boykisser_what:1483293684899381248>")
 
         elif any(x in messageText for x in [ "clanker" ]):

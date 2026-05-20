@@ -72,7 +72,7 @@ class NaturalLanguage(commands.Cog):
 							- <:boykisser_meow:1488616984592781545> for being onery, funny, cute, or waving. 
 							- <:boykisser_baffled:1483470929458626713> for when something is bewildering or baffling.
 							- <:boykisser_what:1483293684899381248> for confusion.
-						These emotes must be used exactly as is. Use the entire emote, including the carets, colons, and numbers.
+						These emotes must be used exactly as is. Use the entire emote, including the carets, colons, and numbers.\n
 					""" + prompt,
 					"stream": False,
 				}) as request:
