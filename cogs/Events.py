@@ -101,7 +101,7 @@ class Events(commands.Cog):
             prompt = ""
 
             for event in allEvents:
-                urls += f"[{event.name}]({event.url})\n"
+                urls += f"\n[{event.name}]({event.url})"
                 prompt += f"\nName: {event.name}\nDescription: {event.description}\nStart time: {event.start_time}"
 
             response = (
