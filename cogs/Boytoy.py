@@ -74,13 +74,13 @@ class Boytoy(commands.Cog):
                     # TODO: don't do any of this if natural language is disabled
 
                     promptData = {
-                        prompt: 
+                        "prompt":
                             """
                                 You will be given a message to read. If the message is directed AT you, reply to it.
                                 If the message is talking ABOUT you, but not directly to you, reply with only and exactly with "Indirect" and nothing else. Otherwise, reply normally.
                             """,
-                        content: message.content,
-                        images: []
+                        "content": message.content,
+                        "images": []
                     }
 
                     for attachment in message.attachments:
@@ -107,8 +107,8 @@ class Boytoy(commands.Cog):
                 await self.bot.NaturalLanguage.prompt(
                     message.channel.guild.id,
                     {
-                        prompt: "If the message is talking about boys, reply with how much you love boys. PLEASE make sure the message is talking about boys 18 years and older.",
-                        content: message.content
+                        "prompt": "If the message is talking about boys, reply with how much you love boys. PLEASE make sure the message is talking about boys 18 years and older.",
+                        "content": message.content
                     }
                 )
                 or "i luv boys <:boykisser_meow:1488616984592781545>",
