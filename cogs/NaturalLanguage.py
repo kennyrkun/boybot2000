@@ -55,9 +55,6 @@ class NaturalLanguage(commands.Cog):
 			return None
 
 		try:
-			if not prompt:
-				raise Exception("No prompt was provided to NaturalLanguage cog.")
-
 			async with aiohttp.ClientSession() as session:
 				log.info("Dispatching prompt...")
 
