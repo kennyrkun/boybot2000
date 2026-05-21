@@ -77,7 +77,7 @@ class Boytoy(commands.Cog):
                     promptData = {
                         "prompt":
                             """
-                                You will be given a message to read. If the message is directed AT you, reply to it.
+                                You will be given a message to read. If the message is directed AT you, reply to it normally.
                                 If the message is talking ABOUT you, but not directly to you, reply with only and exactly with "Indirect" and nothing else. Otherwise, reply normally.
                             """,
                         "content": message.content,
@@ -88,12 +88,18 @@ class Boytoy(commands.Cog):
                         # TODO: check attachment.type make sure it's an image
                         promptData["images"].append(
                             base64.b64encode(requests.get(attachment.url).content).decode("utf-8")
+                            log.info("Downloaded image.")
                         )
                     
                     response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, promptData)
 
-                    if response and response != "Indirect":
-                        return await message.reply(response, mention_author = True)
+                    if response:
+                        if response != "Indirect":
+                            log.info("Model thinks message is indirect.")
+                            return await message.reply(response, mention_author = True)
+                        else: log.error("Model thinks response is indirect.")
+                    else: log.error("Got empty response from NaturalLangauge.")
+
 
                 return await message.add_reaction("<:boykisser_what:1483293684899381248>")
 
