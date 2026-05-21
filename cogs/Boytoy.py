@@ -86,10 +86,13 @@ class Boytoy(commands.Cog):
 
                     for attachment in message.attachments:
                         # TODO: check attachment.type make sure it's an image
+                        log.info("Downloading an image...")
+                        
                         promptData["images"].append(
                             base64.b64encode(requests.get(attachment.url).content).decode("utf-8")
-                            log.info("Downloaded image.")
                         )
+
+                        log.info("Downloaded image.")
                     
                     response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, promptData)
 
