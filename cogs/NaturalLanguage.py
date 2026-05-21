@@ -85,7 +85,7 @@ class NaturalLanguage(commands.Cog):
 						{
 							"role": "user",
 							"content": promptData["content"],
-							"images": promptData["images"],
+							"images": promptData["images"] or [],
 						}
 					],
 					"stream": False,
