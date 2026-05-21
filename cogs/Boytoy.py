@@ -98,7 +98,6 @@ class Boytoy(commands.Cog):
 
                     if response:
                         if response != "Indirect":
-                            log.info("Model thinks message is indirect.")
                             return await message.reply(response, mention_author = True)
                         else: log.error("Model thinks response is indirect.")
                     else: log.error("Got empty response from NaturalLangauge.")
