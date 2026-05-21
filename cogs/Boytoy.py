@@ -76,11 +76,10 @@ class Boytoy(commands.Cog):
 
                     promptData = {
                         "prompt":
-                            #"""
-                            #    You will be given a message to read. If the message is directed AT you, reply to it normally.
-                            #    If the message is talking ABOUT you, but not directly to you, reply with only and exactly with "Indirect" and nothing else. Otherwise, reply normally.
-                            #""",
-                            "Reply to the following message.",
+                            """
+                                You will be given a message to read. If the message is directed AT you, reply to it normally.
+                                If the message is talking ABOUT you, but not directly to you, reply with only and exactly with "Indirect" and nothing else. Otherwise, reply normally.
+                            """,
                         "content": message.content,
                         "images": []
                     }
