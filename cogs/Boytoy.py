@@ -5,6 +5,7 @@ import re
 import random
 import traceback
 import base64
+import requests
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
