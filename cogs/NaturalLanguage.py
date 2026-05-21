@@ -80,12 +80,12 @@ class NaturalLanguage(commands.Cog):
 						},
 						{
 							"role": "system",
-							"content": promptData.prompt
+							"content": promptData["prompt"]
 						},
 						{
 							"role": "user",
-							"content": promptData.content,
-							"images": promptData.images,
+							"content": promptData["content"],
+							"images": promptData["images"],
 						}
 					],
 					"stream": False,
