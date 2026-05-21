@@ -4,6 +4,7 @@ import os
 import re
 import random
 import traceback
+import base64
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -70,7 +71,24 @@ class Boytoy(commands.Cog):
                 return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
                 async with message.channel.typing():
-                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, f"You will be given a message to read. If the message is directed AT you, reply to it. If the message is talking ABOUT you, but not directly to you, reply with only and exactly with 'Indirect'. Otherwise, reply normally. Message from {message.author.global_name}: {message.content}")
+                    # TODO: don't do any of this if natural language is disabled
+
+                    promptData = {
+                        prompt: 
+                            """
+                                You will be given a message to read. If the message is directed AT you, reply to it.
+                                If the message is talking ABOUT you, but not directly to you, reply with only and exactly with "Indirect" and nothing else. Otherwise, reply normally.
+                            """,
+                        content: message.content,
+                        images: []
+                    }
+
+                    for attachment in message.attachments:
+                        # TODO: check attachment.type make sure it's an image
+                        base64.b64encode(requests.get(attachment.url).content).decode("utf-8")
+                        promptData.images.append(image)
+                    
+                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, promptData)
 
                     if response and response != "Indirect":
                         return await message.reply(response, mention_author = True)
@@ -86,7 +104,13 @@ class Boytoy(commands.Cog):
                 await asyncio.sleep(random.randint(0, 4))
 
             return await message.reply(
-                await self.bot.NaturalLanguage.prompt(message.channel.guild.id, "If the message talks about boys, reply with how much you love boys. Here is the message: " + message.content)
+                await self.bot.NaturalLanguage.prompt(
+                    message.channel.guild.id,
+                    {
+                        prompt: "If the message is talking about boys, reply with how much you love boys. PLEASE make sure the message is talking about boys 18 years and older.",
+                        content: message.content
+                    }
+                )
                 or "i luv boys <:boykisser_meow:1488616984592781545>",
                 mention_author = True
             )
