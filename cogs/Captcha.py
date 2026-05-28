@@ -77,6 +77,7 @@ class Captcha(commands.Cog):
             message.edit_message(content = "you're too slow!!!! :<<", view = None)
         elif view.value:
             self.bot.store.remove_captcha_user(member.id, member.guild.id)
+            message.edit_message(content = "thank you bestie!!", view = None)
         else:
             await member.guild.kick(member)
 
@@ -97,7 +98,7 @@ class Captcha(commands.Cog):
         if member.id in self.bot.store.list_captcha_users(member.guild.id):
             return
 
-        if self.bot.store.add_captcha_user(member.id, member.guild.id, datetime.utcnow()):
+        if self.bot.store.add_captcha_user(member.guild.id, member.id, datetime.utcnow()):
             await self.challengeMember(member)
 
     # --------- Text Commands --------
@@ -125,14 +126,14 @@ class Captcha(commands.Cog):
             timeoutTimestamp = datetime.utcnow() + timedelta(seconds = self.timeout)
 
             for user in queuedUsers:
-                if user.timestamp > timeoutTimestamp:
+                if user["timestamp"] > timeoutTimestamp:
                     # get guild from id and kick the user
-                    guild = self.bot.fetch_guild(user.guild_id)
+                    guild = self.bot.fetch_guild(user["guild_id"])
 
                     if guild is None:
-                        raise RuntimeError("Unable to fetch guild {user.guild_id} for user {user.user_id} to kick them. User was past the timeout without captcha confirmation.")
+                        raise RuntimeError(f"Unable to fetch guild {user["guild_id"]} for user {user["user_id"]} to kick them. User was past the timeout without captcha confirmation.")
 
-                    guild.kick(user.user_id)
+                    guild.kick(user["user_id"])
 
         except Exception as e:
             log.error(f"Captcha error: {e}\n{traceback.format_exc()}")
