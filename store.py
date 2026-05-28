@@ -26,7 +26,6 @@ class Store:
         )
         cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS name_and_guildid ON extensions_enabled (name, guild_id)")
 
-        cur.execute("DROP TABLE captcha_queue")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS captcha_queue (
