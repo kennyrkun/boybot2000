@@ -126,6 +126,8 @@ class Captcha(commands.Cog):
             timeoutTimestamp = datetime.utcnow() + timedelta(seconds = self.timeout)
 
             for user in queuedUsers:
+                # TODO: if the user timestamp in the db is earlier than the user's server join date, remove them from the queue
+
                 if user["timestamp"] > timeoutTimestamp:
                     # get guild from id and kick the user
                     guild = self.bot.fetch_guild(user["guild_id"])
@@ -134,6 +136,7 @@ class Captcha(commands.Cog):
                         raise RuntimeError(f"Unable to fetch guild {user["guild_id"]} for user {user["user_id"]} to kick them. User was past the timeout without captcha confirmation.")
 
                     guild.kick(user["user_id"])
+                    self.bot.store.remove_captcha_user(user["guild_id"], user["user_id"])
 
         except Exception as e:
             log.error(f"Captcha error: {e}\n{traceback.format_exc()}")
