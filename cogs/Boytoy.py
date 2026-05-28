@@ -60,7 +60,27 @@ class Boytoy(commands.Cog):
                 async with message.channel.typing():
                     await asyncio.sleep(random.randint(0, 4))
 
-                return await message.reply("<:boykisser_sip:1488616986677084322>", mention_author = True)
+                    promptData = {
+                        "prompt": "Reply to the following message.",
+                        "content": message.content,
+                        "images": []
+                    }
+
+                    for attachment in message.attachments:
+                        # TODO: check attachment.type make sure it's an image
+                        log.info("Downloading an image...")
+                        
+                        promptData["images"].append(
+                            base64.b64encode(requests.get(attachment.url).content).decode("utf-8")
+                        )
+
+                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, {
+                            "prompt": "Reply to the following message.",
+                            "content": message.content,
+                            "images": []
+                        }) or "<:boykisser_sip:1488616986677084322>"
+
+                    return await message.reply(response, mention_author = True)
 
         # if they said boybot
         elif self.regex.search(messageText):
@@ -96,12 +116,9 @@ class Boytoy(commands.Cog):
                     
                     response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, promptData)
 
-                    if response:
-                        if response != "Indirect":
-                            return await message.reply(response, mention_author = True)
-                        else: log.error("Model thinks response is indirect.")
-                    else: log.error("Got empty response from NaturalLangauge.")
-
+                    if response != "Indirect":
+                        return await message.reply(response, mention_author = True)
+                    else: log.error("Model thinks response is indirect.")
 
                 return await message.add_reaction("<:boykisser_what:1483293684899381248>")
 
