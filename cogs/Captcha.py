@@ -67,9 +67,8 @@ class Captcha(commands.Cog):
     async def challengeMember(self, member: discord.Member):
         view = BotCheck(timeout = self.timeout)
 
-        message = await member.send(f"Are you a bot? Answer in <t:{int((datetime.now() + timedelta(seconds = view.timeout)).timestamp())}:R>.", view = view)
+        message = await member.send(f"Are you a bot? You have <t:{int((datetime.now() + timedelta(seconds = view.timeout)).timestamp())}:R> to confirm.", view = view)
 
-        # Wait for the View to stop listening for input
         await view.wait()
 
         if view.value is None:
@@ -107,6 +106,11 @@ class Captcha(commands.Cog):
     async def challenge(self, ctx: commands.Context):
         # user might not have all the right variables, hopefully it is always a Member object.
         await self.challengeMember(ctx.author)
+
+    @commands.command()
+    async def captchaQueue(self, ctx: commands.Context):
+        queuedUsers = self.bot.store.list_captcha_users()
+        log.info(queuedUsers)
 
     # -------- Schedulers --------
 

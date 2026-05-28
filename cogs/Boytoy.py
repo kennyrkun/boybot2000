@@ -34,6 +34,29 @@ class Boytoy(commands.Cog):
     def interaction_check(self, inter):
         return self.check_cog_enabled(inter.guild.id)
 
+    async def replyToMessage(message: discord.Message, prompt: str):
+        promptData = {
+            "prompt": prompt,
+            "content": message.content,
+            "images": []
+        }
+
+        for attachment in message.attachments:
+            # TODO: check attachment.type make sure it's an image
+            log.info("Downloading an image...")
+            
+            promptData["images"].append(
+                base64.b64encode(requests.get(attachment.url).content).decode("utf-8")
+            )
+
+        response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, {
+                "prompt": "Reply to the following message.",
+                "content": message.content,
+                "images": []
+            }) or "<:boykisser_sip:1488616986677084322>"
+
+        return response
+
     # -------- Event listeners -------
 
     # TODO: listen for message edits, if the message is something we've already replied to, re-read the message and reply again?
@@ -60,25 +83,7 @@ class Boytoy(commands.Cog):
                 async with message.channel.typing():
                     await asyncio.sleep(random.randint(0, 4))
 
-                    promptData = {
-                        "prompt": "Reply to the following message.",
-                        "content": message.content,
-                        "images": []
-                    }
-
-                    for attachment in message.attachments:
-                        # TODO: check attachment.type make sure it's an image
-                        log.info("Downloading an image...")
-                        
-                        promptData["images"].append(
-                            base64.b64encode(requests.get(attachment.url).content).decode("utf-8")
-                        )
-
-                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, {
-                            "prompt": "Reply to the following message.",
-                            "content": message.content,
-                            "images": []
-                        }) or "<:boykisser_sip:1488616986677084322>"
+                    response = await self.replyToMessage(message, "Reply to this message") or "<:boykisser_sip:1488616986677084322>"
 
                     return await message.reply(response, mention_author = True)
 
@@ -92,35 +97,16 @@ class Boytoy(commands.Cog):
                 return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
             else:
                 async with message.channel.typing():
-                    # TODO: don't do any of this if natural language is disabled
+                    response = await self.replyToMessage(message, 
+                    """
+                        You will be given a message to read. If the message is directed AT you, reply to it normally.
+                        If the message is talking ABOUT you, but not directly to you, reply with only and exactly with "Indirect" and nothing else. Otherwise, reply normally.
+                    """)
 
-                    promptData = {
-                        "prompt":
-                            """
-                                You will be given a message to read. If the message is directed AT you, reply to it normally.
-                                If the message is talking ABOUT you, but not directly to you, reply with only and exactly with "Indirect" and nothing else. Otherwise, reply normally.
-                            """,
-                        "content": message.content,
-                        "images": []
-                    }
-
-                    for attachment in message.attachments:
-                        # TODO: check attachment.type make sure it's an image
-                        log.info("Downloading an image...")
-                        
-                        promptData["images"].append(
-                            base64.b64encode(requests.get(attachment.url).content).decode("utf-8")
-                        )
-
-                        log.info("Downloaded image.")
-                    
-                    response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id, promptData)
-
-                    if response != "Indirect":
+                    if response and response != "Indirect":
                         return await message.reply(response, mention_author = True)
-                    else: log.error("Model thinks response is indirect.")
 
-                return await message.add_reaction("<:boykisser_what:1483293684899381248>")
+                    return await message.add_reaction("<:boykisser_what:1483293684899381248>")
 
         elif any(x in messageText for x in [ "clanker", "burger king" ]):
             return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
@@ -131,14 +117,9 @@ class Boytoy(commands.Cog):
                 await asyncio.sleep(random.randint(0, 4))
 
             return await message.reply(
-                await self.bot.NaturalLanguage.prompt(
-                    message.channel.guild.id,
-                    {
-                        "prompt": "If the message is talking about boys, reply with how much you love boys. PLEASE make sure the message is talking about boys 18 years and older.",
-                        "content": message.content
-                    }
-                )
-                or "i luv boys <:boykisser_meow:1488616984592781545>",
+                    self.replyTomessage(message, "If the message is talking about boys, reply with how much you love boys. PLEASE make sure the message is talking about boys 18 years and older.")
+                or 
+                    "i luv boys <:boykisser_meow:1488616984592781545>",
                 mention_author = True
             )
 
