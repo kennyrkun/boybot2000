@@ -34,7 +34,7 @@ class Boytoy(commands.Cog):
     def interaction_check(self, inter):
         return self.check_cog_enabled(inter.guild.id)
 
-    async def replyToMessage(message: discord.Message, prompt: str):
+    async def replyToMessage(self, message: discord.Message, prompt: str):
         promptData = {
             "prompt": prompt,
             "content": message.content,
