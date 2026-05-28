@@ -133,7 +133,7 @@ class Captcha(commands.Cog):
                     guild = self.bot.fetch_guild(user["guild_id"])
 
                     if guild is None:
-                        raise RuntimeError(f"Unable to fetch guild {user["guild_id"]} for user {user["user_id"]} to kick them. User was past the timeout without captcha confirmation.")
+                        raise RuntimeError(f"Unable to fetch guild {user['guild_id']} for user {user['user_id']} to kick them. User was past the timeout without captcha confirmation.")
 
                     guild.kick(user["user_id"])
                     self.bot.store.remove_captcha_user(user["guild_id"], user["user_id"])
