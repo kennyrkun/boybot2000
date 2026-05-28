@@ -88,7 +88,7 @@ class Boytoy(commands.Cog):
                     return await message.reply(response, mention_author = True)
 
         # if they said boybot
-        elif self.regex.search(messageText):
+        elif self.regex.search(messageText) or f"<@{self.bot.user.id}>" in messageText:
             await asyncio.sleep(random.randint(0, 4))
 
             if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome", "yay", "best", "nice" ]):
