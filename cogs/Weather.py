@@ -359,7 +359,7 @@ class Weather(commands.Cog):
                 return None
 
         try:
-            async with aiohttp.ClientSession(headers=HTTP_HEADERS) as session:
+            async with aiohttp.ClientSession(headers = HTTP_HEADERS) as session:
                 city, state, lat, lon = await _zip_to_place_and_coords(session, z)
 
                 params = {
@@ -372,6 +372,7 @@ class Weather(commands.Cog):
                     "current": "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,precipitation,weather_code",
                     "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,sunrise,sunset,wind_speed_10m_max",
                 }
+
                 async with session.get("https://api.open-meteo.com/v1/forecast", params=params, timeout=aiohttp.ClientTimeout(total=15)) as r2:
                     if r2.status != 200:
                         return await inter.followup.send("Weather service is unavailable right now.", ephemeral=True)
@@ -406,27 +407,28 @@ class Weather(commands.Cog):
             )
 
             if t is not None:
-                emb.add_field(name="Now", value=f"**{round(float(t))}{deg}** (feels {round(float(feels))}{deg})", inline=True)
+                emb.add_field(name = "Now", value = f"**{round(float(t))}{deg}** (feels {round(float(feels))}{deg})", inline = True)
             if hi is not None and lo is not None:
-                emb.add_field(name="Today", value=f"High **{round(float(hi))}{deg}** / Low **{round(float(lo))}{deg}**", inline=True)
+                emb.add_field(name = "Today", value = f"High **{round(float(hi))}{deg}** / Low **{round(float(lo))}{deg}**", inline=True)
             if rh is not None:
-                emb.add_field(name="Humidity", value=f"{int(rh)}%", inline=True)
+                emb.add_field(name = "Humidity", value = f"{int(rh)}%", inline=True)
             if wind is not None:
                 wind_txt = f"{round(float(wind))} {wind_unit}"
                 if gust is not None:
                     wind_txt += f" (gusts {round(float(gust))} {wind_unit})"
-                emb.add_field(name="Wind", value=wind_txt, inline=True)
-            emb.add_field(name="Precip (now)", value=f"{float(pcp):.2f} {precip_unit}", inline=True)
+                emb.add_field(name = "Wind", value = wind_txt, inline = True)
+            if pcp is not None:
+                emb.add_field(name = "Precip (now)", value = f"{float(pcp):.2f} {precip_unit}", inline = True)
             if prcp_prob is not None:
-                emb.add_field(name="Precip Chance", value=f"{int(prcp_prob)}%", inline=True)
+                emb.add_field(name = "Precip Chance", value = f"{int(prcp_prob)}%", inline = True)
             if wind_max is not None:
-                emb.add_field(name="Max Wind Today", value=f"{round(float(wind_max))} {wind_unit}", inline=True)
+                emb.add_field(name = "Max Wind Today", value = f"{round(float(wind_max))} {wind_unit}", inline = True)
             if uv is not None:
-                emb.add_field(name="UV Index (max)", value=str(round(float(uv), 1)), inline=True)
+                emb.add_field(name = "UV Index (max)", value = str(round(float(uv), 1)), inline = True)
             if sunrise:
-                emb.add_field(name="Sunrise", value=fmt_sun(sunrise), inline=True)
+                emb.add_field(name = "Sunrise", value = fmt_sun(sunrise), inline = True)
             if sunset:
-                emb.add_field(name="Sunset", value=fmt_sun(sunset), inline=True)
+                emb.add_field(name = "Sunset", value = fmt_sun(sunset), inline = True)
 
             # Moon phase (in user's timezone)
             m_name, m_emoji, m_age = moon_phase_info_for_date(datetime.utcnow())
@@ -737,8 +739,8 @@ class Weather(commands.Cog):
                                         first_hi_f = None
 
                                 emb = discord.Embed(
-                                    title=f"\U0001F5D3\ufe0f Weekly Outlook ({days} days) — {city}, {state} {s['zip']}",
-                                    colour=wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
+                                    title = f"\U0001F5D3\ufe0f Weekly Outlook ({days} days) — {city}, {state} {s['zip']}",
+                                    colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
                                 )
 
                                 for (d, line, _sunrise, _sunset, _uv, _hi) in outlook:
@@ -758,7 +760,7 @@ class Weather(commands.Cog):
                                 self.bot.store.update_weather_sub(s["id"], channel_id = int(s["channel_id"]), next_run_utc = next_local.astimezone(timezone.utc).isoformat())
                         except Exception as e:
                             fallback = now_utc + timedelta(minutes = 5)
-                            self.bot.store.update_weather_sub(s["id"], next_run_utc=fallback.isoformat())
+                            self.bot.store.update_weather_sub(s["id"], next_run_utc = fallback.isoformat())
                             log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
 
         except Exception as e:
@@ -827,14 +829,14 @@ class Weather(commands.Cog):
                             if len(body) > 400: body = body[:397] + "…"
                             tail = f"\n{when}Source: {a.get('sender') or 'NWS'}"
                             if a.get("link"): tail += f"\nMore: {a['link']}"
-                            emb.add_field(name=name, value=f"{body}{tail}", inline=False)
+                            emb.add_field(name = name, value = f"{body}{tail}", inline = False)
 
                         channel = await self.bot.fetch_channel(uid)
 
                         if not self.check_cog_enabled(channel.guild.id):
                             return
 
-                        await channel.send(embed=emb)
+                        await channel.send(embed = emb)
                         
                         # mark seen
                         for a in fresh:
