@@ -686,6 +686,7 @@ class Weather(commands.Cog):
 
                             if s["cadence"] == "daily":
                                 outlook = await _fetch_outlook(session, lat, lon, days = 1, tz_name = tz_name, units = units)
+                                log.debug(outlook)
                                 first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
                                 first_hi_f = None
 
@@ -710,18 +711,18 @@ class Weather(commands.Cog):
 
                                     emb.set_footer(text = f"{city}, {state} {s['zip']}")
 
-                                    await channel.send(embed=emb)
+                                    await channel.send(embed = emb)
 
                                     break
 
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
-                                next_local = next_local.replace(hour=s["hh"], minute=s["mi"], second=0, microsecond=0)
+                                next_local = next_local.replace(hour = s["hh"], minute = s["mi"], second = 0, microsecond = 0)
 
                                 if next_local <= datetime.now(tz):
                                     next_local += timedelta(days=1)
                                     
-                                self.bot.store.update_weather_sub(s["id"], channel_id=int(s["channel_id"]), next_run_utc=next_local.astimezone(timezone.utc).isoformat())
+                                self.bot.store.update_weather_sub(s["id"], channel_id = int(s["channel_id"]), next_run_utc = next_local.astimezone(timezone.utc).isoformat())
                             else:
                                 days = int(s.get("weekly_days", 7))
                                 days = 10 if days > 10 else (3 if days < 3 else days)
