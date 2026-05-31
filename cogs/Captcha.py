@@ -75,12 +75,16 @@ class Captcha(commands.Cog):
             await member.guild.kick(member)
 
             message.edit_message(content = "you're too slow!!!! :<<", view = None)
+
+            log.info(f"Captcha for {member.global_name} in {member.guild.id} has expired.")
         elif view.value:
             self.bot.store.remove_captcha_user(member.id, member.guild.id)
             message.edit_message(content = "thank you bestie!!", view = None)
+            log.info(f"{member.global_name} ({member.id}) answered captcha with not a bot in {member.guild.id}.")
         else:
             await member.guild.kick(member)
-
+            log.info(f"{member.global_name} ({member.id}) answered captcha bot in {member.guild.id}, kicked them.")
+        
     # -------- Event handlers --------
 
     @commands.Cog.listener()
@@ -139,6 +143,8 @@ class Captcha(commands.Cog):
 
                     guild.kick(user["user_id"])
                     self.bot.store.remove_captcha_user(user["guild_id"], user["user_id"])
+
+                    log.debug(f"Kicked {user['user_id']} from {user['guild_id']} because their captcha expired.")
 
         except Exception as e:
             log.error(f"Captcha error: {e}\n{traceback.format_exc()}")
