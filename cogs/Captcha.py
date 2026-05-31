@@ -128,7 +128,7 @@ class Captcha(commands.Cog):
             for user in queuedUsers:
                 # TODO: if the user timestamp in the db is earlier than the user's server join date, remove them from the queue
 
-                date = datetime.strptime(int(user["timestamp"]), "%Y-%m-%d %H:%M:%S.%f")
+                date = datetime.strptime(user["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
 
                 if date > timeoutTimestamp:
                     # get guild from id and kick the user
