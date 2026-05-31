@@ -132,9 +132,9 @@ class Captcha(commands.Cog):
             for user in queuedUsers:
                 # TODO: if the user timestamp in the db is earlier than the user's server join date, remove them from the queue
 
-                date = datetime.strptime(user["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
+                joinDate = datetime.strptime(user["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
 
-                if date > timeoutTimestamp:
+                if joinDate > timeoutTimestamp:
                     # get guild from id and kick the user
                     guild = self.bot.fetch_guild(user["guild_id"])
 
@@ -144,7 +144,7 @@ class Captcha(commands.Cog):
                     guild.kick(user["user_id"])
                     self.bot.store.remove_captcha_user(user["guild_id"], user["user_id"])
 
-                    log.debug(f"Kicked {user['user_id']} from {user['guild_id']} because their captcha expired.")
+                    log.info(f"Kicked {user['user_id']} from {user['guild_id']} because their captcha expired.")
 
         except Exception as e:
             log.error(f"Captcha error: {e}\n{traceback.format_exc()}")
