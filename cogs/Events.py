@@ -202,11 +202,11 @@ class Events(commands.Cog):
 
                     if before.status != after.status:
                         if after.status == discord.EventStatus.active:
-                            channel.send(content = f"`{after.name}` has begun!")
+                            await channel.send(content = f"`{after.name}` has begun!")
                         elif after.status == discord.EventStatus.completed:
-                            channel.send(content = f"`{after.name}` is now over.")
+                            await channel.send(content = f"`{after.name}` is now over.")
                         elif after.status == discord.EventStatus.cancelled:
-                            channel.send(content = f"`{after.name}` has been cancelled! :boykisser_damn:")
+                            await channel.send(content = f"`{after.name}` has been cancelled! :boykisser_damn:")
 
                         return
 
