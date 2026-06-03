@@ -117,7 +117,7 @@ class Boytoy(commands.Cog):
                 await asyncio.sleep(random.randint(0, 4))
 
             return await message.reply(
-                    self.replyToMessage(message, "If the message is talking about boys, reply with how much you love boys. PLEASE make sure the message is talking about boys 18 years and older.")
+                    await self.replyToMessage(message, "If the message is talking about boys, reply with how much you love boys. PLEASE make sure the message is talking about boys 18 years and older.")
                 or 
                     "i luv boys <:boykisser_meow:1488616984592781545>",
                 mention_author = True
