@@ -660,6 +660,16 @@ class Weather(commands.Cog):
         self.bot.store.set_note(inter.channel_id, "wx_alerts_min_sev", sev)
         await inter.response.send_message(f":white_check_mark: Severe weather alerts for **{z}** (min severity: **{sev}**) will be sent to <#{inter.channel_id}>.", ephemeral=True)
 
+    @commands.command()
+    async def weatherTest(self, inter: discord.Interaction):
+        city, state, lat, lon = await _zip_to_place_and_coords(session, 73112)
+        tz_name = "America/Chicago"
+        units = "standard"
+
+        outlook = await _fetch_outlook(session, lat, lon, days = 1, tz_name = tz_name, units = units)
+
+        inter.response.send_message(outlook)
+
     # -------- Schedulers --------
     @tasks.loop(seconds = 60)
     async def weather_scheduler(self):
