@@ -186,7 +186,7 @@ async def _fetch_outlook(session: aiohttp.ClientSession, lat: float, lon: float,
             parts.append(f"\u2614 {int(pp)}%")
         parts.append(f"\U0001F4CF {pr:.2f} {precip_unit}")
         line = f"{icon} {desc} — " + " - ".join(parts)
-        out.append((d, line, sunrise, sunset, uv, hi))
+        out.append((d, line, sunrise, sunset, uv, hi, lo, wm, wind_unit, pp, pr, precip_unit))
     return out
 
 async def _fetch_hourly(session: aiohttp.ClientSession, lat: float, lon: float, tz_name: str, units: str, hours: int = 12):
@@ -670,7 +670,36 @@ class Weather(commands.Cog):
             outlook = await _fetch_outlook(session, lat, lon, days = 1, tz_name = tz_name, units = units)
 
             log.info(outlook)
-            inter.response.send_message(outlook)
+
+            first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
+            first_hi_f = None
+
+            if first_hi is not None:
+                try:
+                    first_hi_f = float(first_hi) if units == "standard" else (float(first_hi) * 9.0 / 5.0 + 32.0)
+                except Exception:
+                    first_hi_f = None
+
+            for (d, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
+                extras = []
+                if hi and lo: extras.append(f"**{round(_hi)}° / {round(_lo)}°**")
+                if wm: extras.append(f"\U0001F4A8 {round(wm)} {wmu}")
+                if pp: extras.append(f"\u2614 {int(pp)}%")
+                if pr: extras.append(f"\U0001F4CF {pr:.2f} {pru}")
+                if sunrise: extras.append(f"\U0001F305 {fmt_sun(sunrise)}")
+                if sunset: extras.append(f"\U0001F307 {fmt_sun(sunset)}")
+                if uv is not None: extras.append(f"\U0001F506 UV {round(uv,1)}")
+                value = "\n".join([line, "\n".join(extras)]) if extras else line
+
+                emb = discord.Embed(
+                    title = f"\U0001F324\ufe0f Daily Outlook — {d}",
+                    colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70),
+                    description = value
+                )
+
+                emb.set_footer(text = f"{city}, {state} {s['zip']}")
+
+                await ctx.send(embed = emb)
 
     # -------- Schedulers --------
     @tasks.loop(seconds = 60)
@@ -710,8 +739,12 @@ class Weather(commands.Cog):
                                     except Exception:
                                         first_hi_f = None
 
-                                for (d, line, sunrise, sunset, uv, _hi) in outlook:
+                                for (d, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
                                     extras = []
+                                    if hi and lo: extras.append(f"**{round(_hi)}° / {round(_lo)}°**")
+                                    if wm: extras.append(f"\U0001F4A8 {round(wm)} {wmu}")
+                                    if pp: extras.append(f"\u2614 {int(pp)}%")
+                                    if pr: extras.append(f"\U0001F4CF {pr:.2f} {pru}")
                                     if sunrise: extras.append(f"\U0001F305 {fmt_sun(sunrise)}")
                                     if sunset: extras.append(f"\U0001F307 {fmt_sun(sunset)}")
                                     if uv is not None: extras.append(f"\U0001F506 UV {round(uv,1)}")
