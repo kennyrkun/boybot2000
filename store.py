@@ -36,6 +36,16 @@ class Store:
             """
         )
         cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS userid_and_guildid ON captcha_queue (user_id, guild_id)")
+       
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS audit_subscriptions (
+                guild_id INTEGER NOT NULL,
+                channel_id INTEGER NOT NULL
+            )
+            """
+        )
+        cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS guildid_and_channelid ON audit_subscriptions (guild_id, channel_id)")
 
         cur.execute(
             """
@@ -382,6 +392,22 @@ class Store:
     def get_top_yappers(self, guild_id: int) -> List[Dict[str, Any]]:
         rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id,)).fetchall()
         return [dict(r) for r in rows]
+
+    def add_audit_sub(self, guild_id: int, channel_id: int) -> int:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO event_subs(guild_id, channel_id) VALUES (?, ?) ", (guild_id, channel_id,))
+        self.db.commit()
+        return int(cur.lastrowid)
+
+    def list_audit_subs(self, guild_id: int) -> List[int]:
+        rows = self.db.execute("SELECT * FROM event_subs WHERE guild_id = ? ORDER BY next_run ASC", (guild_id,)).fetchall()
+        return [r[0] for r in rows]
+
+    def remove_audit_sub(self, guild_id: int, channel_id: int) -> bool:
+        cur = self.db.cursor()
+        cur.execute("DELETE FROM audit_subscriptions WHERE guild_id = ? AND channel_id = ?", (guild_id, channel_id),)
+        self.db.commit()
+        return cur.rowcount > 0
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:
         row = self.db.execute(

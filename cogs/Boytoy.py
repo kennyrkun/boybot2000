@@ -16,6 +16,9 @@ from discord import app_commands
 logging.basicConfig(level = logging.INFO, format = "%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("boytoy")
 
+# TODO: keep track of messages that boybot is pending a response to. if the message is edited before he replies, mark the in progress reply as stale and begin a new one.
+# TODO: keep track of messages that boybot has already replied to. if one is edited with in 2 minutes or 10 messages of him replying, reply again.
+
 class Boytoy(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
