@@ -662,14 +662,15 @@ class Weather(commands.Cog):
 
     @commands.command()
     async def weatherTest(self, ctx: commands.Context):
-        city, state, lat, lon = await _zip_to_place_and_coords(session, 73112)
-        tz_name = "America/Chicago"
-        units = "standard"
+        async with aiohttp.ClientSession(headers = HTTP_HEADERS) as session:
+            city, state, lat, lon = await _zip_to_place_and_coords(session, 73112)
+            tz_name = "America/Chicago"
+            units = "standard"
 
-        outlook = await _fetch_outlook(session, lat, lon, days = 1, tz_name = tz_name, units = units)
+            outlook = await _fetch_outlook(session, lat, lon, days = 1, tz_name = tz_name, units = units)
 
-        log.info(outlook)
-        inter.response.send_message(outlook)
+            log.info(outlook)
+            inter.response.send_message(outlook)
 
     # -------- Schedulers --------
     @tasks.loop(seconds = 60)
