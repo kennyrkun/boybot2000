@@ -309,7 +309,7 @@ async def _fetch_nws_alerts(session: aiohttp.ClientSession, lat: float, lon: flo
 
 async def _create_day_embed(store, channel_id: int, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
     z = re.sub(r"[^0-9]", "", str(zip))
-    units = "standard" if units is None else units.value
+    units = "standard" if units is None else units
     tz_name = _get_user_tz_name(store, channel_id)
     temp_unit = "fahrenheit" if units == "standard" else "celsius"
     wind_unit = "mph" if units == "standard" else "kmh"
