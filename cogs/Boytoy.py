@@ -63,10 +63,9 @@ class Boytoy(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.guild is None:
-            return
-
-        if not self.check_cog_enabled(message.guild.id):
+        # only check if the cog is enabled if the message is in a guild.
+        # this should allow users to DM boybot and get responses
+        if message.guild and not self.check_cog_enabled(message.guild.id):
             return
 
         # TODO: this may not be required since we're using discord.Bot
