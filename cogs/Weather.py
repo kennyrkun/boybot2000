@@ -307,10 +307,10 @@ async def _fetch_nws_alerts(session: aiohttp.ClientSession, lat: float, lon: flo
 
     return out
 
-async def _create_day_embed(store, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
+async def _create_day_embed(store, channel_id: omt, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
     z = re.sub(r"[^0-9]", "", str(zip))
     units = "standard" if units is None else units.value
-    tz_name = _get_user_tz_name(store, inter.channel_id)
+    tz_name = _get_user_tz_name(store, channel_id)
     temp_unit = "fahrenheit" if units == "standard" else "celsius"
     wind_unit = "mph" if units == "standard" else "kmh"
     precip_unit = "inch" if units == "standard" else "mm"
@@ -444,7 +444,7 @@ class Weather(commands.Cog):
         await inter.response.defer()
 
         try:
-            emb = await _create_day_embed(self, zip, units)
+            emb = await _create_day_embed(self, inter.channel_id, zip, units)
             await inter.followup.send(embed = emb)
         except Exception as e:
             log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
@@ -531,17 +531,17 @@ class Weather(commands.Cog):
 
             want_hours = int(hours or 12)
             _add_chunked_fields(emb, "Forecast", lines[:want_hours])
-            await inter.followup.send(embed=emb)
+            await inter.followup.send(embed = emb)
         except Exception as e:
             log.error(f"Hourly error: {e}\n\n{traceback.format_exc()}")
             await inter.followup.send(f"nah man it's too much man i can't do it anymore man", ephemeral = True)
 
     @group.command(name = "subscribe", description = "Subscribe the current channel to a daily or weekly weather announcement at a local-time hour.")
     @app_commands.describe(
-        time="HH:MM (24h), HHMM, or h:mma/pm in this channel's saved timezone",
-        cadence="daily or weekly",
-        zip="Optional ZIP; uses this channel's saved ZIP if omitted",
-        weekly_days="For weekly: number of days to include (3, 7, or 10)"
+        time = "HH:MM (24h), HHMM, or h:mma/pm in this channel's saved timezone",
+        cadence = "daily or weekly",
+        zip = "Optional ZIP; uses this channel's saved ZIP if omitted",
+        weekly_days = "For weekly: number of days to include (3, 7, or 10)"
     )
     @app_commands.choices(cadence = CADENCE_CHOICES)
     @app_commands.choices(units = UNITS_CHOICES)
@@ -698,7 +698,7 @@ class Weather(commands.Cog):
 
                             if s["cadence"] == "daily":
                                 try:
-                                    emb = await _create_day_embed(self, s["zip"], units)
+                                    emb = await _create_day_embed(self, s["channel_id"], s["zip"], units)
                                     await inter.followup.send(embed = emb)
                                 except Exception as e:
                                     log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
@@ -761,16 +761,19 @@ class Weather(commands.Cog):
     async def weather_alerts_scheduler(self):
         try:
             channel_ids = set()
+
             try:
                 for s in self.bot.store.list_weather_subs(None):
                     channel_ids.add(int(s.get("channel_id")))
             except Exception:
                 pass
+
             try:
                 rows = self.bot.store.db.execute("SELECT channel_id FROM weather_zips").fetchall()
                 channel_ids |= {int(r[0]) for r in rows}
             except Exception:
                 pass
+
             if not channel_ids:
                 return
 
@@ -778,9 +781,12 @@ class Weather(commands.Cog):
                 for uid in channel_ids:
                     if self.bot.store.get_note(uid, "wx_alerts_enabled") != "1":
                         continue
+
                     z = self.bot.store.get_note(uid, "wx_alerts_zip") or (self.bot.store.get_user_zip(uid) or "")
+
                     if len(z) != 5:
                         continue
+
                     try:
                         city, state, lat, lon = await _zip_to_place_and_coords(session, z)
                         alerts = await _fetch_nws_alerts(session, lat, lon)
