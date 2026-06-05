@@ -48,8 +48,8 @@ def moon_phase_info_for_date(d: datetime) -> Tuple[str, str, float]:
     return name, emoji, age_days
 
 def _get_moon_embed(date):
-    todayName, todayEmoji, todayAge = moon_phase_info_for_date(date)
     previousName, previousEmoji, previousAge = moon_phase_info_for_date(date - timedelta(days = 1))
+    todayName, todayEmoji, todayAge = moon_phase_info_for_date(date)
     tomorrowName, tomorrowEmoji, tomorrowAge = moon_phase_info_for_date(date + timedelta(days = 1))
 
     emb = discord.Embed(
@@ -60,7 +60,7 @@ def _get_moon_embed(date):
     emb.add_field(name = "This moon is", value = f"{todayAge} days old.", inline = True)
 
     if previousName != todayName:
-        emb.add_field(name = "The previous moon was a", value = f"{previousEmoji} {previousName}.", inline = True)
+        emb.add_field(name = "The previous moon was a", value = f"{previousEmoji} {previousName} for {previousAge} days.", inline = True)
     
     if tomorrowName != todayName:
         emb.add_field(name = "And the following moon will be a", value = f"{tomorrowEmoji} {tomorrowName}.", inline = True)
