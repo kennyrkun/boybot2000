@@ -702,7 +702,10 @@ class Weather(commands.Cog):
                     description = value
                 )
 
-                emb.set_footer(text = f"{city}, {state} {s['zip']}")
+                for extra in extras:
+                    emb.add_field(name = extra, value = extra, inline = False)
+
+                emb.set_footer(text = f"{city}, {state} 73112")
 
                 await ctx.send(embed = emb)
 
