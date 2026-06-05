@@ -307,10 +307,10 @@ async def _fetch_nws_alerts(session: aiohttp.ClientSession, lat: float, lon: flo
 
     return out
 
-async def _create_day_embed(zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
+async def _create_day_embed(store, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
     z = re.sub(r"[^0-9]", "", str(zip))
     units = "standard" if units is None else units.value
-    tz_name = _get_user_tz_name(self.bot.store, inter.channel_id)
+    tz_name = _get_user_tz_name(store, inter.channel_id)
     temp_unit = "fahrenheit" if units == "standard" else "celsius"
     wind_unit = "mph" if units == "standard" else "kmh"
     precip_unit = "inch" if units == "standard" else "mm"
@@ -397,8 +397,8 @@ async def _create_day_embed(zip: app_commands.Range[str, 5, 5], units: Optional[
         emb.add_field(name = "Sunset", value = fmt_sun(sunset), inline = True)
 
     # Moon phase (in user's timezone)
-    m_name, m_emoji, m_age = moon_phase_info_for_date(datetime.utcnow())
-    emb.add_field(name="Moon", value=f"{m_emoji} {m_name} ({m_age}d)", inline=True)
+    moonName, moonEmoji, moonAge = moon_phase_info_for_date(datetime.utcnow())
+    emb.add_field(name = "Moon", value = f"{moonEmoji} {moonName} ({moonAge}d)", inline = True)
 
     emb.set_footer(text = f"Units: {units} • Timezone: {tz_name}")
 
@@ -444,7 +444,7 @@ class Weather(commands.Cog):
         await inter.response.defer()
 
         try:
-            emb = await _create_day_embed(zip, units)
+            emb = await _create_day_embed(self, zip, units)
             await inter.followup.send(embed = emb)
         except Exception as e:
             log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
@@ -698,7 +698,7 @@ class Weather(commands.Cog):
 
                             if s["cadence"] == "daily":
                                 try:
-                                    emb = await _create_day_embed(s["zip"], units)
+                                    emb = await _create_day_embed(self, s["zip"], units)
                                     await inter.followup.send(embed = emb)
                                 except Exception as e:
                                     log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
