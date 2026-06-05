@@ -682,7 +682,7 @@ class Weather(commands.Cog):
 
             for (d, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
                 extras = []
-                if hi and lo: extras.append(f"**{round(_hi)}° / {round(_lo)}°**")
+                if _hi and _lo: extras.append(f"**{round(_hi)}° / {round(_lo)}°**")
                 if wm: extras.append(f"\U0001F4A8 {round(wm)} {wmu}")
                 if pp: extras.append(f"\u2614 {int(pp)}%")
                 if pr: extras.append(f"\U0001F4CF {pr:.2f} {pru}")
