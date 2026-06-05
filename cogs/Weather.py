@@ -149,10 +149,12 @@ async def _fetch_outlook(session: aiohttp.ClientSession, lat: float, lon: float,
         "precipitation_unit": precip_unit,
         "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset,uv_index_max",
     }
-    async with session.get("https://api.open-meteo.com/v1/forecast", params=params, timeout=aiohttp.ClientTimeout(total=15)) as r:
+
+    async with session.get("https://api.open-meteo.com/v1/forecast", params = params, timeout = aiohttp.ClientTimeout(total = 15)) as r:
         if r.status != 200:
             raise RuntimeError("Weather API unavailable.")
         data = await r.json()
+
     daily = data.get("daily") or {}
     out = []
     dates = (daily.get("time") or [])[:days]
@@ -166,7 +168,7 @@ async def _fetch_outlook(session: aiohttp.ClientSession, lat: float, lon: float,
     sets  = (daily.get("sunset") or [])[:days]
     uvs   = (daily.get("uv_index_max") or [])[:days]
 
-    for i, d in enumerate(dates):
+    for i, date in enumerate(dates):
         hi = tmax[i] if i < len(tmax) else None
         lo = tmin[i] if i < len(tmin) else None
         pr = prec[i] if i < len(prec) else 0.0
@@ -186,7 +188,8 @@ async def _fetch_outlook(session: aiohttp.ClientSession, lat: float, lon: float,
             parts.append(f"\u2614 {int(pp)}%")
         parts.append(f"\U0001F4CF {pr:.2f} {precip_unit}")
         line = f"{icon} {desc} — " + " - ".join(parts)
-        out.append((d, line, sunrise, sunset, uv, hi, lo, wm, wind_unit, pp, pr, precip_unit))
+        out.append((date, icon, line, sunrise, sunset, uv, hi, lo, wm, wind_unit, pp, pr, precip_unit))
+
     return out
 
 async def _fetch_hourly(session: aiohttp.ClientSession, lat: float, lon: float, tz_name: str, units: str, hours: int = 12):
@@ -239,6 +242,7 @@ async def _fetch_hourly(session: aiohttp.ClientSession, lat: float, lon: float, 
 
     end_idx = min(len(times), start_idx + max(1, int(hours)))
     out = []
+
     for i in range(start_idx, end_idx):
         out.append((
             times[i],
@@ -251,6 +255,7 @@ async def _fetch_hourly(session: aiohttp.ClientSession, lat: float, lon: float, 
             precip_unit,
             "°F" if units == "standard" else "°C",
         ))
+
     return out
 
 # ---- NWS alerts helpers ----
@@ -680,7 +685,7 @@ class Weather(commands.Cog):
                 except Exception:
                     first_hi_f = None
 
-            for (d, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
+            for (date, icon, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
                 extras = []
                 if _hi and _lo: extras.append(f"**{round(_hi)}° / {round(_lo)}°**")
                 if wm: extras.append(f"\U0001F4A8 {round(wm)} {wmu}")
@@ -692,7 +697,7 @@ class Weather(commands.Cog):
                 value = "\n".join([line, "\n".join(extras)]) if extras else line
 
                 emb = discord.Embed(
-                    title = f"\U0001F324\ufe0f Daily Outlook — {d}",
+                    title = f"\U0001F324\ufe0f Daily Outlook — {date}",
                     colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70),
                     description = value
                 )
@@ -739,7 +744,7 @@ class Weather(commands.Cog):
                                     except Exception:
                                         first_hi_f = None
 
-                                for (d, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
+                                for (date, icon, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
                                     extras = []
                                     if _hi and _lo: extras.append(f"**{round(_hi)}° / {round(_lo)}°**")
                                     if wm: extras.append(f"\U0001F4A8 {round(wm)} {wmu}")
@@ -751,7 +756,7 @@ class Weather(commands.Cog):
                                     value = "\n".join([line, "\n".join(extras)]) if extras else line
 
                                     emb = discord.Embed(
-                                        title = f"\U0001F324\ufe0f Daily Outlook — {d}",
+                                        title = f"{icon}\ufe0f Daily Outlook — {date}",
                                         colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70),
                                         description = value
                                     )
@@ -767,13 +772,13 @@ class Weather(commands.Cog):
                                 next_local = next_local.replace(hour = s["hh"], minute = s["mi"], second = 0, microsecond = 0)
 
                                 if next_local <= datetime.now(tz):
-                                    next_local += timedelta(days=1)
-                                    
+                                    next_local += timedelta(days = 1)
+                                
                                 self.bot.store.update_weather_sub(s["id"], channel_id = int(s["channel_id"]), next_run_utc = next_local.astimezone(timezone.utc).isoformat())
                             else:
                                 days = int(s.get("weekly_days", 7))
                                 days = 10 if days > 10 else (3 if days < 3 else days)
-                                outlook = await _fetch_outlook(session, lat, lon, days=days, tz_name=tz_name, units=units)
+                                outlook = await _fetch_outlook(session, lat, lon, days = days, tz_name = tz_name, units = units)
                                 first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
                                 first_hi_f = None
 
@@ -788,7 +793,7 @@ class Weather(commands.Cog):
                                     colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
                                 )
 
-                                for (d, line, _sunrise, _sunset, _uv, _hi) in outlook:
+                                for (date, icon, line, _sunrise, _sunset, _uv, _hi) in outlook:
                                     emb.add_field(name = d, value = line, inline = False)
 
                                 await channel.send(embed = emb)
