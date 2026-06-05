@@ -444,7 +444,7 @@ class Weather(commands.Cog):
         await inter.response.defer()
 
         try:
-            emb = await _create_day_embed(self.store, inter.channel_id, zip, units)
+            emb = await _create_day_embed(self.bot.store, inter.channel_id, zip, units)
             await inter.followup.send(embed = emb)
         except Exception as e:
             log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
@@ -698,7 +698,7 @@ class Weather(commands.Cog):
 
                             if s["cadence"] == "daily":
                                 try:
-                                    emb = await _create_day_embed(self.store, s["channel_id"], s["zip"], units)
+                                    emb = await _create_day_embed(self.bot.store, s["channel_id"], s["zip"], units)
                                     await inter.followup.send(embed = emb)
                                 except Exception as e:
                                     log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
