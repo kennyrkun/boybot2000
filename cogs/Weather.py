@@ -367,9 +367,9 @@ async def _create_day_embed(store, channel_id: int, zip: app_commands.Range[str,
     if color_temp_f is None:
         color_temp_f = _to_f(hi)
     emb = discord.Embed(
-        title=f"{icon} Weather — {city}, {state} {z}",
-        description=f"**{desc}**",
-        colour=wx_color_from_temp_f(color_temp_f if color_temp_f is not None else 70),
+        title = f"{icon} Outlook for {city}, {state}",
+        description = f"**{desc}**",
+        colour = wx_color_from_temp_f(color_temp_f if color_temp_f is not None else 70),
     )
 
     if t is not None:
@@ -383,7 +383,7 @@ async def _create_day_embed(store, channel_id: int, zip: app_commands.Range[str,
         if gust is not None:
             wind_txt += f" (gusts {round(float(gust))} {wind_unit})"
         emb.add_field(name = "Wind", value = wind_txt, inline = True)
-    if pcp is not None:
+    if pcp is not None and pcp > 0.2:
         emb.add_field(name = "Precip (now)", value = f"{float(pcp):.2f} {precip_unit}", inline = True)
     if prcp_prob is not None:
         emb.add_field(name = "Precip Chance", value = f"{int(prcp_prob)}%", inline = True)
@@ -400,7 +400,7 @@ async def _create_day_embed(store, channel_id: int, zip: app_commands.Range[str,
     moonName, moonEmoji, moonAge = moon_phase_info_for_date(datetime.utcnow())
     emb.add_field(name = "Moon", value = f"{moonEmoji} {moonName} ({moonAge}d)", inline = True)
 
-    emb.set_footer(text = f"Units: {units} • Timezone: {tz_name}")
+    emb.set_footer(text = f"Units: {units} • Timezone: {tz_name} • Zip: {z}")
 
     return emb
 
