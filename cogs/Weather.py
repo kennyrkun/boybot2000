@@ -307,6 +307,103 @@ async def _fetch_nws_alerts(session: aiohttp.ClientSession, lat: float, lon: flo
 
     return out
 
+async def _create_day_embed(zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
+    z = re.sub(r"[^0-9]", "", str(zip))
+    units = "standard" if units is None else units.value
+    tz_name = _get_user_tz_name(self.bot.store, inter.channel_id)
+    temp_unit = "fahrenheit" if units == "standard" else "celsius"
+    wind_unit = "mph" if units == "standard" else "kmh"
+    precip_unit = "inch" if units == "standard" else "mm"
+    deg = "°F" if units == "standard" else "°C"
+
+    def _to_f(val):
+        if val is None:
+            return None
+        try:
+            v = float(val)
+            return v if units == "standard" else (v * 9.0 / 5.0 + 32.0)
+        except Exception:
+            return None
+
+    async with aiohttp.ClientSession(headers = HTTP_HEADERS) as session:
+        city, state, lat, lon = await _zip_to_place_and_coords(session, z)
+
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "temperature_unit": temp_unit,
+            "wind_speed_unit": wind_unit,
+            "precipitation_unit": precip_unit,
+            "timezone": tz_name,
+            "current": "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,precipitation,weather_code",
+            "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,sunrise,sunset,wind_speed_10m_max",
+        }
+
+        async with session.get("https://api.open-meteo.com/v1/forecast", params=params, timeout=aiohttp.ClientTimeout(total=15)) as r2:
+            if r2.status != 200:
+                return await inter.followup.send("Weather service is unavailable right now.", ephemeral=True)
+            wx = await r2.json()
+
+    cur = wx.get("current") or wx.get("current_weather") or {}
+    t = cur.get("temperature_2m") or cur.get("temperature")
+    feels = cur.get("apparent_temperature", t)
+    rh = cur.get("relative_humidity_2m")
+    wind = cur.get("wind_speed_10m") or cur.get("windspeed")
+    gust = cur.get("wind_gusts_10m")
+    pcp = cur.get("precipitation", 0.0)
+    code_now = cur.get("weather_code")
+    daily = wx.get("daily") or {}
+
+    icon, desc = wx_icon_desc((daily.get("weather_code") or [code_now or 0])[0])
+    hi = (daily.get("temperature_2m_max") or [None])[0]
+    lo = (daily.get("temperature_2m_min") or [None])[0]
+    prcp_prob = (daily.get("precipitation_probability_max") or [None])[0]
+    uv = (daily.get("uv_index_max") or [None])[0]
+    sunrise = (daily.get("sunrise") or [None])[0]
+    sunset = (daily.get("sunset") or [None])[0]
+    wind_max = (daily.get("wind_speed_10m_max") or [None])[0]
+
+    color_temp_f = _to_f(t)
+    if color_temp_f is None:
+        color_temp_f = _to_f(hi)
+    emb = discord.Embed(
+        title=f"{icon} Weather — {city}, {state} {z}",
+        description=f"**{desc}**",
+        colour=wx_color_from_temp_f(color_temp_f if color_temp_f is not None else 70),
+    )
+
+    if t is not None:
+        emb.add_field(name = "Now", value = f"**{round(float(t))}{deg}** (feels {round(float(feels))}{deg})", inline = True)
+    if hi is not None and lo is not None:
+        emb.add_field(name = "Today", value = f"High **{round(float(hi))}{deg}** / Low **{round(float(lo))}{deg}**", inline=True)
+    if rh is not None:
+        emb.add_field(name = "Humidity", value = f"{int(rh)}%", inline=True)
+    if wind is not None:
+        wind_txt = f"{round(float(wind))} {wind_unit}"
+        if gust is not None:
+            wind_txt += f" (gusts {round(float(gust))} {wind_unit})"
+        emb.add_field(name = "Wind", value = wind_txt, inline = True)
+    if pcp is not None:
+        emb.add_field(name = "Precip (now)", value = f"{float(pcp):.2f} {precip_unit}", inline = True)
+    if prcp_prob is not None:
+        emb.add_field(name = "Precip Chance", value = f"{int(prcp_prob)}%", inline = True)
+    if wind_max is not None:
+        emb.add_field(name = "Max Wind Today", value = f"{round(float(wind_max))} {wind_unit}", inline = True)
+    if uv is not None:
+        emb.add_field(name = "UV Index (max)", value = str(round(float(uv), 1)), inline = True)
+    if sunrise:
+        emb.add_field(name = "Sunrise", value = fmt_sun(sunrise), inline = True)
+    if sunset:
+        emb.add_field(name = "Sunset", value = fmt_sun(sunset), inline = True)
+
+    # Moon phase (in user's timezone)
+    m_name, m_emoji, m_age = moon_phase_info_for_date(datetime.utcnow())
+    emb.add_field(name="Moon", value=f"{m_emoji} {m_name} ({m_age}d)", inline=True)
+
+    emb.set_footer(text = f"Units: {units} • Timezone: {tz_name}")
+
+    return emb
+
 CADENCE_CHOICES = [
     app_commands.Choice(name="daily", value="daily"),
     app_commands.Choice(name="weekly (send on this weekday)", value="weekly"),
@@ -346,101 +443,9 @@ class Weather(commands.Cog):
     async def weather(self, inter: discord.Interaction, zip: app_commands.Range[str, 5, 5], units: Optional[app_commands.Choice[str]] = None):
         await inter.response.defer()
 
-        z = re.sub(r"[^0-9]", "", str(zip))
-        units = "standard" if units is None else units.value
-        tz_name = _get_user_tz_name(self.bot.store, inter.channel_id)
-        temp_unit = "fahrenheit" if units == "standard" else "celsius"
-        wind_unit = "mph" if units == "standard" else "kmh"
-        precip_unit = "inch" if units == "standard" else "mm"
-        deg = "°F" if units == "standard" else "°C"
-
-        def _to_f(val):
-            if val is None:
-                return None
-            try:
-                v = float(val)
-                return v if units == "standard" else (v * 9.0 / 5.0 + 32.0)
-            except Exception:
-                return None
-
         try:
-            async with aiohttp.ClientSession(headers = HTTP_HEADERS) as session:
-                city, state, lat, lon = await _zip_to_place_and_coords(session, z)
-
-                params = {
-                    "latitude": lat,
-                    "longitude": lon,
-                    "temperature_unit": temp_unit,
-                    "wind_speed_unit": wind_unit,
-                    "precipitation_unit": precip_unit,
-                    "timezone": tz_name,
-                    "current": "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,precipitation,weather_code",
-                    "daily": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,sunrise,sunset,wind_speed_10m_max",
-                }
-
-                async with session.get("https://api.open-meteo.com/v1/forecast", params=params, timeout=aiohttp.ClientTimeout(total=15)) as r2:
-                    if r2.status != 200:
-                        return await inter.followup.send("Weather service is unavailable right now.", ephemeral=True)
-                    wx = await r2.json()
-
-            cur = wx.get("current") or wx.get("current_weather") or {}
-            t = cur.get("temperature_2m") or cur.get("temperature")
-            feels = cur.get("apparent_temperature", t)
-            rh = cur.get("relative_humidity_2m")
-            wind = cur.get("wind_speed_10m") or cur.get("windspeed")
-            gust = cur.get("wind_gusts_10m")
-            pcp = cur.get("precipitation", 0.0)
-            code_now = cur.get("weather_code")
-            daily = wx.get("daily") or {}
-
-            icon, desc = wx_icon_desc((daily.get("weather_code") or [code_now or 0])[0])
-            hi = (daily.get("temperature_2m_max") or [None])[0]
-            lo = (daily.get("temperature_2m_min") or [None])[0]
-            prcp_prob = (daily.get("precipitation_probability_max") or [None])[0]
-            uv = (daily.get("uv_index_max") or [None])[0]
-            sunrise = (daily.get("sunrise") or [None])[0]
-            sunset = (daily.get("sunset") or [None])[0]
-            wind_max = (daily.get("wind_speed_10m_max") or [None])[0]
-
-            color_temp_f = _to_f(t)
-            if color_temp_f is None:
-                color_temp_f = _to_f(hi)
-            emb = discord.Embed(
-                title=f"{icon} Weather — {city}, {state} {z}",
-                description=f"**{desc}**",
-                colour=wx_color_from_temp_f(color_temp_f if color_temp_f is not None else 70),
-            )
-
-            if t is not None:
-                emb.add_field(name = "Now", value = f"**{round(float(t))}{deg}** (feels {round(float(feels))}{deg})", inline = True)
-            if hi is not None and lo is not None:
-                emb.add_field(name = "Today", value = f"High **{round(float(hi))}{deg}** / Low **{round(float(lo))}{deg}**", inline=True)
-            if rh is not None:
-                emb.add_field(name = "Humidity", value = f"{int(rh)}%", inline=True)
-            if wind is not None:
-                wind_txt = f"{round(float(wind))} {wind_unit}"
-                if gust is not None:
-                    wind_txt += f" (gusts {round(float(gust))} {wind_unit})"
-                emb.add_field(name = "Wind", value = wind_txt, inline = True)
-            if pcp is not None:
-                emb.add_field(name = "Precip (now)", value = f"{float(pcp):.2f} {precip_unit}", inline = True)
-            if prcp_prob is not None:
-                emb.add_field(name = "Precip Chance", value = f"{int(prcp_prob)}%", inline = True)
-            if wind_max is not None:
-                emb.add_field(name = "Max Wind Today", value = f"{round(float(wind_max))} {wind_unit}", inline = True)
-            if uv is not None:
-                emb.add_field(name = "UV Index (max)", value = str(round(float(uv), 1)), inline = True)
-            if sunrise:
-                emb.add_field(name = "Sunrise", value = fmt_sun(sunrise), inline = True)
-            if sunset:
-                emb.add_field(name = "Sunset", value = fmt_sun(sunset), inline = True)
-
-            # Moon phase (in user's timezone)
-            m_name, m_emoji, m_age = moon_phase_info_for_date(datetime.utcnow())
-            emb.add_field(name="Moon", value=f"{m_emoji} {m_name} ({m_age}d)", inline=True)
-
-            emb.set_footer(text = f"Units: {units} • Timezone: {tz_name}")
-            await inter.followup.send(embed=emb)
+            emb = await self._create_day_embed(zip, units)
+            await inter.followup.send(embed = emb)
         except Exception as e:
             log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
             await inter.followup.send("i can't man, i can't i just can't do it anymore i can't take it anymore man i just can't do it", ephemeral = True)
@@ -665,51 +670,8 @@ class Weather(commands.Cog):
         self.bot.store.set_note(inter.channel_id, "wx_alerts_min_sev", sev)
         await inter.response.send_message(f":white_check_mark: Severe weather alerts for **{z}** (min severity: **{sev}**) will be sent to <#{inter.channel_id}>.", ephemeral=True)
 
-    @commands.command()
-    async def weatherTest(self, ctx: commands.Context):
-        async with aiohttp.ClientSession(headers = HTTP_HEADERS) as session:
-            city, state, lat, lon = await _zip_to_place_and_coords(session, 73112)
-            tz_name = "America/Chicago"
-            units = "standard"
-
-            outlook = await _fetch_outlook(session, lat, lon, days = 1, tz_name = tz_name, units = units)
-
-            log.info(outlook)
-
-            first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
-            first_hi_f = None
-
-            if first_hi is not None:
-                try:
-                    first_hi_f = float(first_hi) if units == "standard" else (float(first_hi) * 9.0 / 5.0 + 32.0)
-                except Exception:
-                    first_hi_f = None
-
-            for (date, icon, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
-                extras = []
-                if _hi and _lo: extras.append(f"**{round(_hi)}° / {round(_lo)}°**")
-                if wm: extras.append(f"\U0001F4A8 {round(wm)} {wmu}")
-                if pp: extras.append(f"\u2614 {int(pp)}%")
-                if pr: extras.append(f"\U0001F4CF {pr:.2f} {pru}")
-                if sunrise: extras.append(f"\U0001F305 {fmt_sun(sunrise)}")
-                if sunset: extras.append(f"\U0001F307 {fmt_sun(sunset)}")
-                if uv is not None: extras.append(f"\U0001F506 UV {round(uv,1)}")
-                value = "\n".join([line, "\n".join(extras)]) if extras else line
-
-                emb = discord.Embed(
-                    title = f"\U0001F324\ufe0f Daily Outlook — {date}",
-                    colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70),
-                    description = value
-                )
-
-                for extra in extras:
-                    emb.add_field(name = extra, value = extra, inline = False)
-
-                emb.set_footer(text = f"{city}, {state} 73112")
-
-                await ctx.send(embed = emb)
-
     # -------- Schedulers --------
+
     @tasks.loop(seconds = 60)
     async def weather_scheduler(self):
         try:
@@ -731,44 +693,15 @@ class Weather(commands.Cog):
                             if not self.check_cog_enabled(channel.guild.id):
                                 continue
 
-                            city, state, lat, lon = await _zip_to_place_and_coords(session, s["zip"])
                             tz_name = (s.get("tz_name") or "").strip() or _get_user_tz_name(self.bot.store, int(s["channel_id"]))
                             units = (s.get("units") or "").strip().lower()
 
                             if s["cadence"] == "daily":
-                                outlook = await _fetch_outlook(session, lat, lon, days = 1, tz_name = tz_name, units = units)
-                                log.debug(outlook)
-                                first_hi = outlook[0][5] if outlook and outlook[0][5] is not None else None
-                                first_hi_f = None
-
-                                if first_hi is not None:
-                                    try:
-                                        first_hi_f = float(first_hi) if units == "standard" else (float(first_hi) * 9.0 / 5.0 + 32.0)
-                                    except Exception:
-                                        first_hi_f = None
-
-                                for (date, icon, line, sunrise, sunset, uv, _hi, _lo, wm, wmu, pp, pr, pru) in outlook:
-                                    extras = []
-                                    if _hi and _lo: extras.append(f"**{round(_hi)}° / {round(_lo)}°**")
-                                    if wm: extras.append(f"\U0001F4A8 {round(wm)} {wmu}")
-                                    if pp: extras.append(f"\u2614 {int(pp)}%")
-                                    if pr: extras.append(f"\U0001F4CF {pr:.2f} {pru}")
-                                    if sunrise: extras.append(f"\U0001F305 {fmt_sun(sunrise)}")
-                                    if sunset: extras.append(f"\U0001F307 {fmt_sun(sunset)}")
-                                    if uv is not None: extras.append(f"\U0001F506 UV {round(uv,1)}")
-                                    value = "\n".join([line, "\n".join(extras)]) if extras else line
-
-                                    emb = discord.Embed(
-                                        title = f"{icon}\ufe0f Daily Outlook — {date}",
-                                        colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70),
-                                        description = value
-                                    )
-
-                                    emb.set_footer(text = f"{city}, {state} {s['zip']}")
-
-                                    await channel.send(embed = emb)
-
-                                    break
+                                try:
+                                    emb = await self._create_day_embed(s["zip"], units)
+                                    await inter.followup.send(embed = emb)
+                                except Exception as e:
+                                    log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
 
                                 tz = _tzinfo_from_name(tz_name)
                                 next_local = datetime.now(tz)
@@ -779,6 +712,7 @@ class Weather(commands.Cog):
                                 
                                 self.bot.store.update_weather_sub(s["id"], channel_id = int(s["channel_id"]), next_run_utc = next_local.astimezone(timezone.utc).isoformat())
                             else:
+                                city, state, lat, lon = await _zip_to_place_and_coords(session, s["zip"])
                                 days = int(s.get("weekly_days", 7))
                                 days = 10 if days > 10 else (3 if days < 3 else days)
                                 outlook = await _fetch_outlook(session, lat, lon, days = days, tz_name = tz_name, units = units)
@@ -796,7 +730,7 @@ class Weather(commands.Cog):
                                     colour = wx_color_from_temp_f(first_hi_f if first_hi_f is not None else 70)
                                 )
 
-                                for (date, icon, line, _sunrise, _sunset, _uv, _hi) in outlook:
+                                for (date, icon, line, _sunrise, _sunset, _uv, hi) in outlook:
                                     emb.add_field(name = d, value = line, inline = False)
 
                                 await channel.send(embed = emb)
