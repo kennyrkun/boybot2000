@@ -47,21 +47,23 @@ def moon_phase_info_for_date(d: datetime) -> Tuple[str, str, float]:
     age_days = round(p, 1)
     return name, emoji, age_days
 
-def _get_moon_embed(date, includePast: bool = False, includeFuture: bool = False):
-    name, emoji, age = moon_phase_info_for_date(date)
+def _get_moon_embed(date):
+    previousName, previousEmoji, previousAge = moon_phase_info_for_date(date - timedelta(days = 1))
+    todayName, todayEmoji, todayAge = moon_phase_info_for_date(date)
+    tomorrowName, tomorrowEmoji, tomorrowAge = moon_phase_info_for_date(date + timedelta(days = 1))
 
     emb = discord.Embed(
-        title=f"Today's moon is a {emoji} {name}!",
+        title=f"Today's moon is a {todayEmoji} {todayName}!",
         colour = discord.Colour.greyple()
     )
 
-    emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
+    emb.add_field(name = "This moon is", value = f"{todayAge} days old.", inline = True)
 
-    name, emoji, age = moon_phase_info_for_date(date - timedelta(days=1))
-    emb.add_field(name="The previous moon was a", value=f"{emoji} {name}.", inline=True)
-
-    name, emoji, age = moon_phase_info_for_date(date + timedelta(days=1))
-    emb.add_field(name="And the following moon will be a", value=f"{emoji} {name}.", inline=True)
+    if previousName != todayName:
+        emb.add_field(name = "The previous moon was a", value = f"{previousEmoji} {previousName} for {previousAge} days.", inline = True)
+    
+    if tomorrowName != todayName:
+        emb.add_field(name = "And the following moon will be a", value = f"{tomorrowEmoji} {tomorrowName}.", inline = True)
 
     return emb
 
@@ -75,6 +77,8 @@ class Moon(commands.Cog):
         self.bot = bot
 
         self.moon_scheduler.start()
+
+    group = app_commands.Group(name = "moon", description = "Moon commands.")
 
     def cog_unload(self):
         self.moon_scheduler.cancel()
@@ -90,12 +94,12 @@ class Moon(commands.Cog):
 
     # -------- Slash Commands --------
 
-    @app_commands.command(name = "moon", description = "Show the current moon phase.")
+    @group.command(name = "current", description = "Show the current moon phase.")
     async def moon(self, inter: discord.Interaction):
         await inter.response.defer()
-        await inter.followup.send(embed = _get_moon_embed(datetime.utcnow(), True, True))
+        await inter.followup.send(embed = _get_moon_embed(datetime.utcnow()))
 
-    @app_commands.command(name = "moon_subscribe", description = "Subscribe this channel to a daily or weekly moon phase announcement at a UTC time.")
+    @group.command(name = "subscribe", description = "Subscribe this channel to a daily or weekly moon phase announcement at a UTC time.")
     @app_commands.describe(
         time = "HH:MM (24h), HHMM, or h:mma/pm in UTC timezone",
         cadence = "daily or weekly",
@@ -135,9 +139,10 @@ class Moon(commands.Cog):
                 ephemeral = True
             )
         except Exception as e:
-            await inter.followup.send(f"\u26A0\ufe0f {type(e).__name__}: {e}\n{traceback.format_exc()}", ephemeral = True)
+            log.error(f"{type(e).__name__}: {e}\n\n{traceback.format_exc()}")
+            await inter.followup.send("i just can't do it anymore man...", ephemeral = True)
 
-    @app_commands.command(name="moon_unsubscribe", description="Unsubscribe from moon phase announcements for the current channel.")
+    @group.command(name = "unsubscribe", description = "Unsubscribe from moon phase announcements for the current channel.")
     @commands.has_permissions(administrator = True)
     async def moon_unsubscribe(self, inter: discord.Interaction, subscription_id: int):
         await inter.response.defer(ephemeral = True)
@@ -146,7 +151,7 @@ class Moon(commands.Cog):
 
         await inter.followup.send(f":white_check_mark: Moon phase announcement subscription #{subscription_id} in <#{inter.channel_id}> cancelled." if ok else f"Failed to cancel subscription #{subscription_id} in <#{inter.channel_id}>.", ephemeral = True)
 
-    @app_commands.command(name="moon_subscriptions", description="List your moon phase announcement subscriptions and next send time.")
+    @group.command(name = "subscriptions", description = "List your moon phase announcement subscriptions and next send time.")
     @commands.has_permissions(administrator = True)
     async def moon_subscriptions(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
@@ -190,7 +195,7 @@ class Moon(commands.Cog):
         await inter.followup.send("\n".join(out_lines), ephemeral=True)
 
     # -------- Schedulers --------
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds = 60)
     async def moon_scheduler(self):
         try:
             now = datetime.utcnow()
@@ -236,10 +241,10 @@ class Moon(commands.Cog):
                     except Exception as e:
                         fallback = now + timedelta(minutes = 5)
                         self.bot.store.update_moon_sub(s["id"], next_run = fallback.isoformat())
-                        await self.bot.get_channel(s["channel_id"]).send(f"\u26A0\ufe0f Moon error: {e}\n{traceback.format_exc()}")
+                        log.error(f"Moon error: {e}\n\n{traceback.format_exc()}")
 
         except Exception as e:
-            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Moon subscriptions error: {e}\n{traceback.format_exc()}")
+            log.error(f"Moon subscriptions error: {e}\n\n{traceback.format_exc()}")
 
     @moon_scheduler.before_loop
     async def before_moon(self):

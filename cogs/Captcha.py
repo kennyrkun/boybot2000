@@ -10,7 +10,7 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
-logging.basicConfig(level = logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.basicConfig(level = logging.INFO, format = "%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("captcha")
 
 class BotCheck(discord.ui.View):
@@ -67,20 +67,24 @@ class Captcha(commands.Cog):
     async def challengeMember(self, member: discord.Member):
         view = BotCheck(timeout = self.timeout)
 
-        message = await member.send(f"Are you a bot? Answer in <t:{int((datetime.now() + timedelta(seconds = view.timeout)).timestamp())}:R>.", view = view)
+        message = await member.send(f"Are you a bot? You have <t:{int((datetime.now() + timedelta(seconds = view.timeout)).timestamp())}:R> to confirm.", view = view)
 
-        # Wait for the View to stop listening for input
         await view.wait()
 
         if view.value is None:
             await member.guild.kick(member)
 
             message.edit_message(content = "you're too slow!!!! :<<", view = None)
+
+            log.info(f"Captcha for {member.global_name} in {member.guild.id} has expired.")
         elif view.value:
             self.bot.store.remove_captcha_user(member.id, member.guild.id)
+            message.edit_message(content = "thank you bestie!!", view = None)
+            log.info(f"{member.global_name} ({member.id}) answered captcha with not a bot in {member.guild.id}.")
         else:
             await member.guild.kick(member)
-
+            log.info(f"{member.global_name} ({member.id}) answered captcha bot in {member.guild.id}, kicked them.")
+        
     # -------- Event handlers --------
 
     @commands.Cog.listener()
@@ -95,10 +99,10 @@ class Captcha(commands.Cog):
             return
 
         # if the user is already in the captcha pending list, ignore them
-        if member.id in self.bot.store.list_captcha_users(member.guild):
+        if member.id in self.bot.store.list_captcha_users(member.guild.id):
             return
 
-        if self.bot.store.add_captcha_user(member.id, member.guild.id, datetime.utcnow()):
+        if self.bot.store.add_captcha_user(member.guild.id, member.id, datetime.utcnow()):
             await self.challengeMember(member)
 
     # --------- Text Commands --------
@@ -107,7 +111,11 @@ class Captcha(commands.Cog):
     async def challenge(self, ctx: commands.Context):
         # user might not have all the right variables, hopefully it is always a Member object.
         await self.challengeMember(ctx.author)
-    
+
+    @commands.command()
+    async def captchaQueue(self, ctx: commands.Context):
+        queuedUsers = self.bot.store.list_captcha_users()
+        log.info(queuedUsers)
 
     # -------- Schedulers --------
 
@@ -122,17 +130,24 @@ class Captcha(commands.Cog):
             timeoutTimestamp = datetime.utcnow() + timedelta(seconds = self.timeout)
 
             for user in queuedUsers:
-                if user.timestamp > timeoutTimestamp:
+                # TODO: if the user timestamp in the db is earlier than the user's server join date, remove them from the queue
+
+                joinDate = datetime.strptime(user["timestamp"], "%Y-%m-%d %H:%M:%S.%f")
+
+                if joinDate > timeoutTimestamp:
                     # get guild from id and kick the user
-                    guild = self.bot.fetch_guild(user.guild_id)
+                    guild = self.bot.fetch_guild(user["guild_id"])
 
                     if guild is None:
-                        raise RuntimeError("Unable to fetch guild {user.guild_id} for user {user.user_id} to kick them. User was past the timeout without captcha confirmation.")
+                        raise RuntimeError(f"Unable to fetch guild {user['guild_id']} for user {user['user_id']} to kick them. User was past the timeout without captcha confirmation.")
 
-                    guild.kick(user.user_id)
+                    guild.kick(user["user_id"])
+                    self.bot.store.remove_captcha_user(user["guild_id"], user["user_id"])
+
+                    log.info(f"Kicked {user['user_id']} from {user['guild_id']} because their captcha expired.")
 
         except Exception as e:
-            await self.bot.get_channel(1468253598646534294).send(f"\u26A0\ufe0f Captcha error: {e}\n{traceback.format_exc()}")
+            log.error(f"Captcha error: {e}\n{traceback.format_exc()}")
 
     @captcha_scheduler.before_loop
     async def before_captcha(self):

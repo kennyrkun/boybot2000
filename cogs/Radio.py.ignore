@@ -12,7 +12,7 @@ from discord.ext import tasks, commands
 from discord import app_commands
 
 logging.basicConfig(level = logging.INFO, format = "%(asctime)s %(levelname)s %(name)s: %(message)s")
-logger = logging.getLogger("radio")
+log = logging.getlog("radio")
 
 subprocesses = []
 tasks = set()
@@ -20,12 +20,12 @@ tasks = set()
 # I tried using discord.PCMAudio, but it doesn't work because PCMAudio expects 48khz but P25 only provides 8khz
 class PCMAudioPlayer(discord.AudioSource):
     def __init__(self) -> None:
-        logger.info("Starting PCMAudioPlayer.")
+        log.info("Starting PCMAudioPlayer.")
 
         self.audio  = pyaudio.PyAudio()
         self.device = self.audio.get_device_info_by_index(1)
 
-        logger.info(f"Audio device: {self.device}")
+        log.info(f"Audio device: {self.device}")
 
         self.channels = self.device["maxInputChannels"]
         self.chunk    = int(self.device["defaultSampleRate"] * 0.02)
@@ -40,10 +40,10 @@ class PCMAudioPlayer(discord.AudioSource):
         )
 
         if self.ratio != 1:
-            logger.info("using resampler")
+            log.info("using resampler")
             self.resampler = sampleRateLib.Resampler("sinc_best", channels = 2)
         else:
-            logger.info("NOT using resampler")
+            log.info("NOT using resampler")
             self.resampler = None
 
         super().__init__()
@@ -65,7 +65,7 @@ class PCMAudioPlayer(discord.AudioSource):
         return frame.tobytes()
 
     def __del__(self):
-        logger.info("destroying PCMAudioPlayer")
+        log.info("destroying PCMAudioPlayer")
         self.stream.close()
 
 class Radio(commands.Cog):
@@ -88,35 +88,35 @@ class Radio(commands.Cog):
         global subprocesses
 
         if len(subprocesses) == 0:
-            logger.info("No subprocesses to shutdown.")
+            log.info("No subprocesses to shutdown.")
             return
 
-        logger.info(f"Shutting down {len(subprocesses)} subprocesses...")
+        log.info(f"Shutting down {len(subprocesses)} subprocesses...")
 
         for process in subprocesses:
             try:
                 process.kill()
             except Exception as e:
-                logger.info(f"Skipping subprocess kill because an exception was raised: {e}")
+                log.info(f"Skipping subprocess kill because an exception was raised: {e}")
                 pass
 
         subprocesses.clear()
         
-        logger.info("All subprocesses shutdown.")
+        log.info("All subprocesses shutdown.")
 
-        logger.info("Canceling running tasks...")
+        log.info("Canceling running tasks...")
 
         if len(tasks) == 0:
-            logger.info("No tasks to cancel.")
+            log.info("No tasks to cancel.")
             return
 
-        logger.info(f"Shutting down {len(tasks)} tasks...")
+        log.info(f"Shutting down {len(tasks)} tasks...")
 
         for task in tasks:
             try:
                 task.cancel()
             except Exception as e:
-                logger.info(f"Skipping task cancel because an exception was raised: {e}")
+                log.info(f"Skipping task cancel because an exception was raised: {e}")
                 pass
 
         tasks.clear()
@@ -157,7 +157,7 @@ class Radio(commands.Cog):
                 continue
 
             line = line.decode()
-            logger.info(line)
+            log.info(line)
 
             if line.find("using ALSA sound system") != -1:
                 await message.edit(content = ":clock2: ALSA is ready, starting stream...")
@@ -172,7 +172,7 @@ class Radio(commands.Cog):
         try:
             audioPlayer = PCMAudioPlayer()
         except Exception as e:
-            logger.error(f"Failed to start PCMAudioPlayer: {e}")
+            log.error(f"Failed to start PCMAudioPlayer: {e}")
 
             await disconnect(self.bot.voice_client)
             await message.edit(content = ":broken_heart: Failed to start PCMAudioPlayer.")
@@ -190,14 +190,14 @@ class Radio(commands.Cog):
         )
 
     async def rtlfmAudioProcessingLoop(sdrProcess, aplayProcess):
-        logger.info("Starting RTLFM loop.")
+        log.info("Starting RTLFM loop.")
 
         # loop should automatically exit when the tasks are killed?
         while sdrProcess.returncode is None and aplayProcess.returncode is None:
             line = await sdrProcess.stdout.read(1024)
             aplayProcess.stdin.write(line)
 
-        logger.info("Ended RTLFM loop.")
+        log.info("Ended RTLFM loop.")
 
     async def startRTLFM(inter: discord.Interacton, freq):
         message = await inter.reply(f":clock12: Starting RTLFM...", ephemeral = True)
@@ -233,13 +233,13 @@ class Radio(commands.Cog):
         try:
             audioPlayer = PCMAudioPlayer()
         except Exception as e:
-            logger.error(f"Failed to start PCMAudioPlayer: {e}")
+            log.error(f"Failed to start PCMAudioPlayer: {e}")
 
             await disconnect(self.bot.voice_client)
             await message.edit(content = ":broken_heart: Failed to start PCMAudioPlayer.")
             return
 
-        self.bot.voice_client.play(audioPlayer, after = lambda e: logger.error(f'Player error: {e}') if e else None)
+        self.bot.voice_client.play(audioPlayer, after = lambda e: log.error(f'Player error: {e}') if e else None)
 
         await message.edit(content = f":white_check_mark: Streaming FM {freq}.")
 
@@ -252,7 +252,7 @@ class Radio(commands.Cog):
 
     @app_commands.command(name = "play", help = "Join the current voice channel and play radio audio from a particular frequency or P25 zone.")
     async def play(self, inter: discord.Interaction):
-        logger.info("play command")
+        log.info("play command")
 
         if inter.author.voice is None:
             raise commands.CommandError("You must connected to a voice channel.")
@@ -268,7 +268,7 @@ class Radio(commands.Cog):
         except Exception as e:
             raise commands.CommandError(f"Failed to connect to voice channel: {e}.")
 
-        logger.info(f"connected with args {args}")
+        log.info(f"connected with args {args}")
 
         await killSubprocesses()
 
@@ -296,7 +296,7 @@ class Radio(commands.Cog):
         if self.bot.voice_client is None:
             return
 
-        logger.info(f"{self.bot.voice_client}")
+        log.info(f"{self.bot.voice_client}")
 
         await inter.reply("👋", ephemeral = True)
         await disconnect(self.bot.voice_client)
@@ -305,7 +305,7 @@ class Radio(commands.Cog):
     async def on_command_error(self, inter: discord.Interaction, error):
         await disconnect(self.bot.voice_client)
         await inter.reply(f"💔 {error}", ephemeral = True)
-        logger.error(f"Error in command: {error}")
+        log.error(f"Error in command: {error}")
 
     @app_commands.event
     async def on_voice_state_update(self, member, before, after):
@@ -319,7 +319,7 @@ class Radio(commands.Cog):
         if len(before.channel.members) - 1 < 1:
             for client in bot.voice_clients:
                 if client.channel.id == before.channel.id:
-                    logger.info("Channel has become empty, leaving.")
+                    log.info("Channel has become empty, leaving.")
                     await disconnect(client)
 
     async def disconnect(self, client):
