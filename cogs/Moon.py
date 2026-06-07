@@ -47,21 +47,23 @@ def moon_phase_info_for_date(d: datetime) -> Tuple[str, str, float]:
     age_days = round(p, 1)
     return name, emoji, age_days
 
-def _get_moon_embed(date, includePast: bool = False, includeFuture: bool = False):
-    name, emoji, age = moon_phase_info_for_date(date)
+def _get_moon_embed(date):
+    previousName, previousEmoji, previousAge = moon_phase_info_for_date(date - timedelta(days = 1))
+    todayName, todayEmoji, todayAge = moon_phase_info_for_date(date)
+    tomorrowName, tomorrowEmoji, tomorrowAge = moon_phase_info_for_date(date + timedelta(days = 1))
 
     emb = discord.Embed(
-        title=f"Today's moon is a {emoji} {name}!",
+        title=f"Today's moon is a {todayEmoji} {todayName}!",
         colour = discord.Colour.greyple()
     )
 
-    emb.add_field(name="This moon is", value=f"{age} days old.", inline=True)
+    emb.add_field(name = "This moon is", value = f"{todayAge} days old.", inline = True)
 
-    name, emoji, age = moon_phase_info_for_date(date - timedelta(days=1))
-    emb.add_field(name="The previous moon was a", value=f"{emoji} {name}.", inline=True)
-
-    name, emoji, age = moon_phase_info_for_date(date + timedelta(days=1))
-    emb.add_field(name="And the following moon will be a", value=f"{emoji} {name}.", inline=True)
+    if previousName != todayName:
+        emb.add_field(name = "The previous moon was a", value = f"{previousEmoji} {previousName} for {previousAge} days.", inline = True)
+    
+    if tomorrowName != todayName:
+        emb.add_field(name = "And the following moon will be a", value = f"{tomorrowEmoji} {tomorrowName}.", inline = True)
 
     return emb
 
@@ -95,7 +97,7 @@ class Moon(commands.Cog):
     @group.command(name = "current", description = "Show the current moon phase.")
     async def moon(self, inter: discord.Interaction):
         await inter.response.defer()
-        await inter.followup.send(embed = _get_moon_embed(datetime.utcnow(), True, True))
+        await inter.followup.send(embed = _get_moon_embed(datetime.utcnow()))
 
     @group.command(name = "subscribe", description = "Subscribe this channel to a daily or weekly moon phase announcement at a UTC time.")
     @app_commands.describe(
