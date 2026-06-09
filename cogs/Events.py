@@ -107,7 +107,7 @@ class Events(commands.Cog):
 
             response = (
                 await self.bot.NaturalLanguage.prompt(
-                    channel.guild.id,
+                    channel,
                     {
                         "prompt":
                             """
@@ -147,7 +147,7 @@ class Events(commands.Cog):
                     creator = event.creator.global_name or "someone"
                     await channel.send(content = (
                             await self.bot.NaturalLanguage.prompt(
-                                channel.guild.id, 
+                                channel, 
                                 {
                                     "prompt":
                                         f"""

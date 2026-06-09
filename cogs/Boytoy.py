@@ -49,7 +49,7 @@ class Boytoy(commands.Cog):
                 base64.b64encode(requests.get(attachment.url).content).decode("utf-8")
             )
 
-        response = await self.bot.NaturalLanguage.prompt(message.channel.guild.id or -1, {
+        response = await self.bot.NaturalLanguage.prompt(message.channel, {
                 "prompt": "Reply to the following message.",
                 "content": message.content,
                 "images": []
