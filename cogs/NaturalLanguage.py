@@ -51,7 +51,7 @@ class NaturalLanguage(commands.Cog):
 	# -------- Helper functions -------
 
 	async def prompt(self, guildId: int, promptData) -> Optional[str]:
-		if not self.check_cog_enabled(guildId):
+		if guildId > 0 and not self.check_cog_enabled(guildId):
 			return None
 
 		try:
