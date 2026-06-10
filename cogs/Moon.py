@@ -63,7 +63,7 @@ def _get_moon_embed(date):
         emb.add_field(name = "The previous moon was a", value = f"{previousEmoji} {previousName}.", inline = True)
     
     if tomorrowName != todayName:
-        emb.add_field(name = "And the following moon will be a", value = f"{tomorrowEmoji} {tomorrowName}.", inline = True)
+        emb.add_field(name = "The following moon will be a", value = f"{tomorrowEmoji} {tomorrowName}.", inline = True)
 
     return emb
 
