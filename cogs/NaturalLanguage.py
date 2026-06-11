@@ -50,8 +50,8 @@ class NaturalLanguage(commands.Cog):
 
 	# -------- Helper functions -------
 
-	async def prompt(self, guildId: int, promptData) -> Optional[str]:
-		if not self.check_cog_enabled(guildId):
+	async def prompt(self, channel: int, promptData) -> Optional[str]:
+		if not isinstance(channel, discord.abc.GuildChannel) and not self.check_cog_enabled(channel.guild.id):
 			return None
 
 		try:

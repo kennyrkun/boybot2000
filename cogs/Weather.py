@@ -700,17 +700,17 @@ class Weather(commands.Cog):
                                 try:
                                     emb = await _create_day_embed(self.bot.store, s["channel_id"], s["zip"], units)
                                     await channel.send(embed = emb)
+
+                                    tz = _tzinfo_from_name(tz_name)
+                                    next_local = datetime.now(tz)
+                                    next_local = next_local.replace(hour = s["hh"], minute = s["mi"], second = 0, microsecond = 0)
+
+                                    if next_local <= datetime.now(tz):
+                                        next_local += timedelta(days = 1)
+                                    
+                                    self.bot.store.update_weather_sub(s["id"], channel_id = int(s["channel_id"]), next_run_utc = next_local.astimezone(timezone.utc).isoformat())
                                 except Exception as e:
                                     log.error(f"Weather error: {e}\n\n{traceback.format_exc()}")
-
-                                tz = _tzinfo_from_name(tz_name)
-                                next_local = datetime.now(tz)
-                                next_local = next_local.replace(hour = s["hh"], minute = s["mi"], second = 0, microsecond = 0)
-
-                                if next_local <= datetime.now(tz):
-                                    next_local += timedelta(days = 1)
-                                
-                                self.bot.store.update_weather_sub(s["id"], channel_id = int(s["channel_id"]), next_run_utc = next_local.astimezone(timezone.utc).isoformat())
                             else:
                                 city, state, lat, lon = await _zip_to_place_and_coords(session, s["zip"])
                                 days = int(s.get("weekly_days", 7))
