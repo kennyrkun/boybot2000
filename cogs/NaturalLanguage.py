@@ -56,7 +56,7 @@ class NaturalLanguage(commands.Cog):
 
 		try:
 			async with aiohttp.ClientSession() as session:
-				log.info(f"Dispatching prompt in server {guildId}.")
+				log.info(f"Dispatching prompt.")
 				log.debug(f"Prompt is in response to:\n{promptData['content']}.")
 
 				async with session.post(f"{self.ollamaUri}/api/chat", timeout = 120, json = {
