@@ -375,22 +375,20 @@ async def _create_day_embed(store, channel_id: int, zip: app_commands.Range[str,
     if t is not None:
         emb.add_field(name = "Now", value = f"**{round(float(t))}{deg}** (feels {round(float(feels))}{deg})", inline = True)
     if hi is not None and lo is not None:
-        emb.add_field(name = "Today", value = f"High **{round(float(hi))}{deg}** / Low **{round(float(lo))}{deg}**", inline=True)
+        emb.add_field(name = "Today", value = f"High of **{round(float(hi))}{deg}** and low of **{round(float(lo))}{deg}**", inline = True)
     if rh is not None:
-        emb.add_field(name = "Humidity", value = f"{int(rh)}%", inline=True)
+        emb.add_field(name = "Humidity", value = f"{int(rh)}%", inline = True)
     if wind is not None:
         wind_txt = f"{round(float(wind))} {wind_unit}"
         if gust is not None:
-            wind_txt += f" (gusts {round(float(gust))} {wind_unit})"
+            wind_txt += f" with gusts up to {round(float(gust))} {wind_unit})"
         emb.add_field(name = "Wind", value = wind_txt, inline = True)
     if pcp is not None and pcp > 0.2:
-        emb.add_field(name = "Precip (now)", value = f"{float(pcp):.2f} {precip_unit}", inline = True)
+        emb.add_field(name = "Rain level (now)", value = f"{float(pcp):.2f} {precip_unit}", inline = True)
     if prcp_prob is not None:
-        emb.add_field(name = "Precip Chance", value = f"{int(prcp_prob)}%", inline = True)
-    if wind_max is not None:
-        emb.add_field(name = "Max Wind Today", value = f"{round(float(wind_max))} {wind_unit}", inline = True)
+        emb.add_field(name = "Rain Chance", value = f"{int(prcp_prob)}%", inline = True)
     if uv is not None:
-        emb.add_field(name = "UV Index (max)", value = str(round(float(uv), 1)), inline = True)
+        emb.add_field(name = "UV Index", value = str(round(float(uv), 1)), inline = True)
     if sunrise:
         emb.add_field(name = "Sunrise", value = fmt_sun(sunrise), inline = True)
     if sunset:
@@ -398,9 +396,9 @@ async def _create_day_embed(store, channel_id: int, zip: app_commands.Range[str,
 
     # Moon phase (in user's timezone)
     moonName, moonEmoji, moonAge = moon_phase_info_for_date(datetime.utcnow())
-    emb.add_field(name = "Moon", value = f"{moonEmoji} {moonName} ({moonAge}d)", inline = True)
+    emb.add_field(name = "Moon", value = f"{moonEmoji} {moonName}", inline = True)
 
-    emb.set_footer(text = f"Units: {units} • Timezone: {tz_name} • Zip: {z}")
+    emb.set_footer(text = f"{units} units • {tz_name} • {z}")
 
     return emb
 
