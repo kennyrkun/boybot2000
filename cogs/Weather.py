@@ -814,10 +814,12 @@ class Weather(commands.Cog):
                         for a in fresh[:10]:
                             name = f"{a.get('event') or 'Alert'} ({(a.get('severity') or '').title()})"
                             when = ""
-                            if a.get("starts"): when += f"Starts: <t:{a['starts']}:f>\n"
-                            if a.get("ends"):   when += f"Ends: <t:{a['ends']}:f>\n"
+                            # TODO: make these times relative. have to convert to timestamp first
+                            if a.get("starts"): when += f"Starts: {a['starts']}\n"
+                            if a.get("ends"):   when += f"Ends: {a['ends']}\n"
                             body = (a.get("headline") or a.get("desc") or "Details unavailable").strip()
                             if len(body) > 400: body = body[:397] + "…"
+                            # make source the author of the embed
                             tail = f"\n{when}Source: {a.get('sender') or 'NWS'}"
                             if a.get("link"): tail += f"\nMore: {a['link']}"
                             emb.add_field(name = name, value = f"{body}{tail}", inline = False)
