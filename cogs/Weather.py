@@ -814,8 +814,8 @@ class Weather(commands.Cog):
                         for a in fresh[:10]:
                             name = f"{a.get('event') or 'Alert'} ({(a.get('severity') or '').title()})"
                             when = ""
-                            if a.get("starts"): when += f"Starts: {a['starts']}\n"
-                            if a.get("ends"):   when += f"Ends: {a['ends']}\n"
+                            if a.get("starts"): when += f"Starts: <t:{a['starts']}:f>\n"
+                            if a.get("ends"):   when += f"Ends: <t:{a['ends']}:f>\n"
                             body = (a.get("headline") or a.get("desc") or "Details unavailable").strip()
                             if len(body) > 400: body = body[:397] + "…"
                             tail = f"\n{when}Source: {a.get('sender') or 'NWS'}"
