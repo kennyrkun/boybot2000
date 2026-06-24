@@ -45,7 +45,7 @@ class Audit(commands.Cog):
             # if channel_id in inter.guild.id: ?
 
             # will throw if bot does not have access
-            channel = self.bot.fetch_channel(channel_id)
+            channel = await self.bot.fetch_channel(channel_id)
 
             self.bot.store.add_audit_sub(inter.guild.id, channel_id)
             
