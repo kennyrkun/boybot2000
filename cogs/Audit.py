@@ -34,7 +34,7 @@ class Audit(commands.Cog):
     
     @group.command(name = "subscribe", description = "Subscribe the given channel to to audit logs from the current server.")
     @commands.has_permissions(administrator = True)
-    async def audit_subscribe(self, inter: discord.Interaction, channel_id: str):
+    async def subscribe(self, inter: discord.Interaction, channel_id: str):
         # cannot make channel_id an int because the discord client will say it is invalid (it's too long and needs to be a BigInt)
         channel_id = int(channel_id)
 
@@ -58,7 +58,7 @@ class Audit(commands.Cog):
 
     @group.command(name = "subscriptions", description = "List this server's audit log subscriptions.")
     @commands.has_permissions(administrator = True)
-    async def audit_subscriptions(self, inter: discord.Interaction):
+    async def subscriptions(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
 
         items = self.bot.store.list_audit_subs(inter.guild.id)
@@ -68,7 +68,7 @@ class Audit(commands.Cog):
     # TODO: if the current guild only has one subscription, remove it and don't take channel id.
     @group.command(name = "unsubscribe", description = "Unsubscribe a channel from audit logs.")
     @commands.has_permissions(administrator = True)
-    async def audit_unsubscribe(self, inter: discord.Interaction, channel_id: str):
+    async def unsubscribe(self, inter: discord.Interaction, channel_id: str):
         # cannot make channel_id an int because the discord client will say it is invalid (it's too long and needs to be a BigInt)
         channel_id = int(channel_id)
 
