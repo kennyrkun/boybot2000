@@ -95,6 +95,9 @@ class Audit(commands.Cog):
         if message.author.id == self.bot.user.id:
             return
 
+        Log.info("Message deleted.")
+        Log.info(message)
+
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
         for message in messages:
@@ -108,6 +111,9 @@ class Audit(commands.Cog):
             if message.author.id == self.bot.user.id:
                 return
 
+            Log.info("Message bulk deleted.")
+            Log.info(message)
+
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         if before.guild is None:
@@ -120,5 +126,10 @@ class Audit(commands.Cog):
         if before.author.id == self.bot.user.id:
             return
 
+        Log.info("Message edited.")
+        Log.info(before)
+        Log.info(after)
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(Audit(bot))
+    
