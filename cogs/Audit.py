@@ -1,11 +1,7 @@
 import asyncio
 import logging
 import os
-import re
-import random
 import traceback
-import base64
-import requests
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -38,9 +34,12 @@ class Audit(commands.Cog):
 
     # -------- Commands --------
     
-    @group.command(name = "subscribe", description = "Subscribe to audit logs for the current guild and send them to a particlar channel.")
+    @group.command(name = "subscribe", description = "Subscribe the given channel to to audit logs from the current server.")
     @commands.has_permissions(administrator = True)
-    async def audit_subscribe(self, inter: discord.Interaction, channel_id: int):
+    async def subscribe(self, inter: discord.Interaction, channel_id):
+        # cannot make channel_id an int because the discord client will say it is invalid (it's too long and needs to be a BigInt)
+        channel_id = int(channel_id)
+
         await inter.response.defer(ephemeral = True)
 
         try:
@@ -59,9 +58,9 @@ class Audit(commands.Cog):
 
         await inter.followup.send(followup, ephemeral = True)
 
-    @group.command(name = "subscriptions", description = "List this guilds audit log subscriptions.")
+    @group.command(name = "subscriptions", description = "List this server's audit log subscriptions.")
     @commands.has_permissions(administrator = True)
-    async def audit_subscriptions(self, inter: discord.Interaction):
+    async def subscriptions(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
 
         items = self.bot.store.list_audit_subs(inter.guild.id)
@@ -71,7 +70,10 @@ class Audit(commands.Cog):
     # TODO: if the current guild only has one subscription, remove it and don't take channel id.
     @group.command(name = "unsubscribe", description = "Unsubscribe a channel from audit logs.")
     @commands.has_permissions(administrator = True)
-    async def audit_unsubscribe(self, inter: discord.Interaction, channel_id: int):
+    async def unsubscribe(self, inter: discord.Interaction, channel_id):
+        # cannot make channel_id an int because the discord client will say it is invalid (it's too long and needs to be a BigInt)
+        channel_id = int(channel_id)
+
         await inter.response.defer(ephemeral = True)
 
         # TODO: make sure channel_id belongs to inter.guild.id
@@ -80,10 +82,8 @@ class Audit(commands.Cog):
         ok = self.bot.store.remove_audit_sub(inter.guild.id, channel_id)
 
         await inter.followup.send(f":white_check_mark: Audit log subscription for <#{channel_id}> cancelled." if ok else f"Failed to cancel subscription for <#{channel_id}>.", ephemeral = True)
-            
-    # -------- Event listeners -------
 
-    # TODO: listen for message edits, if the message is something we've already replied to, re-read the message and reply again?
+    # -------- Event listeners -------
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
