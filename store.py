@@ -409,17 +409,17 @@ class Store:
 
     def add_audit_sub(self, guild_id: int, channel_id: int) -> int:
         cur = self.db.cursor()
-        cur.execute("INSERT INTO event_subs(guild_id, channel_id) VALUES (?, ?) ", (guild_id, channel_id,))
+        cur.execute("INSERT INTO audit_subscriptions(guild_id, channel_id) VALUES (?, ?) ", (guild_id, channel_id))
         self.db.commit()
         return int(cur.lastrowid)
 
     def list_audit_subs(self, guild_id: int) -> List[int]:
-        rows = self.db.execute("SELECT * FROM event_subs WHERE guild_id = ? ORDER BY next_run ASC", (guild_id,)).fetchall()
+        rows = self.db.execute("SELECT * FROM audit_subscriptions WHERE guild_id = ?", (guild_id,)).fetchall()
         return [r[0] for r in rows]
 
     def remove_audit_sub(self, guild_id: int, channel_id: int) -> bool:
         cur = self.db.cursor()
-        cur.execute("DELETE FROM audit_subscriptions WHERE guild_id = ? AND channel_id = ?", (guild_id, channel_id),)
+        cur.execute("DELETE FROM audit_subscriptions WHERE guild_id = ? AND channel_id = ?", (guild_id, channel_id))
         self.db.commit()
         return cur.rowcount > 0
 
