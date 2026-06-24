@@ -128,6 +128,8 @@ class Store:
 
         self.db.commit()
 
+    # weather
+
     def get_user_zip(self, channel_id: int) -> Optional[str]:
         row = self.db.execute("SELECT zip FROM weather_zips WHERE channel_id = ?", (int(channel_id),)).fetchone()
         return row["zip"] if row else None
@@ -141,48 +143,6 @@ class Store:
             (int(channel_id), str(zip_code)),
         )
         self.db.commit()
-
-    def enable_extension(self, guild_id: int, name: str) -> bool:
-        cur = self.db.cursor()
-        cur.execute("INSERT INTO extensions_enabled(guild_id, name) VALUES(?, ?)", (guild_id, name,))
-        self.db.commit()
-        return cur.rowcount > 0
-
-    def disable_extension(self, guild_id: int, name: str) -> bool:
-        cur = self.db.cursor()
-        cur.execute("DELETE FROM extensions_enabled WHERE guild_id = ? AND name = ?", (guild_id, name,))
-        self.db.commit()
-        return cur.rowcount > 0
-
-    def get_enabled_extensions(self, guild_id: int) -> List[str]:
-        rows = self.db.execute("SELECT name FROM extensions_enabled WHERE guild_id = ?", (guild_id,)).fetchall()
-        return [r[0] for r in rows]
-
-    def enable_extension(self, guild_id: int, name: str) -> bool:
-        cur = self.db.cursor()
-        cur.execute("INSERT INTO extensions_enabled(guild_id, name) VALUES(?, ?)", (guild_id, name,))
-        self.db.commit()
-        return cur.rowcount > 0
-
-    def add_captcha_user(self, guild_id: int, user_id: int, timestamp: int) -> bool:
-        cur = self.db.cursor()
-        cur.execute("INSERT INTO captcha_queue(guild_id, user_id, timestamp) VALUES(?, ?, ?)", (guild_id, user_id, timestamp,))
-        self.db.commit()
-        return cur.rowcount > 0
-
-    def remove_captcha_user(self, guild_id: int, user_id: int) -> bool:
-        cur = self.db.cursor()
-        cur.execute("DELETE FROM captcha_queue WHERE guild_id = ? AND user_id = ?", (guild_id, user_id,))
-        self.db.commit()
-        return cur.rowcount > 0
-
-    def list_captcha_users(self, guild_id: Optional[int] = None) -> List[Dict[int, Any]]:
-        if guild_id is None:
-            rows = self.db.execute("SELECT * FROM captcha_queue").fetchall()
-        else:
-            rows = self.db.execute("SELECT user_id, timestamp FROM captcha_queue WHERE guild_id = ?", (guild_id,)).fetchall()
-
-        return [dict(r) for r in rows]
 
     def add_weather_sub(self, sub: Dict[str, Any]) -> int:
         cur = self.db.cursor()
@@ -243,6 +203,54 @@ class Store:
         self.db.execute("UPDATE weather_subs SET next_run_utc = ? WHERE id = ?", (str(next_run_utc), int(sub_id)))
         self.db.commit()
 
+    # extensions
+
+    def enable_extension(self, guild_id: int, name: str) -> bool:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO extensions_enabled(guild_id, name) VALUES(?, ?)", (guild_id, name,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def disable_extension(self, guild_id: int, name: str) -> bool:
+        cur = self.db.cursor()
+        cur.execute("DELETE FROM extensions_enabled WHERE guild_id = ? AND name = ?", (guild_id, name,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def get_enabled_extensions(self, guild_id: int) -> List[str]:
+        rows = self.db.execute("SELECT name FROM extensions_enabled WHERE guild_id = ?", (guild_id,)).fetchall()
+        return [r[0] for r in rows]
+
+    def enable_extension(self, guild_id: int, name: str) -> bool:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO extensions_enabled(guild_id, name) VALUES(?, ?)", (guild_id, name,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    # captcha
+
+    def add_captcha_user(self, guild_id: int, user_id: int, timestamp: int) -> bool:
+        cur = self.db.cursor()
+        cur.execute("INSERT INTO captcha_queue(guild_id, user_id, timestamp) VALUES(?, ?, ?)", (guild_id, user_id, timestamp,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def remove_captcha_user(self, guild_id: int, user_id: int) -> bool:
+        cur = self.db.cursor()
+        cur.execute("DELETE FROM captcha_queue WHERE guild_id = ? AND user_id = ?", (guild_id, user_id,))
+        self.db.commit()
+        return cur.rowcount > 0
+
+    def list_captcha_users(self, guild_id: Optional[int] = None) -> List[Dict[int, Any]]:
+        if guild_id is None:
+            rows = self.db.execute("SELECT * FROM captcha_queue").fetchall()
+        else:
+            rows = self.db.execute("SELECT user_id, timestamp FROM captcha_queue WHERE guild_id = ?", (guild_id,)).fetchall()
+
+        return [dict(r) for r in rows]
+
+    # events
+
     def add_event_sub(self, sub: Dict[str, Any]) -> int:
         cur = self.db.cursor()
         cur.execute(
@@ -300,6 +308,8 @@ class Store:
         self.db.execute("UPDATE event_subs SET next_run = ? WHERE id = ?", (str(next_run), int(sub_id)))
         self.db.commit()
 
+    # moon
+
     def add_moon_sub(self, sub: Dict[str, Any]) -> int:
         cur = self.db.cursor()
         cur.execute(
@@ -356,6 +366,8 @@ class Store:
         self.db.execute("UPDATE moon_subs SET next_run = ? WHERE id = ?", (str(next_run), int(sub_id)))
         self.db.commit()
 
+    # yappers
+
     def add_yap_sub(self, guild_id: int) -> int:
         cur = self.db.cursor()
         cur.execute("INSERT INTO yap_subs(guild_id) VALUES(?)", (guild_id,))
@@ -393,6 +405,8 @@ class Store:
         rows = self.db.execute("SELECT * FROM yappers WHERE guild_id = ? ORDER BY message_count DESC LIMIT 5", (guild_id,)).fetchall()
         return [dict(r) for r in rows]
 
+    # audit
+
     def add_audit_sub(self, guild_id: int, channel_id: int) -> int:
         cur = self.db.cursor()
         cur.execute("INSERT INTO event_subs(guild_id, channel_id) VALUES (?, ?) ", (guild_id, channel_id,))
@@ -408,6 +422,8 @@ class Store:
         cur.execute("DELETE FROM audit_subscriptions WHERE guild_id = ? AND channel_id = ?", (guild_id, channel_id),)
         self.db.commit()
         return cur.rowcount > 0
+
+    # notes
 
     def get_note(self, channel_id: int, key: str) -> Optional[str]:
         row = self.db.execute(
