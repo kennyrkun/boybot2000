@@ -16,8 +16,6 @@ class Audit(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        self.regex = re.compile(r"((t|b)+o+(y|t)( ?)+){2}", re.IGNORECASE)
-
     group = app_commands.Group(name = "audit", description = "Audit log commands.")
 
     def cog_unload(self):
