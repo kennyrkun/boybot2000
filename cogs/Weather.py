@@ -785,6 +785,11 @@ class Weather(commands.Cog):
                     if len(z) != 5:
                         continue
 
+                    channel = await self.bot.fetch_channel(uid)
+
+                    if not self.check_cog_enabled(channel.guild.id):
+                        return
+
                     try:
                         city, state, lat, lon = await _zip_to_place_and_coords(session, z)
                         alerts = await _fetch_nws_alerts(session, lat, lon)
@@ -814,20 +819,23 @@ class Weather(commands.Cog):
                         for a in fresh[:10]:
                             name = f"{a.get('event') or 'Alert'} ({(a.get('severity') or '').title()})"
                             when = ""
-                            # TODO: make these times relative. have to convert to timestamp first
-                            if a.get("starts"): when += f"Starts: {a['starts']}\n"
-                            if a.get("ends"):   when += f"Ends: {a['ends']}\n"
+
+                            if a.get("starts"):
+                                # rstrip : from start time because strptime is not expecting it in the timezone
+                                # this is the format of times provided by the api: 2026-07-04T22:11:00-05:00
+                                start = dt = datetime.datetime.strptime(a["starts"].rstrip(":"), "%Y-%m-%dT%H:%M:%S%z")
+                                when += f"Starts: <t:{int(start.timestamp())}:r>\n"
+
+                            if a.get("ends"):
+                                end = dt = datetime.datetime.strptime(a["ends"].rstrip(":"), "%Y-%m-%dT%H:%M:%S%z")
+                                when += f"Ends: <t:{int(end.timestamp())}:r>\n"
+
                             body = (a.get("headline") or a.get("desc") or "Details unavailable").strip()
                             if len(body) > 400: body = body[:397] + "…"
                             # make source the author of the embed
                             tail = f"\n{when}Source: {a.get('sender') or 'NWS'}"
                             if a.get("link"): tail += f"\nMore: {a['link']}"
                             emb.add_field(name = name, value = f"{body}{tail}", inline = False)
-
-                        channel = await self.bot.fetch_channel(uid)
-
-                        if not self.check_cog_enabled(channel.guild.id):
-                            return
 
                         await channel.send(embed = emb)
                         
@@ -837,10 +845,12 @@ class Weather(commands.Cog):
                             if aid:
                                 self.bot.store.set_note(uid, _seen_key(uid, aid), "1")
 
-                    except Exception:
-                        continue
-        except Exception:
-            pass
+                    except Exception as e:
+                        channel.send("a weather alert was issued for this channel, but i can't freaking read it :boykisser_evaporate: :boykisser_seething:")
+                        log.error(f"Weather alert error: {e}\n\n{traceback.format_exc()}")
+                    
+        except Exception as e:
+            log.error(f"Weather alert error: {e}\n\n{traceback.format_exc()}")
 
     @weather_alerts_scheduler.before_loop
     async def before_alerts(self):

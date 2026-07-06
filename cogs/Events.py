@@ -216,7 +216,7 @@ class Events(commands.Cog):
                         changes.append(f"**Name**: `{before.name}` => `{after.name}`.")
 
                     if before.description != after.description:
-                        changes.append(f"**Description**: `{before.description}` => `{after.description}`.")
+                        changes.append(f"**Description**:\n`{before.description}`\n=>\n`{after.description}`.")
 
                     if before.start_time != after.start_time:
                         changes.append(f"**Start time**: <t:{int(before.start_time.timestamp())}:F> => <t:{int(after.start_time.timestamp())}:F>.")
@@ -227,7 +227,7 @@ class Events(commands.Cog):
                     if before.location != after.location:
                         changes.append(f"**Location**: `{before.location}` => `{after.location}`.")
 
-                    string = f"[{after.name}]({after.url}) has been updated!\n"
+                    string = f"# [{after.name}]({after.url}) has been updated!\n"
 
                     for change in changes:
                         string += change + "\n"
