@@ -127,6 +127,9 @@ class Audit(commands.Cog):
         if before.author.id == self.bot.user.id:
             return
 
+        if before.content == after.content:
+            return
+
         for channelId in self.bot.store.list_audit_subs(before.guild.id):
             channel = await self.bot.fetch_channel(channelId)
             embed = discord.Embed(title = "Edited their message", url = f"https://discord.com/channels/{before.guild.id}/{before.channel.id}/{before.id}", color = 0x67b5fe)
