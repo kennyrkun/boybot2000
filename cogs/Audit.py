@@ -129,8 +129,8 @@ class Audit(commands.Cog):
             channel = await self.bot.fetch_channel(channelId)
             embed = discord.Embed(title = "edited their message", url = f"https://discord.com/channels/@me/{before.guild.id}/{before.id}", color = 0x67b5fe)
             embed.set_author(name = before.author.global_name, icon_url = before.author.avatar.url)
-            embed.add_field(name = "Before", value = before.content)
-            embed.add_field(name = "After", value = after.content)
+            embed.add_field(name = "Before", value = before.content, inline = False)
+            embed.add_field(name = "After", value = after.content, inline = False)
             await channel.send(embed = embed)
 
         log.info("Message edited.")
