@@ -103,6 +103,7 @@ class Audit(commands.Cog):
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
             channel = await self.bot.fetch_channel(channelId)
             await channel.send(message)
+            await channel.send(message.content)
 
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
@@ -122,6 +123,13 @@ class Audit(commands.Cog):
         # TODO: this may not be required since we're using discord.Bot
         if before.author.id == self.bot.user.id:
             return
+
+        for channelId in self.bot.store.list_audit_subs(message.guild.id):
+            channel = await self.bot.fetch_channel(channelId)
+            await channel.send(message.before)
+            await channel.send(message.before.content)
+            await channel.send(message.after)
+            await channel.send(message.after.content)
 
         log.info("Message edited.")
         log.info(before)
