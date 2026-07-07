@@ -61,9 +61,11 @@ class Audit(commands.Cog):
     async def subscriptions(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral = True)
 
-        items = self.bot.store.list_audit_subs(inter.guild.id)
+        string = ""
+        for channel in self.bot.store.list_audit_subs(inter.guild.id)
+            string += f"<@{channel}>\n"
 
-        await inter.followup.send(items, ephemeral = True)
+        await inter.followup.send(string, ephemeral = True)
 
     # TODO: if the current guild only has one subscription, remove it and don't take channel id.
     @group.command(name = "unsubscribe", description = "Unsubscribe a channel from audit logs.")
