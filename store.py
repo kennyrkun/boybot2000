@@ -413,9 +413,10 @@ class Store:
         self.db.commit()
         return int(cur.lastrowid)
 
-    def list_audit_subs(self, guild_id: int) -> List[Dict[str, Any]]:
-        rows = self.db.execute("SELECT * FROM audit_subscriptions WHERE guild_id = ?", (guild_id,)).fetchall()
-        return [dict(r) for r in rows]
+    # returns a list of channel ids for the given guild_id
+    def list_audit_subs(self, guild_id: int) -> List[int]:
+        rows = self.db.execute("SELECT channel_id FROM audit_subscriptions WHERE guild_id = ?", (guild_id,)).fetchall()
+        return [r[0] for r in rows]
 
     def remove_audit_sub(self, guild_id: int, channel_id: int) -> bool:
         cur = self.db.cursor()

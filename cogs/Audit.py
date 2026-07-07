@@ -98,21 +98,16 @@ class Audit(commands.Cog):
         log.info("Message deleted.")
         log.info(message)
 
+        for channelId in self.bot.store.list_audit_subs(message.guild.id):
+            channel = await self.bot.fetch_channel(channelId)
+            await channel.send(message)
+
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
+        log.info("Bulk messages deleted.")
+
         for message in messages:
-            if message.guild is None:
-                return
-
-            if not self.check_cog_enabled(message.guild.id):
-                return
-
-            # TODO: this may not be required since we're using discord.Bot
-            if message.author.id == self.bot.user.id:
-                return
-
-            log.info("Message bulk deleted.")
-            log.info(message)
+            self.on_message_delete(message)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
