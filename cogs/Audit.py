@@ -104,6 +104,7 @@ class Audit(commands.Cog):
             channel = await self.bot.fetch_channel(channelId)
             embed = discord.Embed(title = f"Deleted a message.", description = message.content, color = 0x67b5fe)
             embed.set_author(name = message.author.global_name, icon_url = message.author.avatar.url)
+            embed.add_field(name = "Channel", value = f"<#{message.channel.id}>", inline = False)
             await channel.send(embed = embed)
 
     @commands.Cog.listener()
