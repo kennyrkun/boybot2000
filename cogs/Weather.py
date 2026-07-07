@@ -846,7 +846,7 @@ class Weather(commands.Cog):
                                 self.bot.store.set_note(uid, _seen_key(uid, aid), "1")
 
                     except Exception as e:
-                        channel.send("a weather alert was issued for this channel, but i can't freaking read it :boykisser_evaporate: :boykisser_seething:")
+                        await channel.send("a weather alert was issued for this channel, but i can't freaking read it :boykisser_evaporate: :boykisser_seething:")
                         log.error(f"Weather alert error: {e}\n\n{traceback.format_exc()}")
                     
         except Exception as e:
