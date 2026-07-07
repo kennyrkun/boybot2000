@@ -102,9 +102,8 @@ class Audit(commands.Cog):
 
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
             channel = await self.bot.fetch_channel(channelId)
-            embed = discord.Embed(title = f"deleted their message in <@{message.channel.id}>", color = 0x67b5fe)
+            embed = discord.Embed(title = f"deleted their message in <@{message.channel.id}>", description = message.content color = 0x67b5fe)
             embed.set_author(name = message.author.global_name, icon_url = message.author.avatar.url)
-            embed.set_description(message.content)
             await channel.send(embed = embed)
 
     @commands.Cog.listener()
