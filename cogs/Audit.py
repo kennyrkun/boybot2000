@@ -62,7 +62,7 @@ class Audit(commands.Cog):
         await inter.response.defer(ephemeral = True)
 
         string = ""
-        for channel in self.bot.store.list_audit_subs(inter.guild.id)
+        for channel in self.bot.store.list_audit_subs(inter.guild.id):
             string += f"<@{channel}>\n"
 
         await inter.followup.send(string, ephemeral = True)
