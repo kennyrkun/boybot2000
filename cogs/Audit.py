@@ -102,7 +102,7 @@ class Audit(commands.Cog):
 
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
             channel = await self.bot.fetch_channel(channelId)
-            embed = discord.Embed(title = f"deleted their message in <@{message.channel.id}>", description = message.content, color = 0x67b5fe)
+            embed = discord.Embed(title = f"Deleted a message.", description = message.content, color = 0x67b5fe)
             embed.set_author(name = message.author.global_name, icon_url = message.author.avatar.url)
             await channel.send(embed = embed)
 
@@ -127,7 +127,7 @@ class Audit(commands.Cog):
 
         for channelId in self.bot.store.list_audit_subs(before.guild.id):
             channel = await self.bot.fetch_channel(channelId)
-            embed = discord.Embed(title = "edited their message", url = f"https://discord.com/channels/@me/{before.guild.id}/{before.id}", color = 0x67b5fe)
+            embed = discord.Embed(title = "Edited their message", url = f"https://discord.com/channels/{before.guild.id}/{before.channel.id}/{before.id}", color = 0x67b5fe)
             embed.set_author(name = before.author.global_name, icon_url = before.author.avatar.url)
             embed.add_field(name = "Before", value = before.content, inline = False)
             embed.add_field(name = "After", value = after.content, inline = False)
