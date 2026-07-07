@@ -100,6 +100,7 @@ class Audit(commands.Cog):
         log.info("Message deleted.")
         log.info(message)
 
+        # TODO: support images
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
             channel = await self.bot.fetch_channel(channelId)
             embed = discord.Embed(title = f"Deleted a message.", description = message.content, color = 0x67b5fe)
