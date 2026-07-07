@@ -63,7 +63,7 @@ class Audit(commands.Cog):
 
         string = ""
         for channel in self.bot.store.list_audit_subs(inter.guild.id):
-            string += f"<@{channel}>\n"
+            string += f"<#{channel}>\n"
 
         await inter.followup.send(string, ephemeral = True)
 
