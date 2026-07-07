@@ -102,7 +102,10 @@ class Audit(commands.Cog):
 
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
             channel = await self.bot.fetch_channel(channelId)
-            await channel.send(f"Deleted {message}.\nContent:\n{message.content}")
+            embed = discord.Embed(title = f"deleted their message in <@{message.channel.id}>", color = 0x67b5fe)
+            embed.set_author(name = message.author.global_name, icon_url = message.author.avatar.url)
+            embed.set_description(message.content)
+            await channel.send(embed = embed)
 
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
@@ -125,7 +128,11 @@ class Audit(commands.Cog):
 
         for channelId in self.bot.store.list_audit_subs(before.guild.id):
             channel = await self.bot.fetch_channel(channelId)
-            await channel.send(f"Message {before} edited.\nOld content:\n{before.content}\nNew Content:\n{after.content}")
+            embed = discord.Embed(title = "edited their message", url = f"https://discord.com/channels/@me/{before.guild.id}/{before.id}", color = 0x67b5fe)
+            embed.set_author(name = before.author.global_name, icon_url = before.author.avatar.url)
+            embed.add_field(name = "Before", value = before.content)
+            embed.add_field(name = "After", value = after.content)
+            await channel.send(embed = embed)
 
         log.info("Message edited.")
         log.info(before)
