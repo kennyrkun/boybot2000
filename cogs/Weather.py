@@ -823,11 +823,11 @@ class Weather(commands.Cog):
                             if a.get("starts"):
                                 # rstrip : from start time because strptime is not expecting it in the timezone
                                 # this is the format of times provided by the api: 2026-07-04T22:11:00-05:00
-                                start = dt = datetime.datetime.strptime(a["starts"].rstrip(":"), "%Y-%m-%dT%H:%M:%S%z")
+                                start = dt = datetime.strptime(a["starts"].rstrip(":"), "%Y-%m-%dT%H:%M:%S%z")
                                 when += f"Starts: <t:{int(start.timestamp())}:r>\n"
 
                             if a.get("ends"):
-                                end = dt = datetime.datetime.strptime(a["ends"].rstrip(":"), "%Y-%m-%dT%H:%M:%S%z")
+                                end = dt = datetime.strptime(a["ends"].rstrip(":"), "%Y-%m-%dT%H:%M:%S%z")
                                 when += f"Ends: <t:{int(end.timestamp())}:r>\n"
 
                             body = (a.get("headline") or a.get("desc") or "Details unavailable").strip()
