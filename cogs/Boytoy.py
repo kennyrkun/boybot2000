@@ -23,7 +23,7 @@ class Boytoy(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-        self.regex = re.compile(r"((t|b)+o+(y|t)( ?)+){2}", re.IGNORECASE)
+        self.regex = re.compile(r"((t|b)+o+(y|t|i)(e?)( ?)+){2}", re.IGNORECASE)
 
     def cog_unload(self):
         return
@@ -82,6 +82,7 @@ class Boytoy(commands.Cog):
 
         if message.reference is not None and isinstance(message.reference.resolved, discord.Message):
             if message.reference.resolved.author.id == self.bot.user.id:
+                log.debug("Message was a reply to boybot.")
                 async with message.channel.typing():
                     await asyncio.sleep(random.randint(0, 4))
 
@@ -91,6 +92,7 @@ class Boytoy(commands.Cog):
 
         # if they said boybot
         elif self.regex.search(messageText) or f"<@{self.bot.user.id}>" in messageText:
+            log.debug("Message contained bot name.")
             await asyncio.sleep(random.randint(0, 4))
 
             if any(x in messageText for x in [ "good", "great", "thank", "smart", "cool", "awesome", "amazing", "perfect", "cute", "handsome", "yay", "best", "nice" ]):
@@ -111,10 +113,13 @@ class Boytoy(commands.Cog):
                     return await message.add_reaction("<:boykisser_what:1483293684899381248>")
 
         elif any(x in messageText for x in [ "clanker", "burger king" ]):
+            log.debug("Message contained clanker or burger king.")
             return await message.add_reaction("<:boykisser_mad_as_hell:1488617115694006352>")
         
         # TODO: had to remove "boy" from this because it would reply to boykisser emotes
         elif any(x in messageText for x in [ "boys" ]):
+            log.debug("Message contained boys.")
+
             async with message.channel.typing():
                 await asyncio.sleep(random.randint(0, 4))
 
