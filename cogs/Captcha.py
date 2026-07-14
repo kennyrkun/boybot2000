@@ -76,14 +76,14 @@ class Captcha(commands.Cog):
 
             message.edit_message(content = "you're too slow!!!! :<<", view = None)
 
-            log.info(f"Captcha for {member.global_name} in {member.guild.id} has expired.")
+            log.info(f"Captcha for {member.name} in {member.guild.id} has expired.")
         elif view.value:
             self.bot.store.remove_captcha_user(member.id, member.guild.id)
             message.edit_message(content = "thank you bestie!!", view = None)
-            log.info(f"{member.global_name} ({member.id}) answered captcha with not a bot in {member.guild.id}.")
+            log.info(f"{member.name} ({member.id}) answered captcha with not a bot in {member.guild.id}.")
         else:
             await member.guild.kick(member)
-            log.info(f"{member.global_name} ({member.id}) answered captcha bot in {member.guild.id}, kicked them.")
+            log.info(f"{member.name} ({member.id}) answered captcha bot in {member.guild.id}, kicked them.")
         
     # -------- Event handlers --------
 

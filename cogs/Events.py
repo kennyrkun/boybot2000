@@ -144,7 +144,7 @@ class Events(commands.Cog):
             if s["guild_id"] == event.guild.id:
                 if s["channel_id"] not in sent_channels:
                     channel = await self.bot.fetch_channel(int(s["channel_id"]))
-                    creator = event.creator.global_name or "someone"
+                    creator = event.creator.name or "someone"
                     await channel.send(content = (
                             await self.bot.NaturalLanguage.prompt(
                                 channel, 
