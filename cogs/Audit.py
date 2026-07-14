@@ -102,11 +102,14 @@ class Audit(commands.Cog):
 
         # TODO: support images
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
-            channel = await self.bot.fetch_channel(channelId)
-            embed = discord.Embed(title = f"Deleted a message.", description = message.content, color = 0x67b5fe)
-            embed.set_author(name = message.author.name, icon_url = message.author.avatar.url)
-            embed.add_field(name = "Channel", value = f"<#{message.channel.id}>", inline = False)
-            await channel.send(embed = embed)
+            if message.content:
+                channel = await self.bot.fetch_channel(channelId)
+                embed = discord.Embed(title = f"Deleted a message.", description = message.content, color = 0x67b5fe)
+                embed.set_author(name = message.author.name, icon_url = message.author.avatar.url)
+                embed.add_field(name = "Channel", value = f"<#{message.channel.id}>", inline = False)
+                await channel.send(embed = embed)
+            else:
+                log.error("A message was deleted but it contained no content.")
 
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
