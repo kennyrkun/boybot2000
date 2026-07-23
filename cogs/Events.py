@@ -1,3 +1,5 @@
+# TODO: do not print emojis in the names of events in links. discord will not format the link if the text contains an emote.
+
 import os
 import asyncio
 import traceback
