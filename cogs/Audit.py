@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import io
+import requests
 import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
