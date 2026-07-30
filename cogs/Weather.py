@@ -395,7 +395,7 @@ async def _create_day_embed(store, channel_id: int, zip: app_commands.Range[str,
         emb.add_field(name = "Sunset", value = fmt_sun(sunset), inline = True)
 
     # Moon phase (in user's timezone)
-    moonName, moonEmoji, moonAge = moon_phase_info_for_date(datetime.now(timezone.utc))
+    moonName, moonEmoji, moonAge = moon_phase_info_for_date(datetime.utcnow())
     emb.add_field(name = "Moon", value = f"{moonEmoji} {moonName}", inline = True)
 
     emb.set_footer(text = f"{units} units • {tz_name} • {z}")
