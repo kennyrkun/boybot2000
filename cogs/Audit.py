@@ -119,7 +119,7 @@ class Audit(commands.Cog):
                     for attachment in message.attachments:
                         # TODO: check attachment.type make sure it's an image
                         log.info("Downloading an image for audit log...")
-                        images.append(discord.File(io.BytesIO(requests.get(attachment.url).content)))
+                        images.append(discord.File(io.BytesIO(requests.get(attachment.url).content), filename=attachment.filename))
 
                 embed.set_footer(text = f"Deleted at <t:{message.created_at}:f>")
 
