@@ -108,7 +108,7 @@ class Audit(commands.Cog):
                 embed.set_author(name = message.author.name, icon_url = message.author.avatar.url)
                 embed.add_field(name = "Channel", value = f"<#{message.channel.id}>", inline = False)
                 embed.add_field(name = "Attachments", value = len(message.attachments), inline = False)
-                embed.set_footer(text = f"Deleted at <t:{datetime.datetime.utcnow()}:f>")
+                embed.set_footer(text = f"Deleted at <t:{datetime.utcnow()}:f>")
                 await channel.send(embed = embed)
             else:
                 log.error("A message was deleted but it contained no content.")
