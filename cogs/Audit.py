@@ -100,7 +100,6 @@ class Audit(commands.Cog):
         log.info("Message deleted.")
         log.info(message)
 
-        # TODO: support images
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
             if message.content or len(message.attachments) > 0:
                 channel = await self.bot.fetch_channel(channelId)
