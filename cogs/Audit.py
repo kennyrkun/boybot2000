@@ -121,7 +121,7 @@ class Audit(commands.Cog):
                         log.info("Downloading an image for audit log...")
                         images.append(discord.File(io.BytesIO(requests.get(attachment.url).content), filename=attachment.filename))
 
-                embed.set_footer(text = f"Deleted at <t:{message.created_at.timestamp()}:f>")
+                embed.set_footer(text = f"Deleted at <t:{int(message.created_at.timestamp())}:f>")
 
                 await channel.send(embed = embed, files = images)
             else:
