@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import io
 import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List, Tuple
@@ -101,14 +102,27 @@ class Audit(commands.Cog):
         log.info(message)
 
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
-            if message.content or len(message.attachments) > 0:
+            attachmentCount = len(message.attachments)
+
+            if message.content or attachmentCount > 0:
                 channel = await self.bot.fetch_channel(channelId)
                 embed = discord.Embed(title = f"Deleted a message.", description = message.content or "None.", color = 0xff0000, timestamp = datetime.utcnow())
                 embed.set_author(name = message.author.name, icon_url = message.author.avatar.url)
                 embed.add_field(name = "Channel", value = f"<#{message.channel.id}>", inline = False)
-                embed.add_field(name = "Attachments", value = len(message.attachments), inline = False)
+
+                images = []
+
+                if attachmentCount > 0:
+                    embed.add_field(name = "Attachments", value = attachmentCount, inline = False)
+
+                    for attachment in message.attachments:
+                        # TODO: check attachment.type make sure it's an image
+                        log.info("Downloading an image for audit log...")
+                        images.append(discord.File(io.BytesIO(requests.get(attachment.url).content)))
+
                 embed.set_footer(text = f"Deleted at <t:{message.created_at}:f>")
-                await channel.send(embed = embed)
+
+                await channel.send(embed = embed, files = images)
             else:
                 log.error("A message was deleted but it contained no content.")
 
