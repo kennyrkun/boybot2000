@@ -102,9 +102,9 @@ class Audit(commands.Cog):
 
         # TODO: support images
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
-            if message.content:
+            if message.content or len(message.attachments) > 0:
                 channel = await self.bot.fetch_channel(channelId)
-                embed = discord.Embed(title = f"Deleted a message.", description = message.content, color = 0xff0000, timestamp = message.created_at)
+                embed = discord.Embed(title = f"Deleted a message.", description = message.content or "None.", color = 0xff0000, timestamp = message.created_at)
                 embed.set_author(name = message.author.name, icon_url = message.author.avatar.url)
                 embed.add_field(name = "Channel", value = f"<#{message.channel.id}>", inline = False)
                 embed.add_field(name = "Attachments", value = len(message.attachments), inline = False)
