@@ -395,7 +395,7 @@ async def _create_day_embed(store, channel_id: int, zip: app_commands.Range[str,
         emb.add_field(name = "Sunset", value = fmt_sun(sunset), inline = True)
 
     # Moon phase (in user's timezone)
-    moonName, moonEmoji, moonAge = moon_phase_info_for_date(datetime.now(timezone.utc))
+    moonName, moonEmoji, moonAge = moon_phase_info_for_date(datetime.utcnow())
     emb.add_field(name = "Moon", value = f"{moonEmoji} {moonName}", inline = True)
 
     emb.set_footer(text = f"{units} units • {tz_name} • {z}")
@@ -620,7 +620,7 @@ class Weather(commands.Cog):
                 except Exception:
                     needs = True
 
-            if not needs and nxt is not None and nxt <= datetime.now(timezone.utc):
+            if not needs and nxt is not None and nxt <= datetime.utcnow():
                 needs = True
 
             if needs:
@@ -673,7 +673,7 @@ class Weather(commands.Cog):
     @tasks.loop(seconds = 60)
     async def weather_scheduler(self):
         try:
-            now_utc = datetime.now(timezone.utc)
+            now_utc = datetime.utcnow()
             subs = self.bot.store.list_weather_subs(None)
 
             if not subs:

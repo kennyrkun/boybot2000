@@ -97,7 +97,7 @@ class Moon(commands.Cog):
     @group.command(name = "current", description = "Show the current moon phase.")
     async def moon(self, inter: discord.Interaction):
         await inter.response.defer()
-        await inter.followup.send(embed = _get_moon_embed(datetime.now(timezone.utc)))
+        await inter.followup.send(embed = _get_moon_embed(datetime.utcnow()))
 
     @group.command(name = "subscribe", description = "Subscribe this channel to a daily or weekly moon phase announcement at a UTC time.")
     @app_commands.describe(
@@ -118,7 +118,7 @@ class Moon(commands.Cog):
 
         try:
             hh, mi = _parse_time(time)
-            now = datetime.now(timezone.utc)
+            now = datetime.utcnow()
             first = _next_run(now, hh, mi, cadence.value)
 
             sub = {
@@ -164,7 +164,7 @@ class Moon(commands.Cog):
         out_lines = []
 
         for s in items:
-            now = datetime.now(timezone.utc)
+            now = datetime.utcnow()
             hh = int(s.get("hh", 8))
             mi = int(s.get("mi", 0))
             cadence = s.get("cadence", "daily") if s.get("cadence") in {"daily", "weekly"} else "daily"
@@ -180,7 +180,7 @@ class Moon(commands.Cog):
                 except Exception:
                     needs = True
 
-            if not needs and nxt is not None and nxt <= datetime.now(timezone.utc):
+            if not needs and nxt is not None and nxt <= datetime.utcnow():
                 needs = True
 
             if needs:
@@ -198,7 +198,7 @@ class Moon(commands.Cog):
     @tasks.loop(seconds = 60)
     async def moon_scheduler(self):
         try:
-            now = datetime.now(timezone.utc)
+            now = datetime.utcnow()
             subs = self.bot.store.list_moon_subs(None)
 
             if not subs:
@@ -231,10 +231,10 @@ class Moon(commands.Cog):
 
                         await channel.send(embeds = embs)
 
-                        next = datetime.now(timezone.utc)
+                        next = datetime.utcnow()
                         next = next.replace(hour = s["hh"], minute = s["mi"], second = 0, microsecond = 0)
 
-                        if next <= datetime.now(timezone.utc):
+                        if next <= datetime.utcnow():
                             next += timedelta(days = interval)
 
                         self.bot.store.update_moon_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
