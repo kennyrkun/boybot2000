@@ -102,7 +102,7 @@ class Captcha(commands.Cog):
         if member.id in self.bot.store.list_captcha_users(member.guild.id):
             return
 
-        if self.bot.store.add_captcha_user(member.guild.id, member.id, datetime.utcnow()):
+        if self.bot.store.add_captcha_user(member.guild.id, member.id, datetime.now(timezone.utc)):
             await self.challengeMember(member)
 
     # --------- Text Commands --------
@@ -127,7 +127,7 @@ class Captcha(commands.Cog):
         try:
             queuedUsers = self.bot.store.list_captcha_users()
 
-            timeoutTimestamp = datetime.utcnow() + timedelta(seconds = self.timeout)
+            timeoutTimestamp = datetime.now(timezone.utc) + timedelta(seconds = self.timeout)
 
             for user in queuedUsers:
                 # TODO: if the user timestamp in the db is earlier than the user's server join date, remove them from the queue

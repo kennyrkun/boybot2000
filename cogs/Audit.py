@@ -104,11 +104,11 @@ class Audit(commands.Cog):
         for channelId in self.bot.store.list_audit_subs(message.guild.id):
             if message.content or len(message.attachments) > 0:
                 channel = await self.bot.fetch_channel(channelId)
-                embed = discord.Embed(title = f"Deleted a message.", description = message.content or "None.", color = 0xff0000, timestamp = message.created_at)
+                embed = discord.Embed(title = f"Deleted a message.", description = message.content or "None.", color = 0xff0000, timestamp = datetime.now(timezone.utc))
                 embed.set_author(name = message.author.name, icon_url = message.author.avatar.url)
                 embed.add_field(name = "Channel", value = f"<#{message.channel.id}>", inline = False)
                 embed.add_field(name = "Attachments", value = len(message.attachments), inline = False)
-                embed.set_footer(text = f"Deleted at <t:{datetime.utcnow()}:f>")
+                embed.set_footer(text = f"Deleted at <t:{message.created_at}:f>")
                 await channel.send(embed = embed)
             else:
                 log.error("A message was deleted but it contained no content.")

@@ -134,7 +134,7 @@ class Events(commands.Cog):
     async def on_scheduled_event_create(self, event: discord.ScheduledEvent):
         # TODO: add cog check for guild here
         
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         subs = self.bot.store.list_event_subs(None)
 
         if not subs:
@@ -169,7 +169,7 @@ class Events(commands.Cog):
     async def on_scheduled_event_delete(self, event: discord.ScheduledEvent):
         # TODO: add cog check for guild here
         
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         subs = self.bot.store.list_event_subs(None)
 
         if not subs:
@@ -188,7 +188,7 @@ class Events(commands.Cog):
     async def on_scheduled_event_update(self, before: discord.ScheduledEvent, after: discord.ScheduledEvent):
         # TODO: add cog check for guild here
         
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         subs = self.bot.store.list_event_subs(None)
 
         if not subs:
@@ -241,7 +241,7 @@ class Events(commands.Cog):
     @group.command(name = "list", description = "Show a list of events in the current channel.")
     async def events_list(self, inter: discord.Interaction):
         await inter.response.defer()
-        events = await self._get_event_list(inter.channel_id, 1, "today", datetime.utcnow())
+        events = await self._get_event_list(inter.channel_id, 1, "today", datetime.now(timezone.utc))
         await inter.followup.send(events)
 
     @group.command(name = "subscribe", description = "Subscribe this channel to a daily or weekly event announcement at a UTC time.")
@@ -263,7 +263,7 @@ class Events(commands.Cog):
 
         try:
             hh, mi = _parse_time(time)
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             first = _next_run(now, hh, mi, cadence.value)
 
             sub = {
@@ -310,7 +310,7 @@ class Events(commands.Cog):
         out_lines = []
 
         for s in items:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             hh = int(s.get("hh", 8))
             mi = int(s.get("mi", 0))
             cadence = s.get("cadence", "daily") if s.get("cadence") in {"daily", "weekly"} else "daily"
@@ -326,7 +326,7 @@ class Events(commands.Cog):
                 except Exception:
                     needs = True
 
-            if not needs and nxt is not None and nxt <= datetime.utcnow():
+            if not needs and nxt is not None and nxt <= datetime.now(timezone.utc):
                 needs = True
 
             if needs:
@@ -344,7 +344,7 @@ class Events(commands.Cog):
     @tasks.loop(seconds = 60)
     async def events_scheduler(self):
         try:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             subs = self.bot.store.list_event_subs(None)
 
             if not subs:
@@ -370,10 +370,10 @@ class Events(commands.Cog):
                         events = await self._get_event_list(channel.id, interval, noun, now)
                         await channel.send(events, delete_after = 86400)
 
-                        next = datetime.utcnow()
+                        next = datetime.now(timezone.utc)
                         next = next.replace(hour = s["hh"], minute = s["mi"], second = 0, microsecond = 0)
 
-                        if next <= datetime.utcnow():
+                        if next <= datetime.now(timezone.utc):
                             next += timedelta(days = interval)
 
                         self.bot.store.update_event_sub(s["id"], channel_id = int(s["channel_id"]), next_run = next.isoformat())
