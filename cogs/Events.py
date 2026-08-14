@@ -218,7 +218,10 @@ class Events(commands.Cog):
                         changes.append(f"**Name**: `{before.name}` => `{after.name}`.")
 
                     if before.description != after.description:
-                        changes.append(f"**Description**:\n{before.description}\n=>\n{after.description}.")
+                        if len(before.description) < 1:
+                            changes.append(f"**Description is now**:\n{after.description}.")
+                        else:
+                            changes.append(f"**Description**:\n{before.description}\n=>\n{after.description}.")
 
                     if before.start_time != after.start_time:
                         changes.append(f"**Start time**: <t:{int(before.start_time.timestamp())}:F> => <t:{int(after.start_time.timestamp())}:F>.")
